@@ -1,14 +1,11 @@
 const gulp = require("gulp");
 const concat = require("gulp-concat");
 const buffer = require("vinyl-buffer");
-const typescript = require("gulp-typescript");
-const babel = require("gulp-babel");
 const sourcemaps = require("gulp-sourcemaps");
 const inject = require("gulp-inject");
 const browserify = require("browserify");
 const source = require("vinyl-source-stream");
 const tsify = require("tsify");
-const debug = require("gulp-debug");
 const sass = require("gulp-sass");
 const autoprefixer = require("gulp-autoprefixer");
 const connect = require("gulp-connect");
@@ -59,15 +56,13 @@ const paths = {
   }
 }
 
-gulp.task("build", ["sass","bundle","copy:html","inject:index"]);
-
 function errorHandler(err) {
   log.error(err);
   this.emit("end");
 }
 
 gulp.task("sass", () => {
-  gulp.src(paths.src.sass.all)
+  return gulp.src(paths.src.sass.all)
   .pipe(sourcemaps.init())
   .pipe(sass())
   .pipe(autoprefixer())
@@ -98,7 +93,7 @@ gulp.task("copy:html", () => {
     .pipe(gulp.dest(paths.out.dev.root))
 });
 
-gulp.task("inject:index", ["bundle","copy:html","sass"], () => {
+gulp.task("inject:index", () => {
   const injectables = {
     scripts: gulp.src(paths.out.dev.scripts.all, { read: false }),
     style: gulp.src(paths.out.dev.css.all, { read: false })
@@ -115,6 +110,11 @@ gulp.task("serve", () => {
     root: "./dist",
   });
 
-  gulp.watch(paths.src.scripts.all, ["copy:html","inject:index","bundle"]);
-  gulp.watch(paths.src.sass.all, ["sass"])
+  gulp.watch(paths.src.scripts.all, gulp.parallel(
+    gulp.series("copy:html","inject:index"),
+    "bundle"
+  ));
+  gulp.watch(paths.src.sass.all, gulp.series("sass"));
 });
+
+gulp.task("build", gulp.series(gulp.parallel("sass","bundle","copy:html"),"inject:index"));
