@@ -11,6 +11,7 @@ const autoprefixer = require("gulp-autoprefixer");
 const connect = require("gulp-connect");
 const babelify = require("babelify");
 const log = require("fancy-log");
+const open = require("gulp-open");
 
 const paths = {
   src: {
@@ -109,6 +110,10 @@ gulp.task("serve", () => {
   connect.server({
     root: "./dist",
   });
+
+  gulp.src("./").pipe(open({
+    uri: "http://localhost:8080/"
+  }));
 
   gulp.watch(paths.src.scripts.all, gulp.parallel(
     gulp.series("copy:html","inject:index"),
