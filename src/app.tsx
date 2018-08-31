@@ -3,14 +3,15 @@ import "@babel/polyfill";
 import "raf/polyfill";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+import { TestableComponent } from "./components/testable-component/TestableComponent";
 import * as _env from "./settings.env.json";
-import { EnvConfig } from "./types/EnvConfig";
+import { EnvConfig } from "./types/envConfig";
 
-const env : EnvConfig = _env as EnvConfig;
+const env: EnvConfig = _env as EnvConfig;
 
 export default class HalloweenApp extends React.Component<
   {
-    env: EnvConfig
+    env: EnvConfig;
   },
   {}
 > {
@@ -18,11 +19,8 @@ export default class HalloweenApp extends React.Component<
     super(props);
   }
   render() {
-    return <span className="appName">{this.props.env.version}</span>;
+    return <TestableComponent leftSummand={5} rightSummand={6} />;
   }
 }
 
-ReactDOM.render(
-  <HalloweenApp env={env} />,
-  document.getElementById("app")
-);
+ReactDOM.render(<HalloweenApp env={env} />, document.getElementById("app"));
