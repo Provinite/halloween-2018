@@ -40,6 +40,8 @@
     "vinyl-source-stream": "^2.0.0"
   },
   "dependencies": {
+    "@babel/polyfill": "^7.0.0",
+    "raf": "^3.4.0",
     "react": "^16.4.2",
     "react-dom": "^16.4.2"
   },
