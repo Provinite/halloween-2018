@@ -1,8 +1,10 @@
 {
-  "name": "halloween-2018",
+  "name": "clovercoin-halloween-2018",
   "version": "0.0.0",
   "description": "CloverCoin 2018 Halloween Event",
   "main": "index.js",
+  "author": "Collin Driscoll",
+  "license": "UNLICENSED",
   "dependencies": {},
   "devDependencies": {
     "cz-conventional-changelog": "^2.1.0"
@@ -14,7 +16,6 @@
     "type": "git",
     "url": "git+https://github.com/provinite/halloween-2018.git"
   },
-  "author": "Collin Driscoll",
   "bugs": {
     "url": "https://github.com/provinite/halloween-2018/issues"
   },
