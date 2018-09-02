@@ -76,7 +76,7 @@ gulp.task("bundle", () => {
   const bundler = browserify({
     debug: true,
     entries: paths.src.scripts.entry
-  }).plugin(tsify).transform(babelify);
+  }).plugin(tsify).transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]});
 
   return bundler.bundle()
   .on('error', errorHandler)
