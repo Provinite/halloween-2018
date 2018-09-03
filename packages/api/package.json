@@ -4,16 +4,28 @@
   "description": "clovercoin halloween 2018 api",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/app.js"
   },
   "author": "Collin Driscoll",
   "license": "UNLICENSED",
   "devDependencies": {
-    "cz-conventional-changelog": "^2.1.0"
+    "@types/koa": "^2.0.46",
+    "cz-conventional-changelog": "^2.1.0",
+    "gulp": "^4.0.0",
+    "gulp-nodemon": "^2.2.1",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-typescript": "^5.0.0-alpha.3",
+    "nodemon": "^1.18.4",
+    "typescript": "^3.0.3"
   },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "dependencies": {
+    "awilix": "^3.0.9",
+    "koa": "^2.5.2"
   }
 }
