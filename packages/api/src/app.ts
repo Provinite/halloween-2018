@@ -1,4 +1,4 @@
 import { HalloweenAppDevRunner } from "./HalloweenAppDevRunner";
 
-let runner: HalloweenAppDevRunner = new HalloweenAppDevRunner();
+const runner: HalloweenAppDevRunner = new HalloweenAppDevRunner();
 runner.run();
