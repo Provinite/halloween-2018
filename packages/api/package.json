@@ -1,6 +1,6 @@
 {
   "name": "clovercoin-halloween-2018-api",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "clovercoin halloween 2018 api",
   "main": "index.js",
   "scripts": {
