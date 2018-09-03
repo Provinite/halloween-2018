@@ -10,6 +10,6 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
     this.webserver.use(ctx => {
       ctx.body = "Hello from HalloweenAppDevRunner";
     });
-    this.webserver.listen(8081);
+    this.webserver.listen(process.env.PORT);
   }
 }
