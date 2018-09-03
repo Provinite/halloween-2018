@@ -1,3 +1,4 @@
+import * as Koa from "koa";
 export interface IHalloweenAppRunner {
-  run(): void;
+  run(webserver: Koa): void;
 }

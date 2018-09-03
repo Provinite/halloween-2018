@@ -3,8 +3,10 @@ import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
 
 export class HalloweenAppDevRunner implements IHalloweenAppRunner {
   private webserver: Koa;
+  constructor(webserver: Koa) {
+    this.webserver = webserver;
+  }
   run(): void {
-    this.webserver = new Koa();
     console.log("Initializing and launching the application");
 
     this.webserver.use(ctx => {
