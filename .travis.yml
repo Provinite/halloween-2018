@@ -1,14 +1,20 @@
 language: node_js
 node_js:
-  - node
+- node
 cache:
   directories:
-    - node_modules
-    - packages/web-client/node_modules
-    - packages/api/node_modules
-install: 
-  - npm install
-  - lerna bootstrap
+  - node_modules
+  - packages/web-client/node_modules
+  - packages/api/node_modules
+install:
+- npm install
+- lerna bootstrap
 script:
-  - lerna run test
-  - lerna run build
+- lerna run test
+- lerna run build
+deploy:
+  provider: heroku
+  app: pillowing-halloween-2018-api
+  skip_cleanup: true
+  api_key:
+    secure: C1JxJLPPVtq9ZkBXD02ry7nJh+MdqLiBN9H4zSHd8IyWTFNW4CzPSrPfte+IwNpztLoueKwCOg2ZfKa0xHBYPXoeUy25mBmVZ8AIppUnN8TdBh9wn5GtmUeXjkgrlyEYpTwzEda8jc1/2c4JO2pfC94qVhMPj2HwJ8AbPy8/SBXkDUWaPm0nE/c2bbt0DWle8TxjxARGCxfZq2O9Pxp678DoCy3Q0pw8DrzlCoGEFZ9uhkj3ThoCH5YYCcwfjcoXhOfznT9/p7GojsQGwRn9CT79Vn/KOpLErJUNFE8cU46ce9nHmu0yVFyAxgTsbeTc1zztlnYmpsS19Rm31aN+yjXZsancu/VN4VW5Del7wzathZFRnoXvnbSWO2QotXMp4fj2B+7T69ddUcPWZ7Yl5wQ84Flle0f4tWaRR7NJ9V44MUfO8mhOCX9lF7l/XGW+4TpluDGVHOr2AwHCnnWKParTpOXy3HyrtEeOtZsGsAgr5tYQXQGNV6Sm6XlW2bg0K870IDgrM2icokdaY8ilkgtDoPcu/kC8OypJhCw9fQ9feefK6d6okonhZIFHkE5ioEwijjb74QhTX1xPFET+Juz3rGO9x7Q9H+hxt+gGCg7FqSQ2OItjYQUd4BWfG74YxUDN9FjPT2/pb+DFynONLw+RaQPdb6msgJY9NxLsv2Q=
