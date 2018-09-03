@@ -1,13 +1,11 @@
 import * as Koa from "koa";
 import { HalloweenAppDevRunner } from "./HalloweenAppDevRunner";
 jest.mock("koa");
-
 describe("HalloweenAppDevRunner", function() {
-  let webserver: Koa;
+  let webserver;
   let runner: HalloweenAppDevRunner;
 
   beforeEach(function() {
-    jest.resetAllMocks();
     webserver = new Koa();
     runner = new HalloweenAppDevRunner(webserver);
     runner.run();

@@ -1,10 +1,9 @@
 module.exports = {
-  "automock": false,
   "testEnvironment": "node",
   "transform": {
     "^.+\\.tsx?$": "ts-jest"
   },
-  "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+  "testRegex": "src/.*?\.spec\.ts$",
   "moduleFileExtensions": [
     "ts",
     "js",
