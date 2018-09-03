@@ -1,7 +1,9 @@
 language: node_js
 node_js:
   - node
-install: lerna bootstrap
+install: 
+  - npm install
+  - lerna bootstrap
 script:
   - lerna run test
   - lerna run build
