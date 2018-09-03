@@ -1,6 +1,11 @@
 language: node_js
 node_js:
   - node
+cache:
+  directories:
+    - node_modules
+    - packages/web-client/node_modules
+    - packages/api/node_modules
 install: 
   - npm install
   - lerna bootstrap
