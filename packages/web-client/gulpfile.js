@@ -135,6 +135,7 @@ gulp.task("deploy", function() {
     password,
     debug: true
   });
+  console.log(args);
   return gulp.src("./dist/**")
   .pipe(connection.newerOrDifferentSize(path))
   .pipe(connection.dest(path));
