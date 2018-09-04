@@ -62,6 +62,7 @@ const paths = {
 
 function errorHandler(err) {
   log.error(err);
+  console.log("**********************************************************************************");
   this.emit("end");
 }
 
@@ -102,6 +103,7 @@ gulp.task("inject:index", () => {
     scripts: gulp.src(paths.out.dev.scripts.all, { read: false }),
     style: gulp.src(paths.out.dev.css.all, { read: false })
   };
+  gulp.src("./dist/**").pipe(debug());
   return gulp
     .src(paths.out.dev.html.index)
     .pipe(inject(injectables.scripts, { relative: true }))
