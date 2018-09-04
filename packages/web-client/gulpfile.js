@@ -44,7 +44,7 @@ const paths = {
       scripts: {
         root: "./dist/js",
         all: [
-          './dist/**/*.js',
+          './dist/js/*.js',
         ]
       },
       html: {
