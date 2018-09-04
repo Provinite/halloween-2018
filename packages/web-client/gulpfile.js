@@ -97,7 +97,7 @@ gulp.task("copy:html", () => {
     .pipe(gulp.dest(paths.out.dev.root))
 });
 
-gulp.task("inject:index", () => {
+gulp.task("inject:index", ["bundle","sass"], () => {
   const injectables = {
     scripts: gulp.src(paths.out.dev.scripts.all, { read: false }),
     style: gulp.src(paths.out.dev.css.all, { read: false })
@@ -125,9 +125,9 @@ gulp.task("serve", () => {
   gulp.watch(paths.src.sass.all, gulp.series("sass"));
 });
 
-gulp.task("build", gulp.series(gulp.parallel("sass","bundle","copy:html"),"inject:index"));
+gulp.task("build", gulp.series("sass","bundle","copy:html","inject:index"));
 
-gulp.task("deploy", function() {
+gulp.task("deploy", ["build"], function() {
   const {host, user, password, path} = args;
   const connection = ftp.create({
     host,
