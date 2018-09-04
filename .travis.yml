@@ -8,7 +8,7 @@ cache:
   - packages/api/node_modules
 install:
 - npm install
-- lerna bootstrap
+- lerna bootstrap --scope="*client*"
 script:
 - lerna run build --scope="*client*"
 deploy:

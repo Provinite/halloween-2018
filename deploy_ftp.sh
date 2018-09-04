@@ -10,6 +10,6 @@ do
     continue;
   fi
   sftp_add_path=`dirname $f`/;
-  curl --ftp-create-dirs -T $f --user ${sftp_user}:${sftp_password} ftp://${sftp_host}${sftp_deploy_dir}${sftp_add_path};
+  curl --ftp-create-dirs --connect-timeout 20 --max-time 40 -T $f --user ${sftp_user}:${sftp_password} ftp://${sftp_host}${sftp_deploy_dir}${sftp_add_path} || exit 1;
   break
 done;
