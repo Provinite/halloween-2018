@@ -131,7 +131,7 @@ gulp.task("build",
     "inject:index"
   ));
 
-gulp.task("deploy", gulp.task("build"), function() {
+gulp.task("deploy", function() {
   const {host, user, password, path} = args;
   const connection = ftp.create({
     host,
