@@ -62,6 +62,7 @@ const paths = {
 
 function errorHandler(err) {
   log.error(err);
+  console.log(err);
   console.log("**********************************************************************************");
   this.emit("end");
 }
