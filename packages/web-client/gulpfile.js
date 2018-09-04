@@ -97,7 +97,7 @@ gulp.task("copy:html", () => {
     .pipe(gulp.dest(paths.out.dev.root))
 });
 
-gulp.task("inject:index", ["bundle","sass"], () => {
+gulp.task("inject:index", () => {
   const injectables = {
     scripts: gulp.src(paths.out.dev.scripts.all, { read: false }),
     style: gulp.src(paths.out.dev.css.all, { read: false })
@@ -118,16 +118,20 @@ gulp.task("serve", () => {
     uri: "http://localhost:8080/"
   }));
 
-  gulp.watch(paths.src.scripts.all, gulp.parallel(
-    gulp.series("copy:html","inject:index"),
-    "bundle"
+  gulp.watch(paths.src.scripts.all, gulp.series(
+    gulp.parallel("copy:html","bundle"),
+    "inject:index"
   ));
   gulp.watch(paths.src.sass.all, gulp.series("sass"));
 });
 
-gulp.task("build", gulp.series("sass","bundle","copy:html","inject:index"));
+gulp.task("build", 
+  gulp.series(
+    gulp.parallel("sass","bundle","copy:html"),
+    "inject:index"
+  ));
 
-gulp.task("deploy", ["build"], function() {
+gulp.task("deploy", gulp.task("build"), function() {
   const {host, user, password, path} = args;
   const connection = ftp.create({
     host,
