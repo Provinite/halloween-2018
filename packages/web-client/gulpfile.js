@@ -12,7 +12,10 @@ const connect = require("gulp-connect");
 const babelify = require("babelify");
 const log = require("fancy-log");
 const open = require("gulp-open");
-
+const minimist = require("minimist");
+const ftp = require("vinyl-ftp");
+const debug = require("gulp-debug");
+const args = minimist(process.argv.slice(2));
 const paths = {
   src: {
     root: "./src",
@@ -123,3 +126,16 @@ gulp.task("serve", () => {
 });
 
 gulp.task("build", gulp.series(gulp.parallel("sass","bundle","copy:html"),"inject:index"));
+
+gulp.task("deploy", function() {
+  const {host, user, password, path} = args;
+  const connection = ftp.create({
+    host,
+    user,
+    password,
+    debug: true
+  });
+  return gulp.src("./dist/**")
+  .pipe(connection.newerOrDifferentSize(path))
+  .pipe(connection.dest(path));
+});
