@@ -5,7 +5,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { TestableComponent } from "./components/testable-component/TestableComponent";
 import * as _env from "./settings.env.json";
-import { EnvConfig } from "./types/envConfig";
+import { EnvConfig } from "./types/EnvConfig";
 
 const env: EnvConfig = _env as EnvConfig;
 
