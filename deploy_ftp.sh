@@ -1,3 +1,4 @@
+#!/usr/bin/bash
 shopt -s globstar
 echo "Script world"
 pwd
