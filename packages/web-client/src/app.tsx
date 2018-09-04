@@ -3,7 +3,6 @@ import "@babel/polyfill";
 import "raf/polyfill";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { TestableComponent } from "./components/testable-component/TestableComponent";
 import * as _env from "./settings.env.json";
 import { EnvConfig } from "./types/EnvConfig";
 
@@ -19,7 +18,7 @@ export default class HalloweenApp extends React.Component<
     super(props);
   }
   render() {
-    return <TestableComponent leftSummand={5} rightSummand={6} />;
+    return <div>Hello, Halloween 2018</div>;
   }
 }
 
