@@ -141,6 +141,5 @@ gulp.task("deploy", gulp.task("build"), function() {
   });
   console.log(args);
   return gulp.src("./dist/**")
-  .pipe(connection.newerOrDifferentSize(path))
   .pipe(connection.dest(path));
 });
