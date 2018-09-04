@@ -1,6 +1,8 @@
 shopt -s globstar
 echo "Script world"
 pwd
+echo "sftp host";
+echo $sftp_host;
 cd packages/web-client/dist
 for f in ./**;
 do
@@ -9,4 +11,5 @@ do
   fi
   sftp_add_path=`dirname $f`/;
   curl --ftp-create-dirs -T $f --user ${sftp_user}:${sftp_password} ftp://${sftp_host}${sftp_deploy_dir}${sftp_add_path};
+  break
 done;
