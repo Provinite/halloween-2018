@@ -1,4 +1,6 @@
 shopt -s globstar
+echo "Script world"
+pwd
 cd packages/web-client/dist
 for f in ./**;
 do
