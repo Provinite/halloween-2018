@@ -21,7 +21,7 @@ gulp.task("build", function() {
   .pipe(gulp.dest(paths.out.dev.root));
 });
 
-gulp.task("run", function(done) {
+gulp.task("run", function() {
   var stream = nodemon({
     script: "dist/app.js",
     tasks: ['build']
