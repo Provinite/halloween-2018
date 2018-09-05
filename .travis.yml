@@ -8,9 +8,10 @@ cache:
   - packages/api/node_modules
 install:
 - npm install
-- lerna bootstrap --scope="*client*"
+- lerna bootstrap
 script:
-- lerna run build --scope="*client*"
+- lerna run build
+- lerna run test
 deploy:
   - provider: heroku
     app: pillowing-halloween-2018-api
