@@ -2,6 +2,7 @@
   "extends": ["tslint:recommended", "tslint-react", "tslint-config-prettier", "tslint-plugin-prettier"],
   "rules": {
     "prettier": true,
-    "member-access": [true, "no-public"]
-  }
+    "member-access": [true, "no-public"],
+    "only-arrow-functions": false
+  },
 }
