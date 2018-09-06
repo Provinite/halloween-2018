@@ -15,7 +15,6 @@
     "@types/koa": "^2.0.46",
     "cz-conventional-changelog": "^2.1.0",
     "gulp": "^4.0.0",
-    "gulp-nodemon": "^2.2.1",
     "gulp-sourcemaps": "^2.6.4",
     "gulp-typescript": "^5.0.0-alpha.3",
     "jest": "^23.5.0",
