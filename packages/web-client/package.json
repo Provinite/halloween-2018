@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "gulp build"
   },
   "author": "Collin Driscoll",
   "license": "UNLICENSED",
@@ -26,12 +27,14 @@
     "gulp-autoprefixer": "^6.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-connect": "^5.6.1",
+    "gulp-debug": "^4.0.0",
     "gulp-inject": "^4.3.2",
     "gulp-open": "^3.0.1",
     "gulp-sass": "^4.0.1",
     "gulp-sourcemaps": "^2.6.4",
     "gulp-typescript": "^5.0.0-alpha.3",
     "jest": "^23.5.0",
+    "minimist": "^1.2.0",
     "prettier": "1.14.2",
     "react-test-renderer": "^16.4.2",
     "ts-jest": "^23.1.4",
@@ -43,6 +46,7 @@
     "tslint-react": "^3.6.0",
     "typescript": "^3.0.3",
     "vinyl-buffer": "^1.0.1",
+    "vinyl-ftp": "^0.6.1",
     "vinyl-source-stream": "^2.0.0"
   },
   "dependencies": {

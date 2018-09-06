@@ -12,7 +12,10 @@ const connect = require("gulp-connect");
 const babelify = require("babelify");
 const log = require("fancy-log");
 const open = require("gulp-open");
-
+const minimist = require("minimist");
+const ftp = require("vinyl-ftp");
+const debug = require("gulp-debug");
+const args = minimist(process.argv.slice(2));
 const paths = {
   src: {
     root: "./src",
@@ -41,7 +44,7 @@ const paths = {
       scripts: {
         root: "./dist/js",
         all: [
-          './dist/**/*.js',
+          './dist/js/*.js',
         ]
       },
       html: {
@@ -59,6 +62,8 @@ const paths = {
 
 function errorHandler(err) {
   log.error(err);
+  console.log(err);
+  console.log("**********************************************************************************");
   this.emit("end");
 }
 
@@ -99,6 +104,7 @@ gulp.task("inject:index", () => {
     scripts: gulp.src(paths.out.dev.scripts.all, { read: false }),
     style: gulp.src(paths.out.dev.css.all, { read: false })
   };
+  gulp.src("./dist/**").pipe(debug());
   return gulp
     .src(paths.out.dev.html.index)
     .pipe(inject(injectables.scripts, { relative: true }))
@@ -115,11 +121,38 @@ gulp.task("serve", () => {
     uri: "http://localhost:8080/"
   }));
 
-  gulp.watch(paths.src.scripts.all, gulp.parallel(
-    gulp.series("copy:html","inject:index"),
-    "bundle"
+  gulp.watch(paths.src.scripts.all, gulp.series(
+    gulp.parallel("copy:html","bundle"),
+    "inject:index"
   ));
   gulp.watch(paths.src.sass.all, gulp.series("sass"));
 });
 
-gulp.task("build", gulp.series(gulp.parallel("sass","bundle","copy:html"),"inject:index"));
+gulp.task("build", 
+  gulp.series(
+    gulp.parallel("sass","bundle","copy:html"),
+    "inject:index"
+  ));
+
+gulp.task("deploy", function() {
+  const {host, user, password, path} = args;
+  function required(args) {
+    Object.keys(args).forEach(argument => {
+      if (!args[argument]) {
+        throw new Error(`web-client.gulp.deploy: Missing arg ${argument}, aborting!`);
+      }
+    })
+  }
+
+  required({host, user, password, path});
+
+  const connection = ftp.create({
+    host,
+    user,
+    password,
+    debug: true
+  });
+  return connection.clean(`${path}**`, "./dist/")
+  .pipe(gulp.src("./dist/**"))
+  .pipe(connection.dest(path));
+});

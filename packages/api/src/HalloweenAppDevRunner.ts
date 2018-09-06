@@ -7,11 +7,9 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
     this.webserver = webserver;
   }
   run(): void {
-    console.log("Initializing and launching the application");
-
     this.webserver.use(ctx => {
-      ctx.body = "Hello from HalloweenAppDevRunner";
+      ctx.body = "Hessszl  lsssso from HazlloweenAppDevRunner";
     });
-    this.webserver.listen(8081);
+    this.webserver.listen(process.env.PORT);
   }
 }

@@ -1,13 +1,12 @@
 import * as Koa from "koa";
 import { HalloweenAppDevRunner } from "./HalloweenAppDevRunner";
 jest.mock("koa");
-
 describe("HalloweenAppDevRunner", function() {
-  let webserver: Koa;
+  let webserver;
   let runner: HalloweenAppDevRunner;
 
   beforeEach(function() {
-    jest.resetAllMocks();
+    process.env.PORT = "3000";
     webserver = new Koa();
     runner = new HalloweenAppDevRunner(webserver);
     runner.run();
@@ -18,9 +17,9 @@ describe("HalloweenAppDevRunner", function() {
     runner = null;
   });
 
-  it("listens on 8081", function() {
+  it("listens on process.env.PORT", function() {
     expect(webserver.listen).toHaveBeenCalledTimes(1);
-    expect(webserver.listen).toHaveBeenCalledWith(8081);
+    expect(webserver.listen).toHaveBeenCalledWith(process.env.PORT);
   });
 
   it("registers a middleware", function() {
