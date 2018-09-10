@@ -1,11 +1,16 @@
 const gulp = require("gulp");
 const typescript = require("gulp-typescript");
-const nodemon = require("nodemon");
+const childProcess = require("child_process");
+
+const tsProject = typescript.createProject("./tsconfig.json");
 
 const paths = {
   src: {
     scripts: {
-      all: "./src/**/*.ts"
+      all: [
+        "./src/**/*.ts",
+        "!./**/*.spec.ts"
+      ]
     }
   },
   out: {
@@ -17,37 +22,28 @@ const paths = {
 
 gulp.task("build", function() {
   return gulp.src(paths.src.scripts.all)
-  .pipe(typescript())
+  .pipe(tsProject())
   .pipe(gulp.dest(paths.out.dev.root));
 });
 
-gulp.task("serve", function() {
+let node;
+gulp.task("server", function(done) {
   process.env.PORT = "8081";
-  const stream = nodemon({
-    script: "dist/app.js",
-    watch: ["!*.*"]
-  });
+  if (node) { node.kill(); }
+  node = childProcess.spawn("node", ["dist/app.js"], { stdio: "inherit" });
+  done();
+});
 
-  let watchStream;  
-  return stream
-    .on('start', function() {
-      watchStream = gulp.watch(paths.src.scripts.all,
-        gulp.series(
-          gulp.task("build"),
-          function() { stream.emit('restart'); }
-        ));    
-      console.log("Application has started.");
-    })
-    .on('restart', function() {
-      console.log("Application is restarting.");
-    })
-    .on('crash', function() {
-      console.error('Application has crashed!\n')
-        stream.emit('restart', 2)
-    })
-    .on('exit', function() {
-      watchStream.emit('end', 0);
-    });
+gulp.task("watch", function() {
+  return gulp.watch(paths.src.scripts.all, gulp.series("build", "server"));
+})
+
+gulp.task("serve", gulp.series("build", gulp.parallel("server", "watch")));
+
+process.on("exit", function() {
+  if (node) {
+    node.kill();
+  }
 });
 
 

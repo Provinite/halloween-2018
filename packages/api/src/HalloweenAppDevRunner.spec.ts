@@ -2,7 +2,7 @@ import * as Koa from "koa";
 import { HalloweenAppDevRunner } from "./HalloweenAppDevRunner";
 jest.mock("koa");
 describe("HalloweenAppDevRunner", function() {
-  let webserver;
+  let webserver: Koa;
   let runner: HalloweenAppDevRunner;
 
   beforeEach(function() {
@@ -23,6 +23,6 @@ describe("HalloweenAppDevRunner", function() {
   });
 
   it("registers a middleware", function() {
-    expect(webserver.use).toHaveBeenCalledTimes(1);
+    expect(webserver.use).toHaveBeenCalled();
   });
 });
