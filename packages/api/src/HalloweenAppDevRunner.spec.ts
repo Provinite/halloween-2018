@@ -1,11 +1,16 @@
 import * as Koa from "koa";
+import { ExportPathScanner } from "./decorators/ExportPathScanner";
 import { HalloweenAppDevRunner } from "./HalloweenAppDevRunner";
+
 jest.mock("koa");
+jest.mock("./decorators/ExportPathScanner");
 describe("HalloweenAppDevRunner", function() {
-  let webserver;
+  let webserver: Koa;
   let runner: HalloweenAppDevRunner;
 
   beforeEach(function() {
+    const mockScan = ExportPathScanner.scan as jest.Mock;
+    mockScan.mockResolvedValue([]);
     process.env.PORT = "3000";
     webserver = new Koa();
     runner = new HalloweenAppDevRunner(webserver);
@@ -23,6 +28,6 @@ describe("HalloweenAppDevRunner", function() {
   });
 
   it("registers a middleware", function() {
-    expect(webserver.use).toHaveBeenCalledTimes(1);
+    expect(webserver.use).toHaveBeenCalled();
   });
 });

@@ -1,10 +1,15 @@
 {
   "compilerOptions": {
+    "lib": ["es2015"],
     "target": "es2015",
-    "module": "AMD",
+    "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
-    "allowJs": false
+    "allowJs": false,
+    "experimentalDecorators": true,
+    "outDir": "dist",
+    "noImplicitAny": true,
+    "alwaysStrict": false
   },
   "parserOptions": {
   },

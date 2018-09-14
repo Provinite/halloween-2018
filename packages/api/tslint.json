@@ -3,6 +3,8 @@
   "rules": {
     "prettier": true,
     "member-access": [true, "no-public"],
-    "only-arrow-functions": false
+    "only-arrow-functions": false,
+    "ban-types": false,
+    "no-var-requires": false
   }
 }
