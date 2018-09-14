@@ -1,10 +1,11 @@
-import { AnyFunction } from "./AnyFunction";
 import { decoratedType, DecoratedTypes, isScannable } from "./Symbols";
 
-export function classIsScannable(fn: () => void): fn is IScannableClass {
+export function classIsScannable(
+  fn: new (..._: any[]) => {}
+): fn is IScannableClass {
   return fn && fn.hasOwnProperty(isScannable);
 }
-export type IScannableClass = AnyFunction & {
+export type IScannableClass = (new (..._: any[]) => {}) & {
   [isScannable]: boolean;
   [decoratedType]: DecoratedTypes;
 };

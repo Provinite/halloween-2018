@@ -1,8 +1,8 @@
 import { asClass, createContainer, InjectionMode } from "awilix";
 import * as Koa from "koa";
 import { AnyFunction } from "./decorators/AnyFunction";
-import { Constructor } from "./decorators/Constructor";
 import { ExportPathScanner } from "./decorators/ExportPathScanner";
+import { IScannableClass } from "./decorators/ScannableClass";
 import { isRoutable, routableMethods, targetRoute } from "./decorators/Symbols";
 import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
 import { LoggingMiddlewareFactory } from "./middlewares/LoggingMiddlewareFactory";
@@ -25,7 +25,7 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
       injectionMode: InjectionMode.CLASSIC
     });
 
-    components.forEach((componentClass: Constructor) => {
+    components.forEach((componentClass: IScannableClass) => {
       let name = componentClass.name;
       name = name[0].toLowerCase() + name.substr(1);
       // We register our beans here

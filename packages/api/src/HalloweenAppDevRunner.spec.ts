@@ -16,7 +16,7 @@ describe("HalloweenAppDevRunner", function() {
     runner = new HalloweenAppDevRunner(webserver);
     runner.run();
   });
-  
+
   afterEach(function() {
     webserver = null;
     runner = null;
