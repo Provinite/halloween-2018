@@ -1,9 +1,15 @@
 import { asClass, createContainer, InjectionMode } from "awilix";
 import * as Koa from "koa";
 import { AnyFunction } from "./decorators/AnyFunction";
+import { Constructor } from "./decorators/Constructor";
 import { ExportPathScanner } from "./decorators/ExportPathScanner";
 import { getMethods } from "./decorators/ReflectHelpers";
-import { isRoutable, targetRoute, isScannable } from "./decorators/Symbols";
+import {
+  isRoutable,
+  isScannable,
+  routableMethods,
+  targetRoute
+} from "./decorators/Symbols";
 import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
 import { LoggingMiddlewareFactory } from "./middlewares/LoggingMiddlewareFactory";
 import { RenderMiddlewareFactory } from "./middlewares/RenderMiddlewareFactory";
@@ -14,17 +20,27 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
     this.webserver = webserver;
   }
   async run(): Promise<void> {
+    const pin = {
+      name: "some_pin",
+      values: {
+        pf_a: {
+          _id: "pv_a",
+          pinFieldId: "string",
+          value: "hello"
+        }
+      }
+    };
+    return;
+
     // Proof of concept: classpath scanning
-    const components = await ExportPathScanner.scan("./dist/**/*.js", str =>
-      str.replace("./dist", __dirname)
-    );
+    const components = await ExportPathScanner.scan("./dist/**/*.js");
 
     // Proof of concept: automatic bean instantiation
     const container = createContainer({
       injectionMode: InjectionMode.CLASSIC
     });
 
-    components.forEach(componentClass => {
+    components.forEach((componentClass: Constructor) => {
       let name = componentClass.name;
       name = name[0].toLowerCase() + name.substr(1);
       // We register our beans here
@@ -32,18 +48,17 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
       // and shit
       container.register(name, asClass(componentClass));
     });
-
     // Proof of concept: @Route methods
     const handlers: { [key: string]: AnyFunction } = {};
     Object.keys(container.registrations)
       .map(beanName => container.cradle[beanName])
       .forEach(bean => {
-        getMethods(bean)
+        (bean[routableMethods] as any[])
           .filter(method => method[isRoutable] === true)
           .forEach(method => (handlers[method[targetRoute]] = method));
       });
 
-    // Proof of concept: Middleware factories
+    // Proof of concept: Middleware factories/layers
     const factories = {
       logging: new LoggingMiddlewareFactory(console),
       rendering: new RenderMiddlewareFactory(),

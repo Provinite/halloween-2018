@@ -4,12 +4,12 @@ import { Route } from "../decorators/Route";
 @Component()
 export class IndexController {
   @Route("/")
-  index() {
+  index(): boolean {
     return false;
   }
 
   @Route("/foo")
-  foo() {
+  foo(): string {
     return "goodbye";
   }
 }

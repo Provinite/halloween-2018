@@ -1,10 +1,10 @@
 import * as glob from "glob";
-import { decoratedType, DecoratedTypes, isScannable } from "./Symbols";
 import { Constructor } from "./Constructor";
+import { decoratedType, DecoratedTypes, isScannable } from "./Symbols";
 export class ExportPathScanner {
-  static async scan(pathGlob: string, transform: (_: string) => string) {
+  static async scan(pathGlob: string) {
     const files: string[] = await new Promise<string[]>((resolve, reject) => {
-      glob(pathGlob, function(err, globbedFiles: string[]) {
+      glob(pathGlob, { absolute: true }, function(err, globbedFiles: string[]) {
         resolve(
           globbedFiles.filter(
             v => !v.includes("node_modules") && !v.endsWith("app.js")
@@ -14,7 +14,7 @@ export class ExportPathScanner {
     });
     const components: Constructor[] = [];
     for (const file of files) {
-      require(transform(file));
+      require(file);
     }
     const modules = require.cache;
     for (const moduleId of Object.keys(modules)) {
@@ -28,6 +28,9 @@ export class ExportPathScanner {
             theExport[isScannable] &&
             theExport[decoratedType] === DecoratedTypes.CLASS
           ) {
+            console.log(
+              "Module Path Scanning Revealed scannable class:" + moduleId
+            );
             components.push(theExport);
           }
         }

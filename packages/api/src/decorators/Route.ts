@@ -2,7 +2,8 @@ import {
   decoratedType,
   DecoratedTypes,
   isRoutable,
-  targetRoute
+  targetRoute,
+  routableMethods
 } from "./Symbols";
 
 export function Route(route: string) {
@@ -14,5 +15,9 @@ export function Route(route: string) {
     descriptor.value[isRoutable] = true;
     descriptor.value[targetRoute] = route;
     descriptor.value[decoratedType] = DecoratedTypes.METHOD;
+    if (!target[routableMethods]) {
+      target[routableMethods] = [];
+    }
+    target[routableMethods].push(descriptor.value);
   };
 }
