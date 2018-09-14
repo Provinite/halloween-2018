@@ -3,35 +3,20 @@ import * as Koa from "koa";
 import { AnyFunction } from "./decorators/AnyFunction";
 import { Constructor } from "./decorators/Constructor";
 import { ExportPathScanner } from "./decorators/ExportPathScanner";
-import { getMethods } from "./decorators/ReflectHelpers";
-import {
-  isRoutable,
-  isScannable,
-  routableMethods,
-  targetRoute
-} from "./decorators/Symbols";
+import { isRoutable, routableMethods, targetRoute } from "./decorators/Symbols";
 import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
 import { LoggingMiddlewareFactory } from "./middlewares/LoggingMiddlewareFactory";
 import { RenderMiddlewareFactory } from "./middlewares/RenderMiddlewareFactory";
 import { RouterMiddlewareFactory } from "./middlewares/RouterMiddlewareFactory";
+
 export class HalloweenAppDevRunner implements IHalloweenAppRunner {
   private webserver: Koa;
+
   constructor(webserver: Koa) {
     this.webserver = webserver;
   }
-  async run(): Promise<void> {
-    const pin = {
-      name: "some_pin",
-      values: {
-        pf_a: {
-          _id: "pv_a",
-          pinFieldId: "string",
-          value: "hello"
-        }
-      }
-    };
-    return;
 
+  async run(): Promise<void> {
     // Proof of concept: classpath scanning
     const components = await ExportPathScanner.scan("./dist/**/*.js");
 
