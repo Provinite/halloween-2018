@@ -115,6 +115,7 @@ gulp.task("inject:index", () => {
 gulp.task("serve", () => {
   connect.server({
     root: "./dist",
+    fallback: "./dist/index.html"
   });
 
   gulp.src("./").pipe(open({
