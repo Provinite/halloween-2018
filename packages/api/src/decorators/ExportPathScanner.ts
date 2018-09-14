@@ -1,5 +1,4 @@
 import * as glob from "glob";
-import { isFunction } from "./AnyFunction";
 import { classIsScannable, IScannableClass } from "./ScannableClass";
 import { decoratedType, DecoratedTypes } from "./Symbols";
 export class ExportPathScanner {
@@ -49,7 +48,6 @@ export class ExportPathScanner {
           // JS gives us a ton of flexibility here. Is it possible to decorate
           // an exported variable?
           if (
-            isFunction(theExport) &&
             classIsScannable(theExport) &&
             theExport[decoratedType] === DecoratedTypes.CLASS
           ) {
