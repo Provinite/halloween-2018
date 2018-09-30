@@ -1,0 +1,38 @@
+.cc-splash-scene {
+  max-width: 100%;
+  perspective: 100vmax;
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  cursor: pointer;
+ // background-image: staticUrl('bg.jpg');
+  .cc-splash-page {
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transform-origin: center center center;
+    transform: rotateX(0);
+    transition: transform 2s ease-out;
+    &--up {
+      transform: translateY(-50vh) translateZ(-1000vmax) rotateX(90deg);
+    }
+    &__splash {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image: staticUrl('splash.png');
+      background-position: top center;
+    }
+    &__table {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 0, 255, 0);
+      transform: rotateX(-180deg) translateZ(1px);
+      background-color: rgba(255, 0, 255, 0.5);
+    }
+  }
+}

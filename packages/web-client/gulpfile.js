@@ -35,7 +35,12 @@ const paths = {
       all: './src/**/*.html',
     },
     sass: {
-      all: "./src/**/*.scss"
+      all: [
+        "./src/**/*.scss"
+      ]
+    },
+    static: {
+      all: "./src/static/**/*"
     }
   },
   out: {
@@ -55,6 +60,9 @@ const paths = {
       css: {
         root: "./dist/css",
         all: "./dist/**/*.css"
+      },
+      static: {
+        root: "./dist/static"
       }
     }
   }
@@ -70,6 +78,7 @@ function errorHandler(err) {
 gulp.task("sass", () => {
   return gulp.src(paths.src.sass.all)
   .pipe(sourcemaps.init())
+  .pipe(concat('bundle.scss'))
   .pipe(sass())
   .pipe(autoprefixer())
   .pipe(concat('bundle.css'))
@@ -91,13 +100,19 @@ gulp.task("bundle", () => {
   .on('error', errorHandler)
   .pipe(sourcemaps.write('./'))
   .pipe(gulp.dest(paths.out.dev.scripts.root));
-})
+});
+
+function doCopy(type) {
+  return gulp.src(paths.src[type].all).pipe(gulp.dest(paths.out.dev[type].root));
+}
 
 gulp.task("copy:html", () => {
-  return gulp
-    .src(paths.src.html.all)
-    .pipe(gulp.dest(paths.out.dev.root))
+  return doCopy("html");
 });
+
+gulp.task("copy:static", () => {
+  return doCopy("static");
+})
 
 gulp.task("inject:index", () => {
   const injectables = {
@@ -112,7 +127,13 @@ gulp.task("inject:index", () => {
     .pipe(gulp.dest(paths.out.dev.root));
 });
 
-gulp.task("serve", () => {
+gulp.task("build", 
+  gulp.series(
+    gulp.parallel("sass","bundle","copy:html","copy:static"),
+    "inject:index"
+  ));
+
+gulp.task("serve", gulp.series("build", function() {
   connect.server({
     root: "./dist",
     fallback: "./dist/index.html"
@@ -127,13 +148,7 @@ gulp.task("serve", () => {
     "inject:index"
   ));
   gulp.watch(paths.src.sass.all, gulp.series("sass"));
-});
-
-gulp.task("build", 
-  gulp.series(
-    gulp.parallel("sass","bundle","copy:html"),
-    "inject:index"
-  ));
+}));
 
 gulp.task("deploy", function() {
   const {host, user, password, path} = args;

@@ -1,3 +1,11 @@
+@function staticLink($url) {
+  @return '../static/' + $url;
+}
+
+@function staticUrl($url) {
+  @return url(staticLink($url));
+}
+
 span.app-name {
   color: blue;
 }

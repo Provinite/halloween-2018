@@ -3,31 +3,24 @@ import "@babel/polyfill";
 import "raf/polyfill";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { BrowserRouter, Route } from "react-router-dom";
+import { BrowserRouter, Route, RouteComponentProps } from "react-router-dom";
+import HalloweenApp from "./components/HalloweenApp";
 import * as _env from "./settings.env.json";
-import { EnvConfig } from "./types/EnvConfig";
+import { IEnvConfig } from "./types/IEnvConfig";
 
-const env: EnvConfig = _env as EnvConfig;
+const env: IEnvConfig = _env as IEnvConfig;
 
-export default class HalloweenApp extends React.Component<
-  {
-    env: EnvConfig;
-  },
-  {}
-> {
-  constructor(props) {
-    super(props);
-  }
-  render() {
-    return (
-      <div>
-        <Route path="/login" render={() => <div>ello!</div>}></Route>
-      </div>
-    );
-  }
+function renderApp(props: RouteComponentProps) {
+  return <HalloweenApp env={env} {...props} />;
 }
 
-ReactDOM.render((
-  <BrowserRouter>
-    <HalloweenApp env={env} />
-  </BrowserRouter>), document.getElementById("app"));
+function main(): void {
+  ReactDOM.render(
+    <BrowserRouter>
+      <Route render={renderApp} />
+    </BrowserRouter>,
+    document.getElementById("app")
+  );
+}
+
+main();

@@ -4,5 +4,5 @@
     "prettier": true,
     "member-access": [true, "no-public"],
     "only-arrow-functions": false
-  },
+  }
 }
