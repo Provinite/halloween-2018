@@ -2,13 +2,13 @@ import { AwilixContainer } from "awilix";
 import * as Awilix from "awilix";
 import * as typeorm from "typeorm";
 import { MODELS } from "../models";
+import { OrmContext } from "./OrmContext";
 interface IMocks {
   container: jest.Mocked<AwilixContainer>;
   connection: jest.Mocked<typeorm.Connection>;
 }
 describe.only("config:OrmContext", () => {
   let mocks: IMocks;
-  let OrmContext: any;
   beforeEach(() => {
     const partialMocks: Partial<IMocks> = {};
     /* Mocks */
@@ -28,9 +28,6 @@ describe.only("config:OrmContext", () => {
     /* Stubs */
     jest.spyOn(typeorm, "createConnection").mockResolvedValue(mocks.connection);
     jest.spyOn(Awilix, "asValue").mockImplementation(_ => _);
-
-    /* Subject Under Test */
-    OrmContext = require.requireActual("./OrmContext").OrmContext;
   });
   afterEach(() => {
     jest.resetModules();
