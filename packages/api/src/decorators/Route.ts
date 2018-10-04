@@ -2,8 +2,8 @@ import {
   decoratedType,
   DecoratedTypes,
   isRoutable,
-  targetRoute,
-  routableMethods
+  routableMethods,
+  targetRoute
 } from "./Symbols";
 
 export function Route(route: string) {
