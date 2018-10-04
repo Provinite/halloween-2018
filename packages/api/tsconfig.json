@@ -4,13 +4,14 @@
     "target": "es2015",
     "module": "commonjs",
     "moduleResolution": "node",
-    "sourceMap": true,
     "allowJs": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "outDir": "dist",
     "noImplicitAny": true,
-    "alwaysStrict": false
+    "alwaysStrict": false,
+    "inlineSourceMap": true,
+    "sourceRoot": "./src/",
   },
   "parserOptions": {
   },

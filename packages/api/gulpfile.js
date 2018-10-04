@@ -1,6 +1,7 @@
 const gulp = require("gulp");
 const typescript = require("gulp-typescript");
 const childProcess = require("child_process");
+const sourcemaps = require("gulp-sourcemaps");
 
 const tsProject = typescript.createProject("./tsconfig.json");
 
@@ -22,7 +23,9 @@ const paths = {
 
 gulp.task("build", function() {
   return gulp.src(paths.src.scripts.all)
+  .pipe(sourcemaps.init())
   .pipe(tsProject())
+  .pipe(sourcemaps.write())
   .pipe(gulp.dest(paths.out.dev.root));
 });
 
