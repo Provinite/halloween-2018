@@ -5,6 +5,7 @@
     "member-access": [true, "no-public"],
     "only-arrow-functions": false,
     "ban-types": false,
-    "no-var-requires": false
+    "no-var-requires": false,
+    "object-literal-sort-keys": false
   }
 }

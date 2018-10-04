@@ -1,5 +1,7 @@
 import { asClass, createContainer, InjectionMode } from "awilix";
 import * as Koa from "koa";
+import { ComponentRegistrar } from "./config/ComponentRegistrar";
+import { OrmContext } from "./database/OrmContext";
 import { AnyFunction } from "./decorators/AnyFunction";
 import { ExportPathScanner } from "./decorators/ExportPathScanner";
 import { IScannableClass } from "./decorators/ScannableClass";
@@ -19,20 +21,19 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
   async run(): Promise<void> {
     // Proof of concept: classpath scanning
     const components = await ExportPathScanner.scan("./dist/**/*.js");
+    // Container configuration step
 
     // Proof of concept: automatic bean instantiation
     const container = createContainer({
       injectionMode: InjectionMode.CLASSIC
     });
 
-    components.forEach((componentClass: IScannableClass) => {
-      let name = componentClass.name;
-      name = name[0].toLowerCase() + name.substr(1);
-      // We register our beans here
-      // At some point we need to run through the beans and look for controllers
-      // and shit
-      container.register(name, asClass(componentClass));
-    });
+    // Wire up our persistence layer
+    await OrmContext.configureContainer(container);
+
+    // Register all @components with our DI container
+    ComponentRegistrar.configureContainer(container, components);
+
     // Proof of concept: @Route methods
     const handlers: { [key: string]: AnyFunction } = {};
     Object.keys(container.registrations)
