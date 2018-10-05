@@ -1,12 +1,12 @@
 import { AwilixContainer } from "awilix";
 import * as Awilix from "awilix";
-import { IScannableClass } from "../../decorators/ScannableClass";
+import { IScannableClass } from "../../reflection/ScannableClass";
 import {
   decoratedType,
   DecoratedTypes,
   isScannable
-} from "../../decorators/Symbols";
-import { ComponentRegistrar } from "../ComponentRegistrar";
+} from "../../reflection/Symbols";
+import { ComponentRegistrar } from "./ComponentRegistrar";
 interface IMocks {
   container: jest.Mocked<AwilixContainer>;
 }

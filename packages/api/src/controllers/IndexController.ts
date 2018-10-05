@@ -1,5 +1,5 @@
-import { Component } from "../decorators/Component";
-import { Route } from "../decorators/Route";
+import { Component } from "../reflection/Component";
+import { Route } from "../reflection/Route";
 
 @Component()
 export class IndexController {

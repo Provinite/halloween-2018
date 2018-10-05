@@ -1,10 +1,10 @@
 import { AwilixContainer } from "awilix";
-import { Component } from "../decorators/Component";
-import { IRoutableMethod } from "../decorators/IRoutableMethod";
-import { IRouter, isRouterClass } from "../decorators/IRouterClass";
-import { IScannableClass } from "../decorators/ScannableClass";
-import { routableMethods, targetRoute } from "../decorators/Symbols";
-import { ComponentRegistrar } from "./ComponentRegistrar";
+import { Component } from "../reflection/Component";
+import { IRoutableMethod } from "../reflection/IRoutableMethod";
+import { IRouter, isRouterClass } from "../reflection/IRouterClass";
+import { IScannableClass } from "../reflection/ScannableClass";
+import { routableMethods, targetRoute } from "../reflection/Symbols";
+import { ComponentRegistrar } from "./context/ComponentRegistrar";
 
 /**
  * @class RouteComponentProcessor

@@ -1,7 +1,5 @@
 import { asClass, asValue, AwilixContainer } from "awilix";
-import { isRouter } from "../decorators/IRouterClass";
-import { IScannableClass } from "../decorators/ScannableClass";
-import { routableMethods } from "../decorators/Symbols";
+import { IScannableClass } from "../../reflection/ScannableClass";
 /**
  * @class ComponentRegistrar
  * Container configurator that registers @Component-annotated classes.

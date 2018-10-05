@@ -1,10 +1,10 @@
 import { createContainer, InjectionMode } from "awilix";
-import { ComponentRegistrar } from "./config/ComponentRegistrar";
+import { ComponentRegistrar } from "./config/context/ComponentRegistrar";
 import { OrmContext } from "./config/context/OrmContext";
-import { KoaConfiguration } from "./config/KoaConfiguration";
 import { WebserverContext } from "./config/context/WebserverContext";
-import { ExportPathScanner } from "./decorators/ExportPathScanner";
+import { KoaConfiguration } from "./config/KoaConfiguration";
 import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
+import { ExportPathScanner } from "./reflection/ExportPathScanner";
 
 export class HalloweenAppDevRunner implements IHalloweenAppRunner {
   async run(): Promise<void> {

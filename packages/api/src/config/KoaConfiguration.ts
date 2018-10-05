@@ -1,7 +1,7 @@
 import * as Koa from "koa";
-import { Component } from "../decorators/Component";
 import { RenderMiddlewareFactory } from "../middlewares/RenderMiddlewareFactory";
 import { RouterMiddlewareFactory } from "../middlewares/RouterMiddlewareFactory";
+import { Component } from "../reflection/Component";
 import { RouteComponentProcessor } from "./RouteComponentProcessor";
 
 @Component()
