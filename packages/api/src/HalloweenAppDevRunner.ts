@@ -1,8 +1,8 @@
 import { createContainer, InjectionMode } from "awilix";
 import { ComponentRegistrar } from "./config/ComponentRegistrar";
-import { OrmContext } from "./config/database/OrmContext";
+import { OrmContext } from "./config/context/OrmContext";
 import { KoaConfiguration } from "./config/KoaConfiguration";
-import { WebserverContext } from "./config/server/WebserverContext";
+import { WebserverContext } from "./config/context/WebserverContext";
 import { ExportPathScanner } from "./decorators/ExportPathScanner";
 import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
 
