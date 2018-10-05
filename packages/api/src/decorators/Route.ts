@@ -1,7 +1,10 @@
+import { IRoutableMethod } from "./IRoutableMethod";
+import { IRouterClass } from "./IRouterClass";
 import {
   decoratedType,
   DecoratedTypes,
   isRoutable,
+  isRouter,
   routableMethods,
   targetRoute
 } from "./Symbols";
@@ -12,9 +15,12 @@ export function Route(route: string) {
     propertyKey: string,
     descriptor: PropertyDescriptor
   ) {
-    descriptor.value[isRoutable] = true;
-    descriptor.value[targetRoute] = route;
-    descriptor.value[decoratedType] = DecoratedTypes.METHOD;
+    const value = descriptor.value as IRoutableMethod;
+    value[isRoutable] = true;
+    value[targetRoute] = route;
+    value[decoratedType] = DecoratedTypes.METHOD;
+    (target.constructor as IRouterClass)[isRouter] = true;
+
     if (!target[routableMethods]) {
       target[routableMethods] = [];
     }

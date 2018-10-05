@@ -1,11 +1,19 @@
 import { decoratedType, DecoratedTypes, isScannable } from "./Symbols";
 
-export function classIsScannable(
-  fn: new (..._: any[]) => {}
-): fn is IScannableClass {
+interface IClass {
+  new (..._: any[]): this;
+}
+
+export function classIsScannable(fn: IClass): fn is IScannableClass {
   return fn && fn.hasOwnProperty(isScannable);
 }
-export type IScannableClass = (new (..._: any[]) => {}) & {
+
+export interface IScannableClass {
   [isScannable]: boolean;
-  [decoratedType]: DecoratedTypes;
-};
+  [decoratedType]: DecoratedTypes.CLASS;
+  new (..._: any[]): this;
+}
+
+export interface IDecoratedMethod {
+  [decoratedType]: DecoratedTypes.METHOD;
+}

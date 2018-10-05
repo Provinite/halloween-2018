@@ -36,6 +36,7 @@ function strictly(
     asymmetricMatch: (actual: any) => actual === value
   };
 }
+
 describe("config:ComponentRegistrar", () => {
   let mocks: Partial<IMocks>;
   beforeEach(() => {
@@ -63,7 +64,7 @@ describe("config:ComponentRegistrar", () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
-
+  // CDTODO: test getRegistrationName separately.
   it("registers each component as a class", () => {
     const components: IScannableClass[] = [
       createMockComponent("a"),
