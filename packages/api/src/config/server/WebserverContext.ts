@@ -1,4 +1,4 @@
-import { asValue, AwilixContainer } from "awilix";
+import { asFunction, AwilixContainer } from "awilix";
 import * as Koa from "Koa";
 export class WebserverContext {
   /**
@@ -7,9 +7,14 @@ export class WebserverContext {
    * @param container - The DI container
    */
   static configureContainer(container: AwilixContainer) {
-    const webserver: Koa = new Koa();
-    webserver.listen(process.env.PORT || 8080);
-    container.register("webserver", asValue(webserver));
+    container.register(
+      "webserver",
+      asFunction(() => {
+        const webserver: Koa = new Koa();
+        webserver.listen(process.env.PORT || 8080);
+        return webserver;
+      })
+    );
     return container;
   }
 }
