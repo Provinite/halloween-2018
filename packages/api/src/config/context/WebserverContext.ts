@@ -1,5 +1,5 @@
 import { asFunction, AwilixContainer } from "awilix";
-import * as Koa from "Koa";
+import * as Koa from "koa";
 export class WebserverContext {
   /**
    * @static @method configureContainer
