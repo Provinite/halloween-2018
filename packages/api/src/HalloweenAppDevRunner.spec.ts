@@ -3,7 +3,7 @@ import { HalloweenAppDevRunner } from "./HalloweenAppDevRunner";
 import { ExportPathScanner } from "./reflection/ExportPathScanner";
 
 jest.mock("koa");
-jest.mock("./decorators/ExportPathScanner");
+jest.mock("./reflection/ExportPathScanner");
 describe.skip("HalloweenAppDevRunner", function() {
   let webserver: Koa;
   let runner: HalloweenAppDevRunner;
