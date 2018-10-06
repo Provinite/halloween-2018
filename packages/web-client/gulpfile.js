@@ -1,5 +1,6 @@
 const gulp = require("gulp");
 const concat = require("gulp-concat");
+const del = require("del");
 const buffer = require("vinyl-buffer");
 const sourcemaps = require("gulp-sourcemaps");
 const inject = require("gulp-inject");
@@ -19,6 +20,7 @@ const args = minimist(process.argv.slice(2));
 const paths = {
   src: {
     root: "./src",
+    all: "./src/**/*",
     scripts: {
       all: [
         './src/**/*.ts',
@@ -46,6 +48,7 @@ const paths = {
   out: {
     dev: {
       root: "./dist",
+      all: "./dist/**/*",
       scripts: {
         root: "./dist/js",
         all: [
@@ -105,7 +108,9 @@ gulp.task("bundle", () => {
 function doCopy(type) {
   return gulp.src(paths.src[type].all).pipe(gulp.dest(paths.out.dev[type].root));
 }
-
+gulp.task("clean", () => {
+  return del(paths.out.dev.all);
+});
 gulp.task("copy:html", () => {
   return doCopy("html");
 });
@@ -143,11 +148,7 @@ gulp.task("serve", gulp.series("build", function() {
     uri: "http://localhost:8080/"
   }));
 
-  gulp.watch(paths.src.scripts.all, gulp.series(
-    gulp.parallel("copy:html","bundle"),
-    "inject:index"
-  ));
-  gulp.watch(paths.src.sass.all, gulp.series("sass"));
+  gulp.watch(paths.src.all, gulp.series("build"));
 }));
 
 gulp.task("deploy", function() {
