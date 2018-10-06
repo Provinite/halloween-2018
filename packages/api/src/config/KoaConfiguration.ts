@@ -21,5 +21,6 @@ export class KoaConfiguration {
     const rendererMiddleware = new RenderMiddlewareFactory().create();
     this.webserver.use(routerMiddleware);
     this.webserver.use(rendererMiddleware);
+    this.webserver.listen(process.env.PORT || 8080);
   }
 }

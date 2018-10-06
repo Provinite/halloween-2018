@@ -11,7 +11,6 @@ export class WebserverContext {
       "webserver",
       asFunction(() => {
         const webserver: Koa = new Koa();
-        webserver.listen(process.env.PORT || 8080);
         return webserver;
       })
     );
