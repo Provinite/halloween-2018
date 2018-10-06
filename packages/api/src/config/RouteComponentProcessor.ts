@@ -15,8 +15,6 @@ export class RouteComponentProcessor {
   private container: AwilixContainer;
   private componentList: IScannableClass[];
   constructor(container: AwilixContainer, ComponentList: IScannableClass[]) {
-    // We need the actual controller list here, rather than the class list.
-    // Maybe we could just run down the entire cradle and pick out routers.
     this.container = container;
     this.componentList = ComponentList;
   }
@@ -29,14 +27,12 @@ export class RouteComponentProcessor {
    */
   getRouteHandlerMap(): { [route: string]: IRoutableMethod } {
     const routers: IRouter[] = this.componentList
-      .map(componentClass => {
-        if (isRouterClass(componentClass)) {
-          const name = ComponentRegistrar.getRegistrationName(componentClass);
-          const registration = this.container.cradle[name];
-          return registration;
-        }
-      })
-      .filter(_ => _);
+      .filter(isRouterClass)
+      .map(routerClass => {
+        const name = ComponentRegistrar.getRegistrationName(routerClass);
+        const registration = this.container.cradle[name];
+        return registration;
+      });
     const handlers: { [route: string]: IRoutableMethod } = {};
     routers.forEach(router => {
       router[routableMethods].forEach(routableMethod => {
