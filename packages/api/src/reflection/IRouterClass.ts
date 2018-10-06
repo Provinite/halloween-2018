@@ -1,9 +1,11 @@
+import { IRouteMap } from "../middlewares/RouterMiddlewareFactory";
 import { IRoutableMethod } from "./IRoutableMethod";
 import { IScannableClass } from "./ScannableClass";
 import * as Symbols from "./Symbols";
 
 export interface IRouter {
-  [Symbols.routableMethods]: IRoutableMethod[];
+  [Symbols.routableMethods]?: IRoutableMethod[];
+  registerRoutes?: (handlers: IRouteMap) => IRouteMap;
 }
 
 export interface IRouterClass extends IScannableClass {

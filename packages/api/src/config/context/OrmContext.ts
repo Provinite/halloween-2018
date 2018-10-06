@@ -6,7 +6,7 @@ import { MODELS } from "../../models";
  * Create a repository name for the given model.
  * @param model - A model class.
  */
-function createRepositoryName(model: Function) {
+export function createRepositoryName(model: Function) {
   let name: string = model.name;
   name = name[0].toLowerCase() + name.substr(1);
   name += "Repository";
