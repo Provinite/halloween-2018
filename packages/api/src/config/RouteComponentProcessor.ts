@@ -1,4 +1,5 @@
 import { AwilixContainer } from "awilix";
+import { IRouteMap } from "../middlewares/RouterMiddlewareFactory";
 import { Component } from "../reflection/Component";
 import { IRoutableMethod } from "../reflection/IRoutableMethod";
 import { IRouter, isRouterClass } from "../reflection/IRouterClass";
@@ -25,7 +26,7 @@ export class RouteComponentProcessor {
    * @return { [route: string]: IRoutableMethod } A map of all registered routable
    *    methods.
    */
-  getRouteHandlerMap(): { [route: string]: IRoutableMethod } {
+  getRouteHandlerMap(): IRouteMap {
     const routers: IRouter[] = this.componentList
       .filter(isRouterClass)
       .map(routerClass => {
@@ -35,9 +36,14 @@ export class RouteComponentProcessor {
       });
     const handlers: { [route: string]: IRoutableMethod } = {};
     routers.forEach(router => {
-      router[routableMethods].forEach(routableMethod => {
-        handlers[routableMethod[targetRoute]] = routableMethod;
-      });
+      if (router[routableMethods]) {
+        router[routableMethods].forEach(routableMethod => {
+          handlers[routableMethod[targetRoute]] = routableMethod.bind(router);
+        });
+      }
+      if (router.registerRoutes) {
+        router.registerRoutes(handlers);
+      }
     });
     return handlers;
   }
