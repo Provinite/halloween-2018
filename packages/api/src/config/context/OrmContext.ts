@@ -1,6 +1,6 @@
 import { asFunction, asValue, AwilixContainer } from "awilix";
 import { Connection, createConnection } from "typeorm";
-import { MODELS } from "../models";
+import { MODELS } from "../../models";
 
 /**
  * Create a repository name for the given model.

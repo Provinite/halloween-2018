@@ -1,9 +1,9 @@
 import * as Koa from "koa";
-import { ExportPathScanner } from "./decorators/ExportPathScanner";
 import { HalloweenAppDevRunner } from "./HalloweenAppDevRunner";
+import { ExportPathScanner } from "./reflection/ExportPathScanner";
 
 jest.mock("koa");
-jest.mock("./decorators/ExportPathScanner");
+jest.mock("./reflection/ExportPathScanner");
 describe.skip("HalloweenAppDevRunner", function() {
   let webserver: Koa;
   let runner: HalloweenAppDevRunner;
@@ -13,7 +13,7 @@ describe.skip("HalloweenAppDevRunner", function() {
     mockScan.mockResolvedValue([]);
     process.env.PORT = "3000";
     webserver = new Koa();
-    runner = new HalloweenAppDevRunner(webserver);
+    runner = new HalloweenAppDevRunner();
     runner.run();
   });
 
