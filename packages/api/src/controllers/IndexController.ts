@@ -9,10 +9,10 @@ export class IndexController {
   constructor() {
     this.name = "namely";
   }
-  @Route("/")
-  index(ctx: any): string {
-    console.log(ctx);
-    return "LOL!" + this.name;
+  @Route("/{username}/{action}")
+  index(username: string, action: string) {
+    console.log("index");
+    return { username, action };
   }
 
   @Route("/foo")

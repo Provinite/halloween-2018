@@ -29,6 +29,77 @@ export function classMethodHandler(
     fn: method
   };
 }
+
+function getRouteRegex(path: string): RegExp {
+  const parts = path.split(/\{|\}/g);
+  let pattern = "";
+  const pathVariables: Array<{ name: string; value: any }> = [];
+  for (let i = 0; i < parts.length; i++) {
+    const isPathParam = i % 2 === 1;
+    if (!isPathParam) {
+      pattern += parts[i].replace(/\//g, "\\/");
+    } else {
+      pattern += "(.*?)";
+    }
+  }
+  return new RegExp(`^${pattern}$`);
+}
+
+function getPathVariables(
+  path: string
+): Array<{ name: string; value: string }> {
+  const parts = path.split(/\{|\}/g);
+  const pathVariables: Array<{ name: string; value: string }> = [];
+
+  for (let i = 0; i < parts.length; i++) {
+    if (i % 2 === 0) {
+      continue;
+    }
+    pathVariables.push({
+      name: parts[i],
+      value: undefined
+    });
+  }
+
+  return pathVariables;
+}
+
+const getHandler = (
+  handlers: IRouteMap,
+  requestPath: string
+): {
+  handler: IRouteHandler;
+  pathVariables?: Array<{ name: string; value: string }>;
+} => {
+  // 1. Exact matches first
+  if (handlers[requestPath]) {
+    return {
+      handler: handlers[requestPath]
+    };
+  }
+
+  // 2. Regex matches otherwise
+  for (const path in handlers) {
+    if (path.includes("{")) {
+      console.log(path);
+      const regex = getRouteRegex(path);
+      console.log(regex);
+      const result = regex.exec(requestPath);
+      console.log(result);
+      if (!result) {
+        continue;
+      }
+
+      const pathVariables = getPathVariables(path);
+      let j = 0;
+      for (const pathVariable of pathVariables) {
+        pathVariable.value = result[j + 1];
+        j++;
+      }
+      return { handler: handlers[path], pathVariables };
+    }
+  }
+};
 export class RouterMiddlewareFactory implements IMiddlewareFactory {
   private handlers: IRouteMap;
   private container: AwilixContainer;
@@ -48,8 +119,17 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
 
       // Register the koa context to the request-scoped DI container
       requestContainer.register("ctx", asValue(ctx));
-      if (this.handlers[path]) {
-        const { invokeOn: instance, fn: method } = this.handlers[path];
+      const handler = getHandler(this.handlers, path);
+      if (handler) {
+        const { invokeOn: instance, fn: method } = handler.handler;
+        if (handler.pathVariables) {
+          handler.pathVariables.forEach(pathVariable => {
+            requestContainer.register(
+              pathVariable.name,
+              asValue(pathVariable.value)
+            );
+          });
+        }
         ctx.state.result = await requestContainer.build(
           asClassMethod(instance, method)
         );

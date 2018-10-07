@@ -22,7 +22,7 @@ export abstract class RestRepository<T> {
   }
   registerRoutes(handlers: IRouteMap): IRouteMap {
     const fallbackHandlers = {
-      [this.listRoute]: this.getAll.bind(this)
+      [this.listRoute]: this.getAll
     };
     for (const route in fallbackHandlers) {
       if (!handlers[route]) {
