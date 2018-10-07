@@ -3,6 +3,8 @@ const typescript = require("gulp-typescript");
 const childProcess = require("child_process");
 const sourcemaps = require("gulp-sourcemaps");
 const del = require("del");
+const rename = require("gulp-rename");
+const path = require("path");
 
 const tsProject = typescript.createProject("./tsconfig.json");
 
@@ -26,11 +28,21 @@ gulp.task("clean", function() {
   return del(paths.out.dev.all)
 });
 gulp.task("build", gulp.series("clean", function() {
-  return gulp.src(paths.src.scripts.all)
+
+  var tsResult = tsProject
+  .src()
   .pipe(sourcemaps.init())
-  .pipe(tsProject())
-  .pipe(sourcemaps.write())
-  .pipe(gulp.dest(paths.out.dev.root));
+  .pipe(tsProject());
+
+  return tsResult.js
+    .pipe(sourcemaps.write({
+      // Return relative source map root directories per file.
+      sourceRoot: function (file) {
+        var sourceFile = path.join(file.cwd, file.sourceMap.file);
+        return path.relative(path.dirname(sourceFile), file.cwd);
+      }
+    }))
+    .pipe(gulp.dest('./dist'));
 }));
 
 let node;
