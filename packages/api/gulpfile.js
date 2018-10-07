@@ -3,7 +3,6 @@ const typescript = require("gulp-typescript");
 const childProcess = require("child_process");
 const sourcemaps = require("gulp-sourcemaps");
 const del = require("del");
-const rename = require("gulp-rename");
 const path = require("path");
 
 const tsProject = typescript.createProject("./tsconfig.json");
