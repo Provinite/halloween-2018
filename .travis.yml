@@ -5,6 +5,7 @@ cache:
   directories:
   - node_modules
   - packages/web-client/node_modules
+  - packages/api/node_modules
 install:
 - yarn install
 - lerna bootstrap
