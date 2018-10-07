@@ -24,7 +24,7 @@ deploy:
     cloverco@clovercoin.com:public_html/halloween-2018
   skip_cleanup: true
   on:
-    branch: 39-web-client-deploy
+    branch: dev
 addons:
   ssh_known_hosts: clovercoin.com
 before_deploy:
