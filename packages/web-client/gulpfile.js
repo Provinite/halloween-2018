@@ -167,7 +167,8 @@ gulp.task("deploy", function() {
     host,
     user,
     password,
-    debug: true
+    debug: true,
+    port: 21
   });
   return connection.clean(`${path}**`, "./dist/")
   .pipe(gulp.src("./dist/**"))
