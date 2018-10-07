@@ -10,7 +10,7 @@ install:
 - npm install
 - lerna bootstrap
 script:
-- lerna run build --scope={*web*}
+- lerna run build --ignore=clovercoin-halloween-2018-api
 #- lerna run test
 deploy:
   - provider: heroku
