@@ -162,13 +162,14 @@ gulp.task("deploy", function() {
   }
 
   required({host, user, password, path});
-
+  console.log(host, user, password, path);
   const connection = ftp.create({
     host,
     user,
     password,
     debug: true,
-    port: 21
+    port: 21,
+    log: console.log
   });
   return connection.clean(`${path}**`, "./dist/")
   .pipe(gulp.src("./dist/**"))
