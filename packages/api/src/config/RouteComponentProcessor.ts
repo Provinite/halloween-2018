@@ -34,11 +34,15 @@ export class RouteComponentProcessor {
         const registration = this.container.cradle[name];
         return registration;
       });
-    const handlers: { [route: string]: IRoutableMethod } = {};
+    const handlers: IRouteMap = {};
     routers.forEach(router => {
       if (router[routableMethods]) {
         router[routableMethods].forEach(routableMethod => {
-          handlers[routableMethod[targetRoute]] = routableMethod.bind(router);
+          handlers[routableMethod[targetRoute]] = {
+            methodName: routableMethod.name,
+            invokeOn: router,
+            fn: routableMethod
+          };
         });
       }
       if (router.registerRoutes) {

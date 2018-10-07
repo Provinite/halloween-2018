@@ -7,19 +7,21 @@
     "allowJs": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "outDir": "dist",
+    "outDir": "./dist/",
     "noImplicitAny": true,
     "alwaysStrict": false,
-    "inlineSourceMap": true,
+    "sourceMap": true,
     "sourceRoot": "./src/",
+    "noImplicitUseStrict": true
   },
   "parserOptions": {
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
   ],
   "exclude": [
     "./node_modules/**/*",
-    "./*.js"
+    "./*.js",
+    "src/**/*.spec.ts"
   ]
 }

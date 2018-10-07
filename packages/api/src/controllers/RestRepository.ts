@@ -1,8 +1,8 @@
 import { Connection, Repository } from "typeorm";
-import { IRouteMap } from "../middlewares/RouterMiddlewareFactory";
-import { IRoutableMethod } from "../reflection/IRoutableMethod";
-import { isRouterClass } from "../reflection/IRouterClass";
-import { Route } from "../reflection/Route";
+import {
+  classMethodHandler,
+  IRouteMap
+} from "../middlewares/RouterMiddlewareFactory";
 const pluralize: (str: string) => string = (str: string) =>
   str.endsWith("s") ? str + "es" : str + "s";
 
@@ -14,9 +14,7 @@ export abstract class RestRepository<T> {
   protected repository: Repository<T>;
   protected baseRoute: string;
   protected listRoute: string;
-  private orm: Connection;
   constructor(orm: Connection, modelClass: new () => T) {
-    this.orm = orm;
     this.modelClass = modelClass;
     this.repository = orm.getRepository(this.modelClass);
     this.baseRoute = getRoute(this.modelClass);
@@ -28,7 +26,7 @@ export abstract class RestRepository<T> {
     };
     for (const route in fallbackHandlers) {
       if (!handlers[route]) {
-        handlers[route] = fallbackHandlers[route];
+        handlers[route] = classMethodHandler(this, fallbackHandlers[route]);
       }
     }
     return handlers;
