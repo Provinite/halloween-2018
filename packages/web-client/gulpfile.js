@@ -151,7 +151,7 @@ gulp.task("serve", gulp.series("build", function() {
   gulp.watch(paths.src.all, gulp.series("build"));
 }));
 
-gulp.task("deploy", function() {
+gulp.task("deploy", function(done) {
   const {host, user, password, path} = args;
   function required(args) {
     Object.keys(args).forEach(argument => {
@@ -169,9 +169,14 @@ gulp.task("deploy", function() {
     password,
     debug: true,
     port: 21,
-    log: console.log
+    log: console.log,
+    secure: true,
+    secureOptions: {
+      rejectUnauthorized: false
+    }
   });
   return connection.clean(`${path}**`, "./dist/")
   .pipe(gulp.src("./dist/**"))
-  .pipe(connection.dest(path));
+  .pipe(connection.dest(path))
+  .on("end", done);
 });
