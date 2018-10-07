@@ -150,33 +150,3 @@ gulp.task("serve", gulp.series("build", function() {
 
   gulp.watch(paths.src.all, gulp.series("build"));
 }));
-
-gulp.task("deploy", function(done) {
-  const {host, user, password, path} = args;
-  function required(args) {
-    Object.keys(args).forEach(argument => {
-      if (!args[argument]) {
-        throw new Error(`web-client.gulp.deploy: Missing arg ${argument}, aborting!`);
-      }
-    })
-  }
-
-  required({host, user, password, path});
-  console.log(host, user, password, path);
-  const connection = ftp.create({
-    host,
-    user,
-    password,
-    debug: true,
-    port: 21,
-    log: console.log,
-    secure: true,
-    secureOptions: {
-      rejectUnauthorized: false
-    }
-  });
-  return connection.clean(`${path}**`, "./dist/")
-  .pipe(gulp.src("./dist/**"))
-  .pipe(connection.dest(path))
-  .on("end", done);
-});
