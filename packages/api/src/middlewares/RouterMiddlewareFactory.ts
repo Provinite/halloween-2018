@@ -10,7 +10,7 @@ import { asClassMethod } from "../AwilixHelpers";
 import { IRouter } from "../reflection/IRouterClass";
 import { IMiddlewareFactory } from "./IMiddlewareFactory";
 import { INextCallback } from "./INextCallback";
-interface IRouteHandler {
+export interface IRouteHandler {
   methodName?: string;
   invokeOn?: IRouter;
   fn?: (...args: any[]) => any;
