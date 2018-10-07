@@ -5,13 +5,13 @@ cache:
   directories:
   - node_modules
   - packages/web-client/node_modules
-  - packages/api/node_modules
+#  - packages/api/node_modules
 install:
 - npm install
 - lerna bootstrap
 script:
-- lerna run build
-- lerna run test
+- lerna run build --scope={*web*}
+#- lerna run test
 deploy:
   - provider: heroku
     app: pillowing-halloween-2018-api
