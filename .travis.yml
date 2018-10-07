@@ -24,13 +24,11 @@ deploy:
   skip_cleanup: true
   on:
     branch: 39-web-client-deploy
+addons:
+  ssh_known_hosts: clovercoin.com
 before_deploy:
-<<<<<<< HEAD
-- openssl aes-256-cbc -K $encrypted_5a0965c769aa_key -iv $encrypted_5a0965c769aa_iv -in deploy_rsa.enc -out deploy_rsa -d
-=======
 - openssl aes-256-cbc -K $encrypted_0f87164a6f1b_key -iv $encrypted_0f87164a6f1b_iv
   -in deploy_rsa.enc -out deploy_rsa -d
->>>>>>> 5f2cb96f747d59d35b91265a012a1f841ad2fe68
 - eval "$(ssh-agent -s)"
 - chmod 600 deploy_rsa
 - ssh-add deploy_rsa
