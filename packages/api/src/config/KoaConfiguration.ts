@@ -1,4 +1,4 @@
-import { AwilixContainer } from "awilix";
+import { AwilixContainer, asClass, asValue } from "awilix";
 import * as Koa from "koa";
 import { Connection } from "typeorm";
 import { RestRepository } from "../controllers/RestRepository";
@@ -29,10 +29,11 @@ export class KoaConfiguration {
   }
   configure() {
     const handlers = this.routeComponentProcessor.getRouteHandlerMap();
-    const routerMiddleware = new RouterMiddlewareFactory(
-      handlers,
-      this.container
-    ).create();
+    const configContainer = this.container.createScope();
+    configContainer.register("handlers", asValue(handlers));
+    const routerMiddleware = configContainer
+      .build(asClass(RouterMiddlewareFactory))
+      .create();
     const rendererMiddleware = new RenderMiddlewareFactory().create();
     this.webserver.use(routerMiddleware);
     this.webserver.use(rendererMiddleware);

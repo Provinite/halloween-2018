@@ -1,12 +1,7 @@
-import {
-  asFunction,
-  asValue,
-  AwilixContainer,
-  AwilixResolutionError,
-  InjectionMode
-} from "awilix";
+import { asValue, AwilixContainer } from "awilix";
 import { Context, Middleware } from "koa";
 import { asClassMethod } from "../AwilixHelpers";
+import { RouteTransformationService } from "../config/RouteTransformationService";
 import { IRouter } from "../reflection/IRouterClass";
 import { IMiddlewareFactory } from "./IMiddlewareFactory";
 import { INextCallback } from "./INextCallback";
@@ -30,109 +25,85 @@ export function classMethodHandler(
   };
 }
 
-function getRouteRegex(path: string): RegExp {
-  const parts = path.split(/\{|\}/g);
-  let pattern = "";
-  const pathVariables: Array<{ name: string; value: any }> = [];
-  for (let i = 0; i < parts.length; i++) {
-    const isPathParam = i % 2 === 1;
-    if (!isPathParam) {
-      pattern += parts[i].replace(/\//g, "\\/");
-    } else {
-      pattern += "(.*?)";
-    }
-  }
-  return new RegExp(`^${pattern}$`);
-}
-
-function getPathVariables(
-  path: string
-): Array<{ name: string; value: string }> {
-  const parts = path.split(/\{|\}/g);
-  const pathVariables: Array<{ name: string; value: string }> = [];
-
-  for (let i = 0; i < parts.length; i++) {
-    if (i % 2 === 0) {
-      continue;
-    }
-    pathVariables.push({
-      name: parts[i],
-      value: undefined
-    });
-  }
-
-  return pathVariables;
-}
-
-const getHandler = (
-  handlers: IRouteMap,
-  requestPath: string
-): {
-  handler: IRouteHandler;
-  pathVariables?: Array<{ name: string; value: string }>;
-} => {
-  // 1. Exact matches first
-  if (handlers[requestPath]) {
-    return {
-      handler: handlers[requestPath]
-    };
-  }
-
-  // 2. Regex matches otherwise
-  for (const path in handlers) {
-    if (path.includes("{")) {
-      console.log(path);
-      const regex = getRouteRegex(path);
-      console.log(regex);
-      const result = regex.exec(requestPath);
-      console.log(result);
-      if (!result) {
-        continue;
-      }
-
-      const pathVariables = getPathVariables(path);
-      let j = 0;
-      for (const pathVariable of pathVariables) {
-        pathVariable.value = result[j + 1];
-        j++;
-      }
-      return { handler: handlers[path], pathVariables };
-    }
-  }
-};
 export class RouterMiddlewareFactory implements IMiddlewareFactory {
+  private routeTransformationService: RouteTransformationService;
   private handlers: IRouteMap;
   private container: AwilixContainer;
-  constructor(handlers: IRouteMap, container: AwilixContainer) {
+  constructor(
+    handlers: IRouteMap,
+    container: AwilixContainer,
+    routeTransformationService: RouteTransformationService
+  ) {
     this.handlers = handlers;
     this.container = container;
+    this.routeTransformationService = routeTransformationService;
   }
   create(): Middleware {
     return async (ctx: Context, next: INextCallback) => {
       const path: string = ctx.path;
-      // Create a request-scoped DI container
-      // this is a good start, but we should elevate this
-      // that way we can have other middlewares interact with the container
-      // for example, we'll probably want a security middleware that can
-      // provide user information to the container.
+
+      /**
+       * Lookup the appropriate handler for this request, and parse
+       * any path variables.
+       */
+      const getHandler = () => {
+        // Exact match (but don't get weird if people literally enter {id})
+        if (!path.includes("{")) {
+          if (this.handlers[path]) {
+            return {
+              handler: this.handlers[path]
+            };
+          }
+        }
+
+        for (const route in this.handlers) {
+          // Find all potential wildcard routes
+          if (route.includes("{")) {
+            const parsedRoute = this.routeTransformationService.parseRoute(
+              route
+            );
+            const pathVariables = this.routeTransformationService.getPathVariables(
+              parsedRoute,
+              path
+            );
+            if (pathVariables) {
+              // variables successfully extracted, we have a match.
+              return {
+                handler: this.handlers[route],
+                pathVariables
+              };
+            }
+          }
+        }
+      };
+
+      // Create the request-scoped DI container
       const requestContainer: AwilixContainer = this.container.createScope();
 
       // Register the koa context to the request-scoped DI container
       requestContainer.register("ctx", asValue(ctx));
-      const handler = getHandler(this.handlers, path);
+
+      const handler = getHandler();
+
       if (handler) {
         const { invokeOn: instance, fn: method } = handler.handler;
         if (handler.pathVariables) {
-          handler.pathVariables.forEach(pathVariable => {
+          // register path variables for DI
+          Object.keys(handler.pathVariables).forEach(variable => {
             requestContainer.register(
-              pathVariable.name,
-              asValue(pathVariable.value)
+              variable,
+              asValue(handler.pathVariables[variable])
             );
           });
         }
+
         ctx.state.result = await requestContainer.build(
           asClassMethod(instance, method)
         );
+      }
+      // Catchall for now
+      if (ctx.state.result === undefined) {
+        ctx.state.result = "Not Found.";
       }
       await next();
     };

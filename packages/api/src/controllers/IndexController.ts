@@ -1,5 +1,3 @@
-import { AwilixContainer } from "awilix";
-import { Context } from "koa";
 import { Component } from "../reflection/Component";
 import { Route } from "../reflection/Route";
 

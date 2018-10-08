@@ -12,7 +12,7 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "@types/glob": "^5.0.35",
-    "@types/jest": "^23.3.2",
+    "@types/jest": "^23.3.3",
     "@types/koa": "^2.0.46",
     "@types/koa-route": "^3.2.4",
     "@types/request-promise": "^4.1.42",
