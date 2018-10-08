@@ -9,7 +9,6 @@ export class IndexController {
   }
   @Route("/{username}/{action}")
   index(username: string, action: string) {
-    console.log("index");
     return { username, action };
   }
 

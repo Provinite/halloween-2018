@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest",
     "start": "node dist/app.js",
-    "build": "gulp build"
+    "build": "gulp build",
+    "lint": "tslint --fix --project tsconfig.json"
   },
   "author": "Collin Driscoll",
   "license": "UNLICENSED",

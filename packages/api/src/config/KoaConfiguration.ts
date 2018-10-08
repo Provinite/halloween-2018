@@ -1,4 +1,4 @@
-import { AwilixContainer, asClass, asValue } from "awilix";
+import { asClass, asValue, AwilixContainer } from "awilix";
 import * as Koa from "koa";
 import { Connection } from "typeorm";
 import { RestRepository } from "../controllers/RestRepository";
