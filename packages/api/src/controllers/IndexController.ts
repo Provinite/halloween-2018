@@ -1,5 +1,3 @@
-import { AwilixContainer } from "awilix";
-import { Context } from "koa";
 import { Component } from "../reflection/Component";
 import { Route } from "../reflection/Route";
 
@@ -9,10 +7,9 @@ export class IndexController {
   constructor() {
     this.name = "namely";
   }
-  @Route("/")
-  index(ctx: any): string {
-    console.log(ctx);
-    return "LOL!" + this.name;
+  @Route("/{username}/{action}")
+  index(username: string, action: string) {
+    return { username, action };
   }
 
   @Route("/foo")

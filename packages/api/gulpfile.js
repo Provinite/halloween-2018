@@ -28,8 +28,7 @@ gulp.task("clean", function() {
 });
 gulp.task("build", gulp.series("clean", function() {
 
-  var tsResult = tsProject
-  .src()
+  var tsResult = gulp.src(paths.src.scripts.all)
   .pipe(sourcemaps.init())
   .pipe(tsProject());
 
