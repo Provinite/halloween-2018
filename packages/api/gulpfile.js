@@ -48,11 +48,7 @@ let node;
 gulp.task("server", function(done) {
   if (node) { node.kill(); }
   node = childProcess.spawn("node", ["dist/app.js"], {
-    stdio: "inherit",
-    env: {
-      ...process.env,
-      PORT: 8081,
-    }
+    stdio: "inherit"
   });
   done();
 });
