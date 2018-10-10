@@ -9,7 +9,7 @@ export class IndexController {
   }
   @Route("/{username}/{action}")
   index(username: string, action: string) {
-    return { username, action };
+    return { username, action, name: this.name };
   }
 
   @Route("/foo")

@@ -1,12 +1,5 @@
-import {
-  asClass,
-  asFunction,
-  asValue,
-  createContainer,
-  InjectionMode,
-  Lifetime
-} from "awilix";
-import { asClassMethod, asStaticMethod } from "./AwilixHelpers";
+import { asClass, asValue, createContainer, InjectionMode } from "awilix";
+import { asStaticMethod } from "./AwilixHelpers";
 import { ComponentRegistrar } from "./config/context/ComponentRegistrar";
 import { OrmContext } from "./config/context/OrmContext";
 import { WebserverContext } from "./config/context/WebserverContext";

@@ -28,16 +28,6 @@ function createMockComponent(name: string) {
   return result;
 }
 
-function strictly(
-  value: any
-): {
-  asymmetricMatch: (_: any) => boolean;
-} {
-  return {
-    asymmetricMatch: (actual: any) => actual === value
-  };
-}
-
 describe("config:ComponentRegistrar", () => {
   let mocks: Partial<IMocks>;
   beforeEach(() => {

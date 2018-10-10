@@ -1,5 +1,3 @@
-import { AnyFunction } from "./AnyFunction";
-
 export function getMethods(instance: any): any[] {
   const prototype: { [_: string]: any } = Reflect.getPrototypeOf(instance);
   const results: any[] = [];

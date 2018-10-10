@@ -1,4 +1,4 @@
-import { asClass, asValue, AwilixContainer, Lifetime } from "awilix";
+import { asClass, asValue, AwilixContainer } from "awilix";
 import { IScannableClass } from "../../reflection/ScannableClass";
 /**
  * @class ComponentRegistrar
