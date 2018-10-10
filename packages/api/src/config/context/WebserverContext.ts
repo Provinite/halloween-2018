@@ -12,7 +12,7 @@ export class WebserverContext {
       asFunction(() => {
         const webserver: Koa = new Koa();
         return webserver;
-      })
+      }).singleton()
     );
     return container;
   }

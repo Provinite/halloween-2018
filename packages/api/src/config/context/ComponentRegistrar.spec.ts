@@ -6,6 +6,7 @@ import {
   DecoratedTypes,
   isScannable
 } from "../../reflection/Symbols";
+import { mockAsClass, mockAsValue } from "../../test/AwilixMocks";
 import { ComponentRegistrar } from "./ComponentRegistrar";
 interface IMocks {
   container: jest.Mocked<AwilixContainer>;
@@ -27,16 +28,6 @@ function createMockComponent(name: string) {
   return result;
 }
 
-function strictly(
-  value: any
-): {
-  asymmetricMatch: (_: any) => boolean;
-} {
-  return {
-    asymmetricMatch: (actual: any) => actual === value
-  };
-}
-
 describe("config:ComponentRegistrar", () => {
   let mocks: Partial<IMocks>;
   beforeEach(() => {
@@ -48,17 +39,8 @@ describe("config:ComponentRegistrar", () => {
     mocks.container = new MockContainer();
 
     /* Stubs */
-    jest.spyOn(Awilix, "asClass").mockImplementation(clazz => {
-      return {
-        type: "class",
-        value: clazz
-      };
-    });
-
-    jest.spyOn(Awilix, "asValue").mockImplementation(value => ({
-      type: "value",
-      value
-    }));
+    jest.spyOn(Awilix, "asClass").mockImplementation(mockAsClass);
+    jest.spyOn(Awilix, "asValue").mockImplementation(mockAsValue);
   });
 
   afterEach(() => {
@@ -76,10 +58,15 @@ describe("config:ComponentRegistrar", () => {
       3
     );
     components.forEach(component => {
-      expect(mocks.container.register).toHaveBeenCalledWith(component.name, {
-        type: "class",
-        value: strictly(component)
-      });
+      let found: boolean = false;
+      for (const call of mocks.container.register.mock.calls) {
+        const [name, resolver] = call;
+        if (name === component.name) {
+          found = true;
+          expect(resolver).toBeMockClassResolverFor(component);
+        }
+      }
+      expect(found).toBe(true);
     });
   });
 
@@ -97,14 +84,5 @@ describe("config:ComponentRegistrar", () => {
       "alphaBeta",
       expect.anything()
     );
-  });
-
-  it("registers the components list as a value", () => {
-    const components = [createMockComponent("a"), createMockComponent("b")];
-    ComponentRegistrar.configureContainer(mocks.container, components);
-    expect(mocks.container.register).toHaveBeenCalledWith("ComponentList", {
-      type: "value",
-      value: components
-    });
   });
 });

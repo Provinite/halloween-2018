@@ -9,5 +9,6 @@ module.exports = {
     "js",
     "json",
     "node"
-  ]
+  ],
+  "setupTestFrameworkScriptFile": "<rootDir>/src/test/AwilixMocks.ts"
 };

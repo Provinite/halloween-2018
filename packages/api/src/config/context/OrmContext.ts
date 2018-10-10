@@ -1,6 +1,7 @@
 import { asFunction, asValue, AwilixContainer } from "awilix";
 import { Connection, createConnection } from "typeorm";
 import { MODELS } from "../../models";
+import { EnvService } from "../EnvService";
 
 /**
  * Create a repository name for the given model.
@@ -22,19 +23,17 @@ export class OrmContext {
    * Configures the DI container with ORM related registrations.
    * @configures {typeorm.Connection} orm
    * @configures {typeorm.Repository} [model]Repository for each model.
-   * @param {AwilixContainer} container - The Awilix DI container to configure.
    */
-  static async configureContainer(container: AwilixContainer) {
-    // Create the typeorm connection
-    const connection: Connection = await createConnection({
-      type: "postgres",
-      host: "localhost",
-      username: "halloween2018",
-      password: "halloween-password",
-      database: "halloween2018",
-      synchronize: true,
+  static async configureContainer(
+    container: AwilixContainer,
+    envService: EnvService
+  ) {
+    const config = {
+      ...envService.getOrmConfiguration(),
       entities: MODELS
-    });
+    };
+    // Create the typeorm connection
+    const connection: Connection = await createConnection(config as any);
 
     // Register the ORM connection.
     container.register("orm", asValue(connection));
@@ -43,7 +42,7 @@ export class OrmContext {
     MODELS.forEach(model => {
       const name = createRepositoryName(model);
       const proxy = (orm: Connection) => orm.getRepository(model);
-      const resolver = asFunction(proxy);
+      const resolver = asFunction(proxy).singleton();
       container.register(name, resolver);
     });
     return container;

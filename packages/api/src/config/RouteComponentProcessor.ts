@@ -4,7 +4,6 @@ import {
   IRouteMap
 } from "../middlewares/RouterMiddlewareFactory";
 import { Component } from "../reflection/Component";
-import { IRoutableMethod } from "../reflection/IRoutableMethod";
 import {
   IRouter,
   IRouterClass,

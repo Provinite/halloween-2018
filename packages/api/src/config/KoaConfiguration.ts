@@ -7,26 +7,29 @@ import { RouterMiddlewareFactory } from "../middlewares/RouterMiddlewareFactory"
 import { User } from "../models";
 import { Component } from "../reflection/Component";
 import { Controller } from "../reflection/Controller";
-import { Route } from "../reflection/Route";
+import { EnvService, IWebserverConfiguration } from "./EnvService";
 import { RouteComponentProcessor } from "./RouteComponentProcessor";
 
 @Component()
 export class KoaConfiguration {
   private container: AwilixContainer;
   private webserver: Koa;
+  private webserverConfig: IWebserverConfiguration;
   private routeComponentProcessor: RouteComponentProcessor;
-  private orm: Connection;
   constructor(
     container: AwilixContainer,
     routeComponentProcessor: RouteComponentProcessor,
     webserver: Koa,
-    orm: Connection
+    envService: EnvService
   ) {
     this.container = container;
     this.routeComponentProcessor = routeComponentProcessor;
     this.webserver = webserver;
-    this.orm = orm;
+    this.webserverConfig = envService.getWebserverConfig();
   }
+  /**
+   * Configure the webserver with necessary middlewares and start it listening.
+   */
   configure() {
     const handlers = this.routeComponentProcessor.getRouteHandlerMap();
     const configContainer = this.container.createScope();
@@ -37,7 +40,7 @@ export class KoaConfiguration {
     const rendererMiddleware = new RenderMiddlewareFactory().create();
     this.webserver.use(routerMiddleware);
     this.webserver.use(rendererMiddleware);
-    this.webserver.listen(process.env.PORT || 8080);
+    this.webserver.listen(this.webserverConfig.port);
   }
 }
 /* tslint:disable:max-classes-per-file */

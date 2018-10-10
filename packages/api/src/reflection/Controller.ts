@@ -1,11 +1,5 @@
 import { Component } from "./Component";
-import { IRoutableMethod } from "./IRoutableMethod";
-import {
-  decoratedType,
-  DecoratedTypes,
-  isRouter,
-  routableMethods
-} from "./Symbols";
+import { isRouter } from "./Symbols";
 /**
  * Decorator used to register controllers in the DI container.
  */
