@@ -1,10 +1,12 @@
 import * as Awilix from "awilix";
 import * as Koa from "koa";
+import { EnvService } from "../EnvService";
 import { WebserverContext } from "./WebserverContext";
 interface IMocks {
   container: {
     register: jest.Mock;
   };
+  envService: EnvService;
 }
 describe("config:WebserverContext", () => {
   let mocks: Partial<IMocks>;
@@ -15,12 +17,20 @@ describe("config:WebserverContext", () => {
       register: jest.fn()
     };
 
+    mocks.envService = {
+      getWebserverConfig: () => ({
+        port: 8081
+      })
+    } as EnvService;
+
     /* Stubs */
     jest.spyOn(Awilix, "createContainer").mockReturnValue(mocks.container);
-    jest.spyOn(Awilix, "asFunction").mockImplementation(fn => ({
+    const mockAsFunction = (fn: any) => ({
       type: "function",
-      value: fn
-    }));
+      value: fn,
+      singleton: () => mockAsFunction(fn)
+    });
+    jest.spyOn(Awilix, "asFunction").mockImplementation(mockAsFunction);
   });
 
   afterEach(() => {
@@ -37,10 +47,13 @@ describe("config:WebserverContext", () => {
 
     it("registers a webserver as a function that returns a Koa", () => {
       WebserverContext.configureContainer(Awilix.createContainer());
-      expect(mocks.container.register).toBeCalledWith("webserver", {
-        type: "function",
-        value: expect.any(Function)
-      });
+      expect(mocks.container.register).toBeCalledWith(
+        "webserver",
+        expect.objectContaining({
+          type: "function",
+          value: expect.any(Function)
+        })
+      );
       const registeredFunction: () => Koa =
         mocks.container.register.mock.calls[0][1].value;
       const webserver = registeredFunction();
