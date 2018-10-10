@@ -51,9 +51,6 @@ export class ExportPathScanner {
             classIsScannable(theExport) &&
             theExport[decoratedType] === DecoratedTypes.CLASS
           ) {
-            /*console.log(
-              "Module Path Scanning Revealed scannable class:" + moduleId
-            );*/
             components.push(theExport);
           }
         }

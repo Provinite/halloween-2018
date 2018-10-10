@@ -32,7 +32,6 @@ export class OrmContext {
       ...envService.getOrmConfiguration(),
       entities: MODELS
     };
-    console.log(config);
     // Create the typeorm connection
     const connection: Connection = await createConnection(config as any);
 
