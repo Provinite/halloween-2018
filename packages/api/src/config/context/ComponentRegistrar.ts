@@ -23,7 +23,7 @@ export class ComponentRegistrar {
     components.forEach((componentClass: IScannableClass) => {
       container.register(
         ComponentRegistrar.getRegistrationName(componentClass),
-        asClass(componentClass)
+        asClass(componentClass).singleton()
       );
     });
     container.register("ComponentList", asValue(components.map(_ => _)));

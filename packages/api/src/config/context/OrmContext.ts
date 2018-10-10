@@ -43,7 +43,7 @@ export class OrmContext {
     MODELS.forEach(model => {
       const name = createRepositoryName(model);
       const proxy = (orm: Connection) => orm.getRepository(model);
-      const resolver = asFunction(proxy);
+      const resolver = asFunction(proxy).singleton();
       container.register(name, resolver);
     });
     return container;
