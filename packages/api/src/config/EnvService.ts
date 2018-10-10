@@ -23,6 +23,10 @@ export interface IWebserverConfiguration {
  */
 // tslint:disable-next-line
 interface ENV_VARS {
+  /**
+   * The database URL to use. Overrides username, password, host, and database.
+   */
+  DATABASE_URL: string;
   /** The database connection username. */
   cch2018_orm_username: string;
   /** The database connection password. */
@@ -110,16 +114,26 @@ export class EnvService {
    * configuration.
    */
   private createOrmConfig(env: Partial<ENV_VARS>): IOrmConfiguration {
-    return {
-      type: firstOf(env.cch2018_orm_type, DEFAULTS.orm.type),
-      host: firstOf(env.cch2018_orm_host, DEFAULTS.orm.host),
-      database: firstOf(env.cch2018_orm_database, DEFAULTS.orm.database),
-      username: firstOf(env.cch2018_orm_username, DEFAULTS.orm.username),
-      password: firstOf(env.cch2018_orm_password, DEFAULTS.orm.password),
-      synchronize: Boolean(
-        firstOf(env.cch2018_orm_type, DEFAULTS.orm.synchronize)
-      )
-    };
+    let config = {} as IOrmConfiguration;
+    config.synchronize = Boolean(
+      firstOf(env.cch2018_orm_synchronize, DEFAULTS.orm.synchronize)
+    );
+    config.type = firstOf(env.cch2018_orm_type, DEFAULTS.orm.type);
+    if (env.DATABASE_URL) {
+      config = {
+        ...config,
+        ...this.parsePostgresUri(env.DATABASE_URL)
+      };
+    } else {
+      config = {
+        ...config,
+        host: firstOf(env.cch2018_orm_host, DEFAULTS.orm.host),
+        database: firstOf(env.cch2018_orm_database, DEFAULTS.orm.database),
+        username: firstOf(env.cch2018_orm_username, DEFAULTS.orm.username),
+        password: firstOf(env.cch2018_orm_password, DEFAULTS.orm.password)
+      };
+    }
+    return config;
   }
   /**
    * Examine the application environment and create an appropriate webserver
@@ -131,6 +145,35 @@ export class EnvService {
     return {
       port: Number.parseInt(firstOf(env.PORT, DEFAULTS.webserver.port), 10)
     };
+  }
+
+  /**
+   * Parse a postgres URI into a username, password, host, port, and database
+   * @param uri - A "postgres(ql)://username:password@host:port/database" type uri.
+   */
+  private parsePostgresUri(
+    uri: string
+  ): {
+    username: string;
+    password: string;
+    host: string;
+    port: string;
+    database: string;
+  } {
+    const matcher = /^postgres(?:ql)?:\/\/(.*?):(.*?)@(.*?):(.*?)\/(.*?)$/i;
+    if (!matcher.test(uri)) {
+      throw new Error("Invalid postgres uri supplied.");
+    } else {
+      const result = matcher.exec(uri);
+      const [, username, password, host, port, database] = result;
+      return {
+        username,
+        password,
+        host,
+        port,
+        database
+      };
+    }
   }
 }
 
