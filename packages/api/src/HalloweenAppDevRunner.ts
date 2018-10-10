@@ -1,7 +1,16 @@
-import { createContainer, InjectionMode } from "awilix";
+import {
+  asClass,
+  asFunction,
+  asValue,
+  createContainer,
+  InjectionMode,
+  Lifetime
+} from "awilix";
+import { asClassMethod, asStaticMethod } from "./AwilixHelpers";
 import { ComponentRegistrar } from "./config/context/ComponentRegistrar";
 import { OrmContext } from "./config/context/OrmContext";
 import { WebserverContext } from "./config/context/WebserverContext";
+import { EnvService } from "./config/EnvService";
 import { KoaConfiguration } from "./config/KoaConfiguration";
 import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
 import { ExportPathScanner } from "./reflection/ExportPathScanner";
@@ -11,24 +20,31 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
     // Proof of concept: classpath scanning
     const components = await ExportPathScanner.scan("./dist/**/*.js");
     // Container configuration step
-
-    // Proof of concept: automatic bean instantiation
     const container = createContainer({
       injectionMode: InjectionMode.CLASSIC
     });
 
+    // Register the node environment for injection
+    container.register("NODE_ENV", asValue(process.env));
+
+    // Register the DI container
+    container.register("container", asValue(container));
+
+    // Register the Environment Service. This data is used
+    // by the context providers, so it needs to be built
+    // very early on here.
+    container.register("envService", asClass(EnvService).singleton());
+
     // Wire up our persistence layer. This is asynchronous and so needs
     // to have its own flow outside of the normal awilix instantiation
     // process.
-    await OrmContext.configureContainer(container);
+    await container.build(asStaticMethod(OrmContext.configureContainer));
 
     // Wire up our web layer
-    // Since this stuff is synchronous, we could actually do this as an
-    // @Component
-    await WebserverContext.configureContainer(container);
+    await container.build(asStaticMethod(WebserverContext.configureContainer));
 
     // Register all @components with our DI container
-    ComponentRegistrar.configureContainer(container, components);
+    await ComponentRegistrar.configureContainer(container, components);
 
     // Arbitrary entry point for the DI-controlled portion of the app.
     const koaConfiguration: KoaConfiguration =

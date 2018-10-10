@@ -1,4 +1,4 @@
-import { asClass, asValue, AwilixContainer } from "awilix";
+import { asClass, asValue, AwilixContainer, Lifetime } from "awilix";
 import { IScannableClass } from "../../reflection/ScannableClass";
 /**
  * @class ComponentRegistrar
@@ -10,8 +10,6 @@ export class ComponentRegistrar {
    *    @Component's. Additionally:
    * Provides: {IScannableClass[]} container.ComponentList - A full list of all
    *    decorated component classes.
-   * Provides: {AwilixContainer} container - The root DI container for the
-   *    application.
    * @param {AwilixContainer} container - The DI container to configure.
    * @param {IScannableClass[]} components - The components to set up.
    * @return {AwilixContainer} The modified container.
@@ -27,11 +25,6 @@ export class ComponentRegistrar {
       );
     });
     container.register("ComponentList", asValue(components.map(_ => _)));
-
-    // Injecting the entire container allows us to mix and match a bit on DI
-    // injection modes. It would be preferable to give `@Component` a param that
-    // controls the injection mode for the registration. This works for now though.
-    container.register("container", asValue(container));
     return container;
   }
 
