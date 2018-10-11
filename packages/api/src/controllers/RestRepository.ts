@@ -1,4 +1,5 @@
 import { Connection, Repository } from "typeorm";
+import { HttpMethod } from "../HttpMethod";
 import {
   classMethodHandler,
   IRouteMap
@@ -22,11 +23,23 @@ export abstract class RestRepository<T> {
   }
   registerRoutes(handlers: IRouteMap): IRouteMap {
     const fallbackHandlers = {
-      [this.listRoute]: this.getAll
+      [this.listRoute]: {
+        fn: this.getAll,
+        method: HttpMethod.GET
+      }
     };
     for (const route in fallbackHandlers) {
       if (!handlers[route]) {
-        handlers[route] = classMethodHandler(this, fallbackHandlers[route]);
+        const method = fallbackHandlers[route].method;
+        // TODO: This isn't super pleasant. There should be a real API for this.
+        // one with docs, and less bullshit.
+        if (!handlers[route]) {
+          handlers[route] = {};
+        }
+        handlers[route][method] = classMethodHandler(
+          this,
+          fallbackHandlers[route].fn
+        );
       }
     }
     return handlers;

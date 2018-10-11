@@ -1,5 +1,7 @@
 import { AwilixContainer } from "awilix";
+import { HttpMethod } from "../HttpMethod";
 import {
+  IRequestHandler,
   IRouteHandler,
   IRouteMap
 } from "../middlewares/RouterMiddlewareFactory";
@@ -10,7 +12,11 @@ import {
   isRouterClass
 } from "../reflection/IRouterClass";
 import { IScannableClass } from "../reflection/ScannableClass";
-import { routableMethods, targetRoute } from "../reflection/Symbols";
+import {
+  httpMethods,
+  routableMethods,
+  targetRoute
+} from "../reflection/Symbols";
 import { ComponentRegistrar } from "./context/ComponentRegistrar";
 
 /**
@@ -62,15 +68,22 @@ export class RouteComponentProcessor {
       if (router[routableMethods]) {
         router[routableMethods].forEach(routableMethod => {
           const route: string = routableMethod[targetRoute];
+          // the HTTP verbs we are registering for
+          const methods = routableMethod[httpMethods];
           // Register the method as a route handler, provide context so that
           // `this` can be set intuitively for class members.
-          const handler: IRouteHandler = {
+          const handler: IRequestHandler = {
             methodName: routableMethod.name,
             invokeOn: router,
             fn: routableMethod
           };
           // Commit the registration to the result map
-          handlers[route] = handler;
+          methods.forEach(httpMethod => {
+            if (!handlers[route]) {
+              handlers[route] = {};
+            }
+            handlers[route][httpMethod] = handler;
+          });
         });
       }
       return router;
