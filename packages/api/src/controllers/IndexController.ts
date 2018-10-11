@@ -1,3 +1,4 @@
+import { HttpMethod } from "../HttpMethod";
 import { Component } from "../reflection/Component";
 import { Route } from "../reflection/Route";
 
@@ -11,8 +12,10 @@ export class IndexController {
   index(username: string, action: string) {
     return { username, action, name: this.name };
   }
-
-  @Route("/foo")
+  @Route({
+    route: "/foo",
+    method: HttpMethod.POST
+  })
   foo(): string {
     return "goodbye";
   }
