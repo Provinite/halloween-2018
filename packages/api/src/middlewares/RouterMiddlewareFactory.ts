@@ -6,6 +6,7 @@ import { getMethod, HttpMethod } from "../HttpMethod";
 import { IRouter } from "../reflection/IRouterClass";
 import { IMiddlewareFactory } from "./IMiddlewareFactory";
 import { INextCallback } from "./INextCallback";
+import { RequestParsingService } from "../config/RequestParsingService";
 /**
  * Object mapping http methods to request handlers for a given route.
  */
@@ -39,17 +40,20 @@ export function classMethodHandler(
 }
 
 export class RouterMiddlewareFactory implements IMiddlewareFactory {
+  private requestParsingService: RequestParsingService;
   private routeTransformationService: RouteTransformationService;
   private handlers: IRouteMap;
   private container: AwilixContainer;
   constructor(
     handlers: IRouteMap,
     container: AwilixContainer,
+    requestParsingService: RequestParsingService,
     routeTransformationService: RouteTransformationService
   ) {
     this.handlers = handlers;
     this.container = container;
     this.routeTransformationService = routeTransformationService;
+    this.requestParsingService = requestParsingService;
   }
   create(): Middleware {
     return async (ctx: Context, next: INextCallback) => {
@@ -130,6 +134,7 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
               );
             });
           }
+          this.requestParsingService.parse(ctx, requestContainer);
           // invoke the routable method
           ctx.state.result = await requestContainer.build(
             asClassMethod(instance, fn)

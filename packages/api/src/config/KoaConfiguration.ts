@@ -1,5 +1,6 @@
 import { asClass, asValue, AwilixContainer } from "awilix";
 import * as Koa from "koa";
+import * as BodyParser from "koa-bodyparser";
 import { Connection } from "typeorm";
 import { RestRepository } from "../controllers/RestRepository";
 import { RenderMiddlewareFactory } from "../middlewares/RenderMiddlewareFactory";
@@ -38,6 +39,7 @@ export class KoaConfiguration {
       .build(asClass(RouterMiddlewareFactory))
       .create();
     const rendererMiddleware = new RenderMiddlewareFactory().create();
+    this.webserver.use(BodyParser());
     this.webserver.use(routerMiddleware);
     this.webserver.use(rendererMiddleware);
     this.webserver.listen(this.webserverConfig.port);
