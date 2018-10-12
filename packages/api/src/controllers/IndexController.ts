@@ -1,6 +1,7 @@
 import { HttpMethod } from "../HttpMethod";
 import { Component } from "../reflection/Component";
 import { Route } from "../reflection/Route";
+import { User } from "../models";
 
 @Component()
 export class IndexController {
@@ -8,15 +9,11 @@ export class IndexController {
   constructor() {
     this.name = "namely";
   }
-  @Route("/{username}/{action}")
-  index(username: string, action: string) {
-    return { username, action, name: this.name };
-  }
   @Route({
     route: "/foo",
     method: HttpMethod.POST
   })
-  foo(): string {
-    return "goodbye";
+  foo(requestBody: any): string {
+    return requestBody;
   }
 }

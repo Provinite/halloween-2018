@@ -1,4 +1,5 @@
 import { Connection, Repository } from "typeorm";
+import { Context } from "vm";
 import { HttpMethod } from "../HttpMethod";
 import {
   classMethodHandler,
@@ -22,29 +23,41 @@ export abstract class RestRepository<T> {
     this.listRoute = pluralize(this.baseRoute);
   }
   registerRoutes(handlers: IRouteMap): IRouteMap {
-    const fallbackHandlers = {
+    const fallbackHandlers: {
+      [key: string]: { [method in HttpMethod]?: (...args: any[]) => any };
+    } = {
       [this.listRoute]: {
-        fn: this.getAll,
-        method: HttpMethod.GET
+        [HttpMethod.GET]: this.getAll,
+        [HttpMethod.POST]: this.createOne
       }
     };
-    for (const route in fallbackHandlers) {
+    Object.keys(fallbackHandlers).forEach(route => {
       if (!handlers[route]) {
-        const method = fallbackHandlers[route].method;
-        // TODO: This isn't super pleasant. There should be a real API for this.
-        // one with docs, and less bullshit.
-        if (!handlers[route]) {
-          handlers[route] = {};
-        }
-        handlers[route][method] = classMethodHandler(
-          this,
-          fallbackHandlers[route].fn
-        );
+        handlers[route] = {};
       }
-    }
+      Object.keys(fallbackHandlers[route]).forEach((method: HttpMethod) => {
+        if (!handlers[route][method]) {
+          handlers[route][method] = classMethodHandler(
+            this,
+            fallbackHandlers[route][method]
+          );
+        }
+      });
+    });
     return handlers;
   }
+  /**
+   * Get all T
+   */
   getAll(): Promise<T[]> {
     return this.repository.find();
+  }
+
+  createOne(requestBody: any): Promise<T> {
+    const entity: T = this.repository.create();
+    Object.keys(requestBody).forEach(key => {
+      (entity as any)[key] = requestBody[key];
+    });
+    return this.repository.save(entity as any);
   }
 }
