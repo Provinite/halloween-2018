@@ -2,12 +2,13 @@
  * Interface for environmental configuration of the ORM container.
  */
 export interface IOrmConfiguration {
-  type: string;
-  host: string;
-  username: string;
-  password: string;
   database: string;
+  host: string;
+  password: string;
+  port: number;
   synchronize: boolean;
+  type: string;
+  username: string;
 }
 
 /**
@@ -157,15 +158,16 @@ export class EnvService {
     username: string;
     password: string;
     host: string;
-    port: string;
+    port: number;
     database: string;
   } {
-    const matcher = /^postgres(?:ql)?:\/\/(.*?):(.*?)@(.*?):(.*?)\/(.*?)$/i;
+    const matcher = /^postgres(?:ql)?:\/\/(.+?):(.+?)@(.+?):(\d+?)\/(.+?)$/i;
     if (!matcher.test(uri)) {
       throw new Error("Invalid postgres uri supplied.");
     } else {
       const result = matcher.exec(uri);
-      const [, username, password, host, port, database] = result;
+      const [, username, password, host, , database] = result;
+      const port = Number.parseInt(result[4], 10);
       return {
         username,
         password,
