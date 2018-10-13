@@ -10,6 +10,7 @@ import { Component } from "../reflection/Component";
 import { Controller } from "../reflection/Controller";
 import { EnvService, IWebserverConfiguration } from "./EnvService";
 import { RouteComponentProcessor } from "./RouteComponentProcessor";
+import { CorsMiddlewareFactory } from "../middlewares/CorsMiddlewareFactory";
 
 @Component()
 export class KoaConfiguration {
@@ -35,13 +36,18 @@ export class KoaConfiguration {
     const handlers = this.routeComponentProcessor.getRouteHandlerMap();
     const configContainer = this.container.createScope();
     configContainer.register("handlers", asValue(handlers));
+
     const routerMiddleware = configContainer
       .build(asClass(RouterMiddlewareFactory))
       .create();
+
     const rendererMiddleware = new RenderMiddlewareFactory().create();
+    const corsMiddleware = new CorsMiddlewareFactory().create();
+
     this.webserver.use(BodyParser());
     this.webserver.use(routerMiddleware);
     this.webserver.use(rendererMiddleware);
+    this.webserver.use(corsMiddleware);
     this.webserver.listen(this.webserverConfig.port);
   }
 }
