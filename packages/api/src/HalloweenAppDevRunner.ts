@@ -7,6 +7,7 @@ import { EnvService } from "./config/EnvService";
 import { KoaConfiguration } from "./config/KoaConfiguration";
 import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
 import { ExportPathScanner } from "./reflection/ExportPathScanner";
+import { DeviantartApiConfig } from "./auth/deviantart/DeviantartApiConfig";
 
 export class HalloweenAppDevRunner implements IHalloweenAppRunner {
   async run(): Promise<void> {
@@ -35,6 +36,9 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
 
     // Wire up our web layer
     await container.build(asStaticMethod(WebserverContext.configureContainer));
+
+    // Register the DA api config
+    container.register("deviantartConfig", asValue(DeviantartApiConfig));
 
     // Register all @components with our DI container
     await ComponentRegistrar.configureContainer(container, components);
