@@ -1,48 +1,8 @@
-/**
- * Interface for environmental configuration of the ORM container.
- */
-export interface IOrmConfiguration {
-  database: string;
-  host: string;
-  password: string;
-  port: number;
-  synchronize: boolean;
-  type: string;
-  username: string;
-}
-
-/**
- * Interface for environmental webserver configuration.
- */
-export interface IWebserverConfiguration {
-  port: number;
-}
-
-/**
- * This interface documents what environmental variables are utilized by the
- * application.
- */
-// tslint:disable-next-line
-interface ENV_VARS {
-  /**
-   * The database URL to use. Overrides username, password, host, and database.
-   */
-  DATABASE_URL: string;
-  /** The database connection username. */
-  cch2018_orm_username: string;
-  /** The database connection password. */
-  cch2018_orm_password: string;
-  /* The database provider. See typeorm docs for options. */
-  cch2018_orm_type: string;
-  /* The database host. */
-  cch2018_orm_host: string;
-  /* The database name. */
-  cch2018_orm_database: string;
-  /* True to synchronize (autogenerate schema) on connection. */
-  cch2018_orm_synchronize: boolean;
-  /* The port to listen on. */
-  PORT: number;
-}
+import { ENV_VARS } from "./ENV_VARS";
+import { IDeviantartApiConsumerConfiguration } from "./IDeviantartApiConsumerConfig";
+import { IOrmConfiguration } from "./IOrmConfiguration";
+import { ITokenConfiguration } from "./ITokenConfiguration";
+import { IWebserverConfiguration } from "./IWebserverConfiguration";
 
 /**
  * Sensible defaults for the application (where possible). Not all values
@@ -52,6 +12,7 @@ interface ENV_VARS {
 const DEFAULTS: {
   webserver: Partial<IWebserverConfiguration>;
   orm: Partial<IOrmConfiguration>;
+  deviantartApiConsumer: Partial<IDeviantartApiConsumerConfiguration>;
 } = {
   webserver: {
     port: 8081
@@ -63,6 +24,10 @@ const DEFAULTS: {
     password: "halloween-password",
     database: "halloween2018",
     synchronize: false
+  },
+  deviantartApiConsumer: {
+    baseRoute: "https://www.deviantart.com/api/v1/oauth2/",
+    oauthEndpoint: "https://www.deviantart.com/oauth2/token"
   }
 };
 
@@ -75,16 +40,33 @@ const DEFAULTS: {
  * so the DI container is in a very sparse state when it is built.
  */
 export class EnvService {
-  private webserverConfig: IWebserverConfiguration;
+  private deviantartApiConsumerConfig: IDeviantartApiConsumerConfiguration;
   private ormConfig: IOrmConfiguration;
+  private tokenConfig: ITokenConfiguration;
+  private webserverConfig: IWebserverConfiguration;
   /**
    * Creates an EnvService with data poulated from the specified environment.
    * @param NODE_ENV - The runtime environment to use.
    */
   constructor(NODE_ENV: Partial<ENV_VARS>) {
-    const env = NODE_ENV;
-    this.webserverConfig = this.createWebserverConfig(env);
-    this.ormConfig = this.createOrmConfig(env);
+    this.ormConfig = this.createOrmConfig(NODE_ENV);
+    this.tokenConfig = this.createTokenConfig(NODE_ENV);
+    this.webserverConfig = this.createWebserverConfig(NODE_ENV);
+    this.deviantartApiConsumerConfig = this.createDeviantartApiConsumerConfig(
+      NODE_ENV
+    );
+  }
+  /**
+   * @method getDeviantartApiConsumerConfig
+   * Get environment-specific DA API configuration.
+   *
+   * @return Environmentally-dependent deviantart api consumer configuration
+   * settings, with some defaults.
+   */
+  getDeviantartApiConsumerConfig(): Readonly<
+    IDeviantartApiConsumerConfiguration
+  > {
+    return this.deviantartApiConsumerConfig;
   }
   /**
    * @method getWebserverConfig
@@ -109,6 +91,40 @@ export class EnvService {
    */
   getOrmConfiguration(): Readonly<IOrmConfiguration> {
     return this.ormConfig;
+  }
+
+  /**
+   * @method getTokenConfiguration
+   * Get environment-specific JWT configuration.
+   *
+   * @return Environmentally-dependent JWT token configuration settings
+   */
+  getTokenConfiguration(): Readonly<ITokenConfiguration> {
+    return this.tokenConfig;
+  }
+  /**
+   * Examine the application environment and create an appropriate
+   * deviantart api consumer configuration.
+   */
+  private createDeviantartApiConsumerConfig(
+    env: Partial<ENV_VARS>
+  ): IDeviantartApiConsumerConfiguration {
+    required(env, "cch2018_da_client_id");
+    required(env, "cch2018_da_client_secret");
+    const defaults = DEFAULTS.deviantartApiConsumer;
+    const baseRoute = firstOf(env.cch2018_da_baseroute, defaults.baseRoute);
+    const oauthEndpoint = firstOf(
+      env.cch2018_da_oauth_endpoint,
+      defaults.oauthEndpoint
+    );
+    const clientId = env.cch2018_da_client_id;
+    const clientSecret = env.cch2018_da_client_secret;
+    return {
+      baseRoute,
+      oauthEndpoint,
+      clientId,
+      clientSecret
+    };
   }
   /**
    * Examine the application environment and create an appropriate ORM
@@ -135,6 +151,21 @@ export class EnvService {
       };
     }
     return config;
+  }
+  /**
+   * Examine the application environment and create an appropriate auth
+   * token configuration.
+   */
+  private createTokenConfig(env: Partial<ENV_VARS>): ITokenConfiguration {
+    required(env, "cch2018_token_secret");
+    if (!env.cch2018_token_secret) {
+      throw new Error(
+        `Unable to initialize. Environment key: cch2018_token_secret must exist`
+      );
+    }
+    return {
+      secret: env.cch2018_token_secret
+    };
   }
   /**
    * Examine the application environment and create an appropriate webserver
@@ -189,5 +220,18 @@ function firstOf(...args: any[]): any {
     if (arg !== undefined) {
       return arg;
     }
+  }
+}
+
+/**
+ * Verifies that the specified key exists on the env. Throws
+ * a useful error message if not.
+ */
+function required(env: Partial<ENV_VARS>, key: string) {
+  if (!(env as any)[key]) {
+    throw new Error(
+      "Fatal - EnvService: Cannot initialize without environment variable: " +
+        key
+    );
   }
 }

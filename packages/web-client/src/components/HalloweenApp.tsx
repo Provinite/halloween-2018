@@ -3,7 +3,8 @@ import { Redirect, Route, RouteComponentProps, Switch } from "react-router-dom";
 import { LocalStorageService } from "../services/LocalStorageService";
 import * as _env from "../settings.env.json";
 import { IEnvConfig } from "../types/IEnvConfig";
-import { LoginPage } from "./LoginPage";
+import { LoginLink } from "./login/LoginLink";
+import { LoginPage } from "./login/LoginPage";
 import { SplashPage } from "./SplashPage";
 
 const env: IEnvConfig = _env as IEnvConfig;
@@ -89,7 +90,7 @@ export default class HalloweenApp extends React.Component<
       <Switch key="cc-route-switch">
         <Route path="/login" component={LoginPage} />
         <Route path="/">
-          <div>Hello!</div>
+          <LoginLink>Log In</LoginLink>
         </Route>
         <Route component={createRedirect("/splash")} />
       </Switch>

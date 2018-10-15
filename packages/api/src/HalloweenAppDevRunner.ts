@@ -3,7 +3,7 @@ import { asStaticMethod } from "./AwilixHelpers";
 import { ComponentRegistrar } from "./config/context/ComponentRegistrar";
 import { OrmContext } from "./config/context/OrmContext";
 import { WebserverContext } from "./config/context/WebserverContext";
-import { EnvService } from "./config/EnvService";
+import { EnvService } from "./config/env/EnvService";
 import { KoaConfiguration } from "./config/KoaConfiguration";
 import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
 import { ExportPathScanner } from "./reflection/ExportPathScanner";

@@ -1,7 +1,7 @@
 import { asFunction, asValue, AwilixContainer } from "awilix";
 import { Connection, createConnection } from "typeorm";
 import { MODELS } from "../../models";
-import { EnvService } from "../EnvService";
+import { EnvService } from "../env/EnvService";
 
 /**
  * Create a repository name for the given model.

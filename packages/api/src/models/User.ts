@@ -1,15 +1,13 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn, Unique } from "typeorm";
 
 @Entity({
   name: "halloweenUsers"
 })
 export class User {
   @PrimaryColumn()
-  username: string;
-
+  deviantartUuid: string;
   @Column()
-  deviantArtName: string;
-
+  deviantartName: string;
   @Column()
-  email: string;
+  iconUrl: string;
 }

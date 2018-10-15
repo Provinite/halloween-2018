@@ -1,12 +1,12 @@
 import { asValue, AwilixContainer } from "awilix";
 import { Context, Middleware } from "koa";
 import { asClassMethod } from "../AwilixHelpers";
+import { RequestParsingService } from "../config/RequestParsingService";
 import { RouteTransformationService } from "../config/RouteTransformationService";
 import { getMethod, HttpMethod } from "../HttpMethod";
 import { IRouter } from "../reflection/IRouterClass";
 import { IMiddlewareFactory } from "./IMiddlewareFactory";
 import { INextCallback } from "./INextCallback";
-import { RequestParsingService } from "../config/RequestParsingService";
 /**
  * Object mapping http methods to request handlers for a given route.
  */
@@ -136,14 +136,27 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
           }
           this.requestParsingService.parse(ctx, requestContainer);
           // invoke the routable method
-          ctx.state.result = await requestContainer.build(
-            asClassMethod(instance, fn)
-          );
+          try {
+            ctx.state.result = await requestContainer.build(
+              asClassMethod(instance, fn)
+            );
+          } catch (e) {
+            ctx.state.result = "";
+            /* tslint:disable */
+            console.log("Exception during controller execution");
+            console.log("Route: ", path);
+            console.log(e);
+            /* tslint:enable */
+          }
         } else {
-          // method not supported
-          ctx.status = 405;
           ctx.set("Allow", Object.keys(handler).join(", "));
-          ctx.state.result = `${method} not allowed.`;
+          if (method === HttpMethod.OPTIONS) {
+            ctx.state.result = "";
+          } else {
+            // method not supported
+            ctx.status = 405;
+            ctx.state.result = `${method} not allowed.`;
+          }
         }
       }
       // Catchall for now

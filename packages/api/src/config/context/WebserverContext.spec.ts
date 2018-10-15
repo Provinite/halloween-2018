@@ -1,6 +1,6 @@
 import * as Awilix from "awilix";
 import * as Koa from "koa";
-import { EnvService } from "../EnvService";
+import { EnvService } from "../env/EnvService";
 import { WebserverContext } from "./WebserverContext";
 interface IMocks {
   container: {

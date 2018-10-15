@@ -16,6 +16,7 @@ const open = require("gulp-open");
 const minimist = require("minimist");
 const ftp = require("vinyl-ftp");
 const debug = require("gulp-debug");
+const envify = require("envify");
 const args = minimist(process.argv.slice(2));
 const paths = {
   src: {
@@ -93,7 +94,10 @@ gulp.task("bundle", () => {
   const bundler = browserify({
     debug: true,
     entries: paths.src.scripts.entry
-  }).plugin(tsify).transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]});
+  })
+  .plugin(tsify)
+  .transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
+  .transform(envify, {extensions: [".tsx", ".ts"]});
 
   return bundler.bundle()
   .on('error', errorHandler)
