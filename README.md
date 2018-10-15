@@ -80,7 +80,7 @@ The Deviantart oauth api is used to authenticate users.
   - This must include a trailing slash.
 
 ### Token Configuration
-The API authenticates clients using [https://jwt.io](JSON Web Tokens).
+The API authenticates clients using [JSON Web Tokens](https://jwt.io).
 
 #### Required Environment Variables
 - `cch2018_token_secret: string`
