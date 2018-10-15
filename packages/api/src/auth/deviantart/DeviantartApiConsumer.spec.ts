@@ -26,7 +26,7 @@ describe("service:DeviantartApiConsumer", () => {
       };
 
       mocks.envService = {
-        getDeviantartApiConsumerConfig: () => mocks.config;
+        getDeviantartApiConsumerConfig: () => mocks.config
       } as any;
 
       /* Stubs */

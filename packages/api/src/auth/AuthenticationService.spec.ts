@@ -43,9 +43,9 @@ describe("service:AuthenticationService", () => {
           type: "some_type"
         },
         user: {
-          deviantArtName: "some_da_username",
+          deviantartName: "some_da_username",
           iconUrl: "some_icon_url",
-          deviantArtUuid: "some_da_uuid"
+          deviantartUuid: "some_da_uuid"
         },
         token: "some_jwt"
       } as any;
