@@ -2,7 +2,7 @@ import { AwilixContainer } from "awilix";
 import * as Awilix from "awilix";
 import * as typeorm from "typeorm";
 import { MODELS } from "../../models";
-import { EnvService } from "../EnvService";
+import { EnvService } from "../env/EnvService";
 import { OrmContext } from "./OrmContext";
 interface IMocks {
   container: jest.Mocked<AwilixContainer>;
