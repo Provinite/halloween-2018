@@ -1,4 +1,5 @@
 import { Resolver } from "awilix";
+import { RouteTransformationService } from "../config/RouteTransformationService";
 import { HttpMethod } from "../HttpMethod";
 /**
  * Class used for mapping request paths and http methods to handler resolvers.
@@ -6,8 +7,10 @@ import { HttpMethod } from "../HttpMethod";
 export class RouteRegistry {
   /** Data structure mapping route -> method -> resolver */
   private map: IRouteMap;
-  constructor() {
+  private transformationService: RouteTransformationService;
+  constructor(routeTransformationService: RouteTransformationService) {
     this.map = {};
+    this.transformationService = routeTransformationService;
   }
   /**
    * Assign the supplied awilix resolver as the handler for the given
@@ -42,11 +45,39 @@ export class RouteRegistry {
     resolver: Resolver<any>;
     pathVariables?: { [key: string]: string };
   } {
-    if (!this.map[requestPath] || !this.map[requestPath][method]) {
-      return;
+    // Exact match (but don't get false exact matches on wildcard routes if the
+    // request path literally contains something like {id})
+    if (!requestPath.includes("{")) {
+      if (this.map[requestPath]) {
+        return {
+          resolver: this.map[requestPath][method]
+        };
+      }
     }
+
+    // Check wildcard routes
+    for (const route in this.map) {
+      if (!route.includes("{")) {
+        continue;
+      }
+      // TODO: This could be cached. Calculating on every request seems
+      // wasteful.
+      const parsedRoute = this.transformationService.parseRoute(route);
+      const pathVariables = this.transformationService.getPathVariables(
+        parsedRoute,
+        requestPath
+      );
+      if (pathVariables && this.map[route][method]) {
+        // variables successfully extracted, we have a match.
+        return {
+          resolver: this.map[route][method],
+          pathVariables
+        };
+      }
+    }
+    // No matches found
     return {
-      resolver: this.map[requestPath][method]
+      resolver: undefined
     };
   }
 }

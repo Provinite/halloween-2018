@@ -1,3 +1,4 @@
+import { RouteTransformationService } from "../config/RouteTransformationService";
 import { HttpMethod } from "../HttpMethod";
 import { RouteRegistry } from "./RouteRegistry";
 
@@ -8,7 +9,8 @@ describe("service:RouteRegistry", () => {
   describe("method:registerRoute", () => {
     let routeRegistry: RouteRegistry;
     beforeEach(() => {
-      routeRegistry = new RouteRegistry();
+      const routeTransformationService = new RouteTransformationService();
+      routeRegistry = new RouteRegistry(routeTransformationService);
     });
     it("returns this", () => {
       const result = routeRegistry.registerRoute(
@@ -21,17 +23,36 @@ describe("service:RouteRegistry", () => {
   });
   describe("writing & reading", () => {
     let routeRegistry: RouteRegistry;
+    let insertedResolver: any;
+    const method: HttpMethod = HttpMethod.GET;
     beforeEach(() => {
-      routeRegistry = new RouteRegistry();
+      const routeTransformationService = new RouteTransformationService();
+      routeRegistry = new RouteRegistry(routeTransformationService);
+      insertedResolver = {};
     });
     it("returns the same resolver inserted on exact match", () => {
-      const resolver = {} as any;
-      routeRegistry.registerRoute("/foo/bar", HttpMethod.GET, resolver);
+      routeRegistry.registerRoute("/foo/bar", method, insertedResolver);
       const { resolver: returnedResolver } = routeRegistry.lookupRoute(
         "/foo/bar",
-        HttpMethod.GET
+        method
       );
-      expect(returnedResolver).toBe(resolver);
+      expect(returnedResolver).toBe(insertedResolver);
+    });
+    it("works for wildcard routes", () => {
+      routeRegistry.registerRoute("/{foo}/", method, insertedResolver);
+      const { resolver } = routeRegistry.lookupRoute("/bar/", method);
+      expect(resolver).toBe(insertedResolver);
+    });
+    it("properly extracts path variables", () => {
+      routeRegistry.registerRoute("/{user}/{action}", method, insertedResolver);
+      const { pathVariables } = routeRegistry.lookupRoute(
+        "/username/delete",
+        method
+      );
+      expect(pathVariables).toEqual({
+        user: "username",
+        action: "delete"
+      });
     });
   });
 });
