@@ -1,9 +1,7 @@
 import { Connection, Repository } from "typeorm";
+import { asClassMethod } from "../AwilixHelpers";
 import { HttpMethod } from "../HttpMethod";
-import {
-  classMethodHandler,
-  IRouteMap
-} from "../middlewares/RouterMiddlewareFactory";
+import { RouteRegistry } from "../web/RouteRegistry";
 const pluralize: (str: string) => string = (str: string) => {
   if (str.endsWith("s")) {
     return `${str}es`;
@@ -30,32 +28,31 @@ export abstract class RestRepository<T> {
   /**
    * Registers default fallback handlers for this repository if they are
    * not already registered.
-   * @param handlers The route map to modify.
+   * @param routeRegistry The route registry to write to.
    */
-  registerRoutes(handlers: IRouteMap): IRouteMap {
-    const fallbackHandlers: {
+  registerRoutes(routeRegistry: RouteRegistry) {
+    interface IFallbackHandlerMap {
       [key: string]: { [method in HttpMethod]?: (...args: any[]) => any };
-    } = {
+    }
+    const fallbackHandlers: IFallbackHandlerMap = {
       [this.listRoute]: {
         [HttpMethod.GET]: this.getAll,
         [HttpMethod.POST]: this.createOne
       }
     };
-    Object.keys(fallbackHandlers).forEach(route => {
-      if (!handlers[route]) {
-        handlers[route] = {};
-      }
-      Object.keys(fallbackHandlers[route]).forEach((method: HttpMethod) => {
-        if (!handlers[route][method]) {
-          handlers[route][method] = classMethodHandler(
-            this,
-            fallbackHandlers[route][method]
-          );
+    for (const route of Object.keys(fallbackHandlers)) {
+      const methodMap = fallbackHandlers[route];
+      for (const method of Object.keys(methodMap) as HttpMethod[]) {
+        const { error } = routeRegistry.lookupRoute(route, method);
+        if (error) {
+          // handler isn't covered, register the route
+          const resolver = asClassMethod(this, methodMap[method]);
+          routeRegistry.registerRoute(route, method, resolver);
         }
-      });
-    });
-    return handlers;
+      }
+    }
   }
+
   /**
    * Get all T
    */

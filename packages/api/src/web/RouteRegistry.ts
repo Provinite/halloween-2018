@@ -1,6 +1,8 @@
 import { Resolver } from "awilix";
 import { RouteTransformationService } from "../config/RouteTransformationService";
 import { HttpMethod } from "../HttpMethod";
+import { Component } from "../reflection/Component";
+@Component()
 /**
  * Class used for mapping request paths and http methods to handler resolvers.
  */
@@ -20,7 +22,7 @@ export class RouteRegistry {
   registerRoute(
     route: string,
     methods: HttpMethod | HttpMethod[],
-    resolver: Resolver<any>
+    resolver: Resolver<any> | ((...args: any[]) => any)
   ): this {
     if (!this.map[route]) {
       this.map[route] = {};
@@ -42,16 +44,25 @@ export class RouteRegistry {
     requestPath: string,
     method: HttpMethod
   ): {
-    resolver: Resolver<any>;
+    resolver?: Resolver<any> | ((...args: any[]) => any);
     pathVariables?: { [key: string]: string };
+    error?: "METHOD_NOT_SUPPORTED" | "ROUTE_NOT_SUPPORTED";
+    allow?: HttpMethod[];
   } {
     // Exact match (but don't get false exact matches on wildcard routes if the
     // request path literally contains something like {id})
     if (!requestPath.includes("{")) {
       if (this.map[requestPath]) {
-        return {
-          resolver: this.map[requestPath][method]
-        };
+        if (this.map[requestPath][method]) {
+          return {
+            resolver: this.map[requestPath][method]
+          };
+        } else {
+          return {
+            error: "METHOD_NOT_SUPPORTED",
+            allow: Object.keys(this.map[requestPath]) as HttpMethod[]
+          };
+        }
       }
     }
 
@@ -67,17 +78,24 @@ export class RouteRegistry {
         parsedRoute,
         requestPath
       );
-      if (pathVariables && this.map[route][method]) {
-        // variables successfully extracted, we have a match.
-        return {
-          resolver: this.map[route][method],
-          pathVariables
-        };
+      if (pathVariables) {
+        // route matched, check method support
+        if (this.map[route][method]) {
+          return {
+            resolver: this.map[route][method],
+            pathVariables
+          };
+        } else {
+          return {
+            error: "METHOD_NOT_SUPPORTED",
+            allow: Object.keys(this.map[route]) as HttpMethod[]
+          };
+        }
       }
     }
     // No matches found
     return {
-      resolver: undefined
+      error: "ROUTE_NOT_SUPPORTED"
     };
   }
 }
@@ -86,7 +104,9 @@ export class RouteRegistry {
 /**
  * Object mapping http methods to resolvers for a given route.
  */
-type IRouteHandler = { [method in HttpMethod]?: Resolver<any> };
+type IRouteHandler = {
+  [method in HttpMethod]?: Resolver<any> | ((...args: any[]) => any)
+};
 /**
  * Object mapping routes to handler objects.
  */

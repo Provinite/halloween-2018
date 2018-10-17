@@ -1,10 +1,5 @@
 import { AwilixContainer } from "awilix";
-import { HttpMethod } from "../HttpMethod";
-import {
-  IRequestHandler,
-  IRouteHandler,
-  IRouteMap
-} from "../middlewares/RouterMiddlewareFactory";
+import { asClassMethod } from "../AwilixHelpers";
 import { Component } from "../reflection/Component";
 import {
   IRouter,
@@ -17,6 +12,7 @@ import {
   routableMethods,
   targetRoute
 } from "../reflection/Symbols";
+import { RouteRegistry } from "../web/RouteRegistry";
 import { ComponentRegistrar } from "./context/ComponentRegistrar";
 
 /**
@@ -38,20 +34,21 @@ export class RouteComponentProcessor {
    * @member componentList - The ComponentList. @see ComponentRegistrar
    */
   private componentList: IScannableClass[];
-  constructor(container: AwilixContainer, ComponentList: IScannableClass[]) {
+  private routeRegistry: RouteRegistry;
+  constructor(
+    container: AwilixContainer,
+    ComponentList: IScannableClass[],
+    routeRegistry: RouteRegistry
+  ) {
     this.container = container;
     this.componentList = ComponentList;
+    this.routeRegistry = routeRegistry;
   }
 
   /**
-   * @method getRouteHandlerMap - Create an object mapping routes to routable
-   * methods on scanned components.
-   * @return A RouteMap for the entire application context.
+   * Populate the application's route registry.
    */
-  getRouteHandlerMap(): IRouteMap {
-    // The functions below will write to this handlers map as
-    // the routers are processed
-    const handlers: IRouteMap = {};
+  populateRouteRegistry() {
     /**
      * Get the dependency-injected instance of a @Component class.
      * @param routerClass - The class to look up.
@@ -63,30 +60,22 @@ export class RouteComponentProcessor {
       return registration as IRouter;
     };
 
-    const registerDecoratedRoutes = (router: IRouter): IRouter => {
-      // First, run down any registered routable methods
+    /**
+     * Register all decorated (ie: @Route) methods of a router.
+     * @param router The router to register decorated routes for.
+     */
+    const registerDecoratedRoutes = (router: IRouter) => {
       if (router[routableMethods]) {
         router[routableMethods].forEach(routableMethod => {
           const route: string = routableMethod[targetRoute];
-          // the HTTP verbs we are registering for
           const methods = routableMethod[httpMethods];
-          // Register the method as a route handler, provide context so that
-          // `this` can be set intuitively for class members.
-          const handler: IRequestHandler = {
-            methodName: routableMethod.name,
-            invokeOn: router,
-            fn: routableMethod
-          };
-          // Commit the registration to the result map
-          methods.forEach(httpMethod => {
-            if (!handlers[route]) {
-              handlers[route] = {};
-            }
-            handlers[route][httpMethod] = handler;
-          });
+          this.routeRegistry.registerRoute(
+            route,
+            methods,
+            asClassMethod(router, routableMethod)
+          );
         });
       }
-      return router;
     };
 
     /**
@@ -95,22 +84,22 @@ export class RouteComponentProcessor {
      * as a lifecycle hook for our controller classes.
      * @param router The router to register custom routes for.
      */
-    const registerCustomRoutes = (router: IRouter): IRouter => {
+    const registerCustomRoutes = (router: IRouter) => {
       if (router.registerRoutes) {
-        router.registerRoutes(handlers);
+        this.container.build(asClassMethod(router, router.registerRoutes));
       }
-      return router;
     };
 
     this.componentList
-      .filter(isRouterClass) // filter the list of component classes down to controllers
-      .map(getInstance) // get the actual instance of the routers from their class
+      // filter the list of component classes down to controllers
+      .filter(isRouterClass)
+      // get the actual instance of the routers from their class
+      .map(getInstance)
       .forEach((router: IRouter) => {
         // Register the decorated routes first
         registerDecoratedRoutes(router);
         // And the custom routes last, so they have the chance to override
         registerCustomRoutes(router);
       });
-    return handlers;
   }
 }

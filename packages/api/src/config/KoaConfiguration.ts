@@ -34,9 +34,8 @@ export class KoaConfiguration {
    * Configure the webserver with necessary middlewares and start it listening.
    */
   configure() {
-    const handlers = this.routeComponentProcessor.getRouteHandlerMap();
+    this.routeComponentProcessor.populateRouteRegistry();
     const configContainer = this.container.createScope();
-    configContainer.register("handlers", asValue(handlers));
 
     const routerMiddleware = configContainer
       .build(asClass(RouterMiddlewareFactory))
