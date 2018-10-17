@@ -8,26 +8,6 @@ import { IRouter } from "../reflection/IRouterClass";
 import { RouteRegistry } from "../web/RouteRegistry";
 import { IMiddlewareFactory } from "./IMiddlewareFactory";
 import { INextCallback } from "./INextCallback";
-/**
- * Object mapping http methods to request handlers for a given route.
- */
-export type IRouteHandler = { [method in HttpMethod]?: IRequestHandler };
-
-/**
- * Object containing all necessary information to invoke a routable method as
- * a request handler.
- */
-export interface IRequestHandler {
-  methodName?: string;
-  invokeOn?: IRouter;
-  fn?: (...args: any[]) => any;
-}
-/**
- * Object mapping http methods and routes to an appropriate handler.
- */
-export interface IRouteMap {
-  [route: string]: IRouteHandler | undefined;
-}
 
 export class RouterMiddlewareFactory implements IMiddlewareFactory {
   private requestParsingService: RequestParsingService;
