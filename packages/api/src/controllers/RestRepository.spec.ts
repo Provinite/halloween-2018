@@ -1,6 +1,4 @@
 import { Connection, Repository } from "typeorm";
-import { HttpMethod } from "../HttpMethod";
-import * as RouterMiddlewareFactory from "../middlewares/RouterMiddlewareFactory";
 import { RestRepository } from "./RestRepository";
 class MockEntity {}
 // tslint:disable-next-line
@@ -69,43 +67,6 @@ describe("util:RestRepository", () => {
           const { baseRoute } = ctrl.getRoutes();
           expect(baseRoute).toBe(expectedBaseRoute);
         });
-      });
-    });
-  });
-  describe("method:registerRoutes", () => {
-    beforeEach(() => {
-      jest
-        .spyOn(RouterMiddlewareFactory, "classMethodHandler")
-        .mockImplementation((instance: any, fn: (...args: any[]) => any) => {
-          return {
-            instance,
-            fn
-          };
-        });
-    });
-
-    it("uses the classMethodHandler helper", () => {
-      ctrl.registerRoutes({} as any);
-      expect(RouterMiddlewareFactory.classMethodHandler).toHaveBeenCalled();
-    });
-
-    it("registers getAll as a GET handler for its listRoute", () => {
-      const handlers = {} as any;
-      ctrl.registerRoutes(handlers);
-      expect(handlers[mocks.listRoute]).toBeTruthy();
-      expect(handlers[mocks.listRoute][HttpMethod.GET]).toEqual({
-        instance: ctrl,
-        fn: ctrl.getAll
-      });
-    });
-
-    it("registers createOne as a POST handler for its listRoute", () => {
-      const handlers = {} as any;
-      ctrl.registerRoutes(handlers);
-      expect(handlers[mocks.listRoute]).toBeTruthy();
-      expect(handlers[mocks.listRoute][HttpMethod.POST]).toEqual({
-        instance: ctrl,
-        fn: ctrl.createOne
       });
     });
   });
