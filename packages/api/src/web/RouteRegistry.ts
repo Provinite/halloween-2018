@@ -87,7 +87,6 @@ export class RouteRegistry {
  * Object mapping http methods to resolvers for a given route.
  */
 type IRouteHandler = { [method in HttpMethod]?: Resolver<any> };
-
 /**
  * Object mapping routes to handler objects.
  */

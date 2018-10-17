@@ -54,5 +54,11 @@ describe("service:RouteRegistry", () => {
         action: "delete"
       });
     });
+    it("overwrites existing registrations", () => {
+      routeRegistry.registerRoute("/", method, {} as any);
+      routeRegistry.registerRoute("/", method, insertedResolver);
+      const { resolver } = routeRegistry.lookupRoute("/", method);
+      expect(resolver).toBe(insertedResolver);
+    });
   });
 });
