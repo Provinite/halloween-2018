@@ -51,13 +51,3 @@ export class KoaConfiguration {
     this.webserver.listen(this.webserverConfig.port);
   }
 }
-/* tslint:disable:max-classes-per-file */
-@Controller()
-export class Foo extends RestRepositoryController<User> {
-  constructor(orm: Connection) {
-    super(orm, User);
-  }
-  getSome(): string {
-    return "some";
-  }
-}
