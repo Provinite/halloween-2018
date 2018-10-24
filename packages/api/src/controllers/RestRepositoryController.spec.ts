@@ -1,8 +1,8 @@
 import { Connection, Repository } from "typeorm";
-import { RestRepository } from "./RestRepository";
+import { RestRepositoryController } from "./RestRepositoryController";
 class MockEntity {}
 // tslint:disable-next-line
-class MockRestRepository extends RestRepository<MockEntity> {
+class MockRestRepository extends RestRepositoryController<MockEntity> {
   getRoutes() {
     const { baseRoute, listRoute } = this;
     return { baseRoute, listRoute };

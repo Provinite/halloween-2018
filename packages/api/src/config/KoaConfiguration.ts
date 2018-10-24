@@ -2,7 +2,7 @@ import { asClass, asValue, AwilixContainer } from "awilix";
 import * as Koa from "koa";
 import * as BodyParser from "koa-bodyparser";
 import { Connection } from "typeorm";
-import { RestRepository } from "../controllers/RestRepository";
+import { RestRepositoryController } from "../controllers/RestRepositoryController";
 import { CorsMiddlewareFactory } from "../middlewares/CorsMiddlewareFactory";
 import { RenderMiddlewareFactory } from "../middlewares/RenderMiddlewareFactory";
 import { RouterMiddlewareFactory } from "../middlewares/RouterMiddlewareFactory";
@@ -53,7 +53,7 @@ export class KoaConfiguration {
 }
 /* tslint:disable:max-classes-per-file */
 @Controller()
-export class Foo extends RestRepository<User> {
+export class Foo extends RestRepositoryController<User> {
   constructor(orm: Connection) {
     super(orm, User);
   }

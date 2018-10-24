@@ -14,7 +14,7 @@ const pluralize: (str: string) => string = (str: string) => {
 export function getRoute(clazz: new () => any) {
   return "/" + clazz.name[0].toLowerCase() + clazz.name.substr(1);
 }
-export abstract class RestRepository<T> {
+export abstract class RestRepositoryController<T> {
   protected modelClass: new () => T;
   protected repository: Repository<T>;
   protected baseRoute: string;
