@@ -1,4 +1,3 @@
-import Axios from "axios";
 import * as QueryString from "query-string";
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
@@ -8,8 +7,12 @@ interface ILoginPageState {
   username: string;
   iconUrl: string;
 }
+
+interface ILoginPageProps extends RouteComponentProps {
+  authenticationService: AuthenticationService;
+}
 export class LoginPage extends React.Component<
-  RouteComponentProps,
+  ILoginPageProps,
   ILoginPageState
 > {
   constructor(props) {
@@ -23,7 +26,7 @@ export class LoginPage extends React.Component<
   async componentDidMount() {
     const parts = QueryString.parse(this.props.location.search);
     const authCode = parts.code as string;
-    const result = await AuthenticationService.login(authCode);
+    const result = await this.props.authenticationService.login(authCode);
     this.setState({
       iconUrl: result.iconUrl,
       isLoading: false,
@@ -31,9 +34,10 @@ export class LoginPage extends React.Component<
     });
   }
   render() {
-    return this.state.isLoading ? (
-      <h1>Please Hold. . .</h1>
-    ) : (
+    if (this.state.isLoading) {
+      return "<h1>Please hold. . .";
+    }
+    return (
       <div>
         Welcome {this.state.username}!<img src={this.state.iconUrl} />
       </div>

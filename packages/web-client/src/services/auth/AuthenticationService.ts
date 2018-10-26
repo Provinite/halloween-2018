@@ -1,31 +1,29 @@
-import Axios from "axios";
+import { ApiClient } from "../ApiClient";
 import { LocalStorageService } from "../LocalStorageService";
-
-export class AuthenticationServiceImpl {
-  private apiUrl: string;
-  constructor(apiUrl: string) {
-    if (apiUrl.endsWith("/")) {
-      apiUrl = apiUrl.substr(0, apiUrl.length - 1);
-    }
-    this.apiUrl = apiUrl;
+interface IAuthResult {
+  iconUrl: string;
+  token: string;
+  username: string;
+  uuid: string;
+}
+export class AuthenticationService {
+  private apiClient: ApiClient;
+  constructor(apiClient: ApiClient) {
+    this.apiClient = apiClient;
   }
-  async login(
-    authCode: string
-  ): Promise<{
-    iconUrl: string;
-    token: string;
-    username: string;
-    uuid: string;
-  }> {
-    const loginResponse = await Axios.post("http://localhost:8081/login", {
+  /**
+   * Authenticate with the given oauth authcode. Updates the api client's
+   * auth token.
+   * @param authCode - The DeviantArt oatuh authorization code.
+   * @return The user's details and an auth token.
+   */
+  async login(authCode: string): Promise<IAuthResult> {
+    const loginResponse = await this.apiClient.post("login", {
       authCode
     });
     const token = loginResponse.data.token;
-    const userResponse = await Axios.get("http://localhost:8081/whoami", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    this.apiClient.setToken(token);
+    const userResponse = await this.apiClient.get("whoami");
     const {
       deviantartName: username,
       deviantartUuid: uuid,
@@ -43,7 +41,3 @@ export class AuthenticationServiceImpl {
     };
   }
 }
-
-export let AuthenticationService = new AuthenticationServiceImpl(
-  "http://localhost:8081"
-);

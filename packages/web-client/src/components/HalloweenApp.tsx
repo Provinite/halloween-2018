@@ -1,8 +1,12 @@
 import * as React from "react";
 import { Redirect, Route, RouteComponentProps, Switch } from "react-router-dom";
+import { ApiClient } from "../services/ApiClient";
+import { AuthenticationService } from "../services/auth/AuthenticationService";
 import { LocalStorageService } from "../services/LocalStorageService";
+import { PrizeService } from "../services/PrizeService";
 import * as _env from "../settings.env.json";
 import { IEnvConfig } from "../types/IEnvConfig";
+import { AdminPage } from "./admin/AdminPage";
 import { LoginLink } from "./login/LoginLink";
 import { LoginPage } from "./login/LoginPage";
 import { SplashPage } from "./SplashPage";
@@ -30,11 +34,26 @@ export default class HalloweenApp extends React.Component<
     };
   }
 > {
+  /** Private Properties */
+  private apiClient: ApiClient;
+  private prizeService: PrizeService;
+  private authenticationService: AuthenticationService;
+
+  /** Lifecycle */
   constructor(props) {
     super(props);
 
     this.handleSplashHide = this.handleSplashHide.bind(this);
+    this.createLoginPage = this.createLoginPage.bind(this);
+    this.createAdminPage = this.createAdminPage.bind(this);
 
+    // TODO: environmentally dependent
+    this.apiClient = new ApiClient("http://localhost:8081");
+
+    this.authenticationService = new AuthenticationService(this.apiClient);
+    this.prizeService = new PrizeService(this.apiClient);
+
+    // Default state
     this.state = {
       splash: {
         open: true,
@@ -44,10 +63,8 @@ export default class HalloweenApp extends React.Component<
   }
 
   componentWillMount(): void {
-    if (
-      !LocalStorageService.get(SPLASH_KEY) ||
-      this.props.location.pathname === "/splash"
-    ) {
+    const { pathname } = this.props.location;
+    if (!LocalStorageService.get(SPLASH_KEY) || pathname === "/splash") {
       this.setState({
         splash: {
           open: true,
@@ -57,6 +74,7 @@ export default class HalloweenApp extends React.Component<
     }
   }
 
+  /** Public Methods */
   handleSplashHide(): void {
     this.setState({
       splash: {
@@ -74,7 +92,6 @@ export default class HalloweenApp extends React.Component<
   }
 
   render() {
-    const createRedirect = to => () => <Redirect to={to} />;
     let splash;
     if (this.state.splash.shown) {
       splash = (
@@ -88,12 +105,35 @@ export default class HalloweenApp extends React.Component<
     return [
       splash,
       <Switch key="cc-route-switch">
-        <Route path="/login" component={LoginPage} />
+        <Route path="/login" render={this.createLoginPage} />
+        <Route path="/admin" render={this.createAdminPage} />
         <Route path="/">
           <LoginLink>Log In</LoginLink>
         </Route>
-        <Route component={createRedirect("/splash")} />
+        <Route>
+          <Redirect to="/splash" />
+        </Route>
       </Switch>
     ];
+  }
+
+  /** Private Methods */
+  private createLoginPage(routeProps: RouteComponentProps) {
+    return (
+      <LoginPage
+        {...routeProps}
+        authenticationService={this.authenticationService}
+      />
+    );
+  }
+
+  private createAdminPage(routeProps: RouteComponentProps) {
+    return (
+      <AdminPage
+        {...routeProps}
+        apiClient={this.apiClient}
+        prizeService={this.prizeService}
+      />
+    );
   }
 }
