@@ -1,11 +1,15 @@
 import { Connection, Repository } from "typeorm";
 import { RestRepositoryController } from "./RestRepositoryController";
 class MockEntity {}
+/**
+ * Minimal implementation of RestRepositoryController used to test
+ * fallback implementations.
+ */
 // tslint:disable-next-line
 class MockRestRepository extends RestRepositoryController<MockEntity> {
   getRoutes() {
-    const { baseRoute, listRoute } = this;
-    return { baseRoute, listRoute };
+    const { baseRoute, listRoute, detailRoute } = this;
+    return { baseRoute, listRoute, detailRoute };
   }
 }
 
@@ -16,7 +20,7 @@ interface IMocks {
   baseRoute: string;
 }
 
-describe("util:RestRepository", () => {
+describe("abstract:RestRepositoryController", () => {
   let ctrl: MockRestRepository;
   let mocks: Partial<IMocks>;
   beforeEach(() => {
@@ -45,16 +49,27 @@ describe("util:RestRepository", () => {
   });
   describe("construction", () => {
     describe("route determination", () => {
-      const mockClass = (name: string) =>
+      /**
+       * Create a mock class with the given name.
+       * @param name - The name of the mock class
+       */
+      const createMockClass = (name: string) =>
         ({ name } as new (...args: any[]) => any);
-      [
-        ["User", "/user", "/users"],
-        ["Philly", "/philly", "/phillies"],
-        ["FooBar", "/fooBar", "/fooBars"],
-        ["Boss", "/boss", "/bosses"]
-      ].forEach(test => {
-        const [className, expectedBaseRoute, expectedListRoute] = test;
-        const clazz = mockClass(className);
+
+      const testCases = [
+        ["User", "/user", "/users", "/users/{id}"], // +s pluralization
+        ["Philly", "/philly", "/phillies", "/phillies/{id}"], // -y +ies pluralization
+        ["FooBar", "/fooBar", "/fooBars", "/fooBars/{id}"], // camelCase check
+        ["Boss", "/boss", "/bosses", "/bosses/{id}"] // +es pluralization
+      ];
+
+      const routeCreationSpec: any = (
+        className: string,
+        expectedBaseRoute: string,
+        expectedListRoute: string,
+        expectedDetailRoute: string
+      ) => {
+        const clazz = createMockClass(className);
 
         it("properly sets the list route", () => {
           ctrl = new MockRestRepository(mocks.orm, clazz);
@@ -67,7 +82,15 @@ describe("util:RestRepository", () => {
           const { baseRoute } = ctrl.getRoutes();
           expect(baseRoute).toBe(expectedBaseRoute);
         });
-      });
+
+        it("properly sets the detailRoute", () => {
+          ctrl = new MockRestRepository(mocks.orm, clazz);
+          const { detailRoute } = ctrl.getRoutes();
+          expect(detailRoute).toBe(expectedDetailRoute);
+        });
+      };
+
+      testCases.forEach(testCase => routeCreationSpec(...testCase));
     });
   });
 });
