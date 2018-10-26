@@ -3,8 +3,8 @@ import { RouteComponentProps } from "react-router";
 import { IPrize } from "../../models/IPrize";
 import { ApiClient } from "../../services/ApiClient";
 import { PrizeService } from "../../services/PrizeService";
-import { PrizeList } from "./PrizeList";
 import { PrizeInput } from "./PrizeInput";
+import { PrizeList } from "./PrizeList";
 interface IAdminPageProps extends RouteComponentProps {
   apiClient: ApiClient;
   prizeService: PrizeService;
