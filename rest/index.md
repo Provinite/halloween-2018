@@ -1,6 +1,59 @@
 # Rest API
-This documentation is broken down by route and http method.
+The REST API describes communication between `web-client` and `api`.
+# Authentication
+## Authorizing Requests
+To authorize a request, you must send a JWT `Bearer` token provided at login time by the API. This should be sent in the `Authorization` header like so
+```
+Authorization: Bearer ${jwt}
+```
+
+## Logging In
+Logging in can _only_ be performed using the DeviantArt OAuth system. Check out the [DeviantArt OAuth Guide](https://www.deviantart.com/developers/authentication). We use the authorization code workflow, so first, you'll need to get an authorization code by sending the client to log in via deviantart.
+
+Once you have the `authCode`, you may trade that in for an access token by submitting a login request:
+```ts
+// POST: /login {
+//  authCode: ${authCode}  
+//} =>
+{
+  token: ${jwt}
+}
+```
+# API Routes
+## /login
+Authentication endpoint.
+### POST - _authenticate_
+Used to authenticate a DeviantArt authorization code. Note that logging in will also create the user if they did not already exist.
+### Request Body
+```ts
+{
+  /** The DeviantArt OAuth authcode */
+  authCode: string
+}
+```
+### Response
+An object containing your JWT. The JWT will have the following claims:
+- `iat` - An issuance timestamp.
+- `exp` - An expiration timestamp.
+- `sub` - The user's deviantart UUID.
+#### Shape
+```ts
+{
+  token: string
+}
+```
+#### Sample
+```ts
+// POST: /login {
+//  authCode: ${authCode}
+//} =>
+{
+  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
 ## /prizes
+Endpoint for management of prizes in the system.
+
 ### The Prize Model
 ```ts
 {
@@ -70,6 +123,7 @@ Prize
 ```
 
 ## /prizes/{id}
+Endpoint for management of a specific prize.
 ### GET - _getOne_
 Fetch a prize by its id.
 ### Response
