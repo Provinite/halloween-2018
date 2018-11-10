@@ -1,7 +1,4 @@
-## Hello, world.
-This is an index file
+# CloverCoin Community Appreciation Event 2018
+This is the technical documentation for the event.
 
-- this
-- is
-- as
-- lists
+[Rest API Docs](/rest/)
