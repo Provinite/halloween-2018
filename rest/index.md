@@ -36,6 +36,7 @@ An object containing your JWT. The JWT will have the following claims:
 - `iat` - An issuance timestamp.
 - `exp` - An expiration timestamp.
 - `sub` - The user's deviantart UUID.
+
 #### Shape
 ```ts
 {
