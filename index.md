@@ -3,5 +3,5 @@ This is an index file
 
 - this
 - is
-- a
+- as
 - lists
