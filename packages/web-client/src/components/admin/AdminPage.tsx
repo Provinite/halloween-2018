@@ -65,7 +65,6 @@ export class AdminPage extends React.Component<
     } catch (error) {
       setImmediate(() => this.context.onApiError(error));
     }
-    // const prizes = await this.props.prizeService.getAll();
     this.setState({
       prizes: {
         list: prizes || [],
@@ -88,8 +87,12 @@ export class AdminPage extends React.Component<
       });
       return;
     } catch (error) {
-      this.context.onApiError(error);
-      throw error;
+      if (error.response && error.response.status === 400) {
+        this.context.onApiError("Invalid prize.");
+      } else {
+        this.context.onApiError("Failed to save.");
+      }
+      return Promise.reject();
     }
   }
 
