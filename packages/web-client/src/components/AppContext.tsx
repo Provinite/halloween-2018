@@ -8,19 +8,7 @@ export interface IAppContext {
     authenticationService: AuthenticationService;
     prizeService: PrizeService;
   };
+  onApiError: (error: any) => void;
 }
 
-const apiClient = new ApiClient("http://localhost:8081");
-const authenticationService = new AuthenticationService(apiClient);
-const prizeService = new PrizeService(apiClient);
-
-const appContext = {
-  services: {
-    apiClient,
-    authenticationService,
-    prizeService
-  }
-};
-
-export const AppContext = React.createContext(appContext);
-export const defaultAppContext = appContext;
+export const AppContext = React.createContext<IAppContext>(null);

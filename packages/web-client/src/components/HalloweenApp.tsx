@@ -7,7 +7,7 @@ import { PrizeService } from "../services/PrizeService";
 import * as _env from "../settings.env.json";
 import { IEnvConfig } from "../types/IEnvConfig";
 import { AdminPage } from "./admin/AdminPage";
-import { AppContext, defaultAppContext } from "./AppContext";
+import { AppContext, IAppContext } from "./AppContext";
 import { LoginLink } from "./login/LoginLink";
 import { LoginPage } from "./login/LoginPage";
 import { SplashPage } from "./SplashPage";
@@ -23,44 +23,41 @@ export default class HalloweenApp extends React.Component<
     env: IEnvConfig;
   },
   {
-    /**
-     * @member splash State parameters related to the splash screen.
-     */
+    /** State parameters related to the splash screen. */
     splash: {
-      /**
-       * @member shown False if the splash screen has been shown before
-       */
+      /** False if the splash screen has been shown before */
       shown: boolean;
-      /**
-       * @member open Controls the splash page component's visibility
-       */
+      /** Controls the splash page component's visibility */
       open: boolean;
     };
+    context: IAppContext;
   }
 > {
-  /** Private Properties */
-  private apiClient: ApiClient;
-  private prizeService: PrizeService;
-  private authenticationService: AuthenticationService;
-
   /** Lifecycle */
   constructor(props) {
     super(props);
 
     this.handleSplashHide = this.handleSplashHide.bind(this);
 
-    // TODO: environmentally dependent
-    this.apiClient = new ApiClient("http://localhost:8081");
+    const apiClient = new ApiClient("http://localhost:8081");
+    const authenticationService = new AuthenticationService(apiClient);
+    const prizeService = new PrizeService(apiClient);
 
-    this.authenticationService = new AuthenticationService(this.apiClient);
-    this.prizeService = new PrizeService(this.apiClient);
-
+    const context: IAppContext = {
+      services: {
+        apiClient,
+        authenticationService,
+        prizeService
+      },
+      onApiError: this.handleApiError
+    };
     // Default state
     this.state = {
       splash: {
         open: true,
         shown: false
-      }
+      },
+      context
     };
   }
 
@@ -77,6 +74,9 @@ export default class HalloweenApp extends React.Component<
   }
 
   /** Public Methods */
+  /**
+   * Update state and localstorage once the splash page has been hidden.
+   */
   handleSplashHide(): void {
     this.setState({
       splash: {
@@ -93,6 +93,23 @@ export default class HalloweenApp extends React.Component<
     }
   }
 
+  /**
+   * Fallback handler for api errors. Eventually this will cause a snackbar
+   * to pop up with the error.
+   * @param error - The error.
+   */
+  handleApiError(error: any): void {
+    // tslint:disable
+    console.log("*************************");
+    console.log("*        API Error      *");
+    console.log("*************************");
+    console.log(error);
+    // tslint:enable
+  }
+
+  /**
+   * Render the application.
+   */
   render() {
     let splash;
     if (this.state.splash.shown) {
@@ -105,7 +122,7 @@ export default class HalloweenApp extends React.Component<
       );
     }
     return (
-      <AppContext.Provider value={defaultAppContext}>
+      <AppContext.Provider value={this.state.context}>
         <ConfiguredTheme>
           {splash}
           <Switch key="cc-route-switch">

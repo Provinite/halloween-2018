@@ -57,11 +57,16 @@ export class AdminPage extends React.Component<
   }
 
   async componentDidMount() {
-    const prizes = await this.context.services.prizeService.getAll();
+    let prizes;
+    try {
+      prizes = await this.context.services.prizeService.getAll();
+    } catch (error) {
+      setImmediate(() => this.context.onApiError(error));
+    }
     // const prizes = await this.props.prizeService.getAll();
     this.setState({
       prizes: {
-        list: prizes,
+        list: prizes || [],
         loading: false
       }
     });
