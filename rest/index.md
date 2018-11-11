@@ -127,6 +127,8 @@ Endpoint for management of prizes in the system.
   initialStock: number;
   /** The prize's current stock. */
   currentStock: number;
+  /** The prize's weight (float). */
+  weight: number;
 }
 ```
 
@@ -150,7 +152,8 @@ Prize[]
     name: "Prize",
     description: "A prize for you",
     initialStock: 100,
-    currentStock: 85
+    currentStock: 85,
+    weight: 0.5
   }
 ]
 ```
@@ -187,7 +190,8 @@ Prize
   name: "Prize Two",
   description: "A prize for me",
   initialStock: 10,
-  currentStock: 10
+  currentStock: 10,
+  weight: 1.0
 }
 ```
 
@@ -213,7 +217,8 @@ Prize
   name: "Prize",
   description: "A prize for you",
   initialStock: 100,
-  currentStock: 85
+  currentStock: 85,
+  weight: 0.5
 }
 ```
 
