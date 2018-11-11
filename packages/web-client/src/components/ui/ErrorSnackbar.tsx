@@ -33,7 +33,7 @@ function FErrorSnackbar(props: ErrorSnackbarProps) {
         <>
           <ErrorOutlineIcon className={classes.icon} />
           <Typography variant="body1" className={classes.typography}>
-            {children || ""}
+            {"" + children || ""}
           </Typography>
         </>
       }

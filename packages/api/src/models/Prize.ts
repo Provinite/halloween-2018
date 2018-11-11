@@ -16,4 +16,9 @@ export class Prize {
 
   @Column()
   currentStock: number;
+
+  @Column({
+    default: 1.0
+  })
+  weight: number;
 }

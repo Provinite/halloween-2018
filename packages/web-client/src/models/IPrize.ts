@@ -5,4 +5,5 @@ export interface IPrize {
   description: string;
   initialStock: number;
   currentStock: number;
+  weight: number;
 }

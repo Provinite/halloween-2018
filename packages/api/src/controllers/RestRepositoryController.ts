@@ -1,3 +1,4 @@
+import { Context } from "koa";
 import { Connection, DeleteResult, Repository } from "typeorm";
 import { asClassMethod } from "../AwilixHelpers";
 import { HttpMethod } from "../HttpMethod";
@@ -71,13 +72,19 @@ export abstract class RestRepositoryController<T> {
    * @Route POST /entityPlural
    * @param requestBody
    */
-  createOne(requestBody: any): Promise<T> {
+  async createOne(requestBody: any, ctx: Context): Promise<T> {
     const entity: T = this.repository.create();
     // TODO: massive security issues
     Object.keys(requestBody).forEach(key => {
       (entity as any)[key] = requestBody[key];
     });
-    return this.repository.save(entity as any);
+    try {
+      return await this.repository.save(entity as any);
+    } catch (error) {
+      ctx.status = 400;
+      ctx.state.result = "";
+      return null;
+    }
   }
 
   /**

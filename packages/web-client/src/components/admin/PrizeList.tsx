@@ -95,6 +95,7 @@ export class PrizeList extends React.Component<
         <TableCell>{prize.description}</TableCell>
         <TableCell numeric={true}>{prize.initialStock}</TableCell>
         <TableCell numeric={true}>{prize.currentStock}</TableCell>
+        <TableCell numeric={true}>{prize.weight}</TableCell>
         <TableCell>
           <IconButton
             color="secondary"
@@ -111,14 +112,20 @@ export class PrizeList extends React.Component<
     const { prizeToDelete, dialogOpen } = this.state;
     return (
       <>
-        <Table>
+        <Table padding="dense" style={{ tableLayout: "fixed" }}>
           <TableHead>
             <TableRow>
-              <TableCell>Prize</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell numeric={true}>Total</TableCell>
-              <TableCell numeric={true}>Remaining</TableCell>
-              <TableCell />
+              <TableCell style={{ width: "20%" }}>Prize</TableCell>
+              <TableCell style={{ width: "35%" }}>Description</TableCell>
+              <TableCell numeric={true} style={{ width: "15%" }}>
+                Total
+              </TableCell>
+              <TableCell numeric={true} style={{ width: "15%" }}>
+                Remaining
+              </TableCell>
+              <TableCell numeric={true} style={{ width: "15%" }}>
+                Weight
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>{this.props.prizes.map(this.createPrizeRow)}</TableBody>

@@ -28,6 +28,14 @@ export class AdminPrizeTab extends React.Component<
     [key in formKey]: React.ChangeEventHandler<HTMLInputElement>
   };
 
+  private defaultPrizeForm = {
+    currentStock: "",
+    description: "",
+    initialStock: "",
+    name: "",
+    weight: 1.0
+  };
+
   constructor(props) {
     super(props);
     /**
@@ -56,16 +64,14 @@ export class AdminPrizeTab extends React.Component<
       currentStock: createUpdateFn("currentStock"),
       description: createUpdateFn("description"),
       initialStock: createUpdateFn("initialStock"),
-      name: createUpdateFn("name")
+      name: createUpdateFn("name"),
+      weight: createUpdateFn("weight")
     };
 
     /* Initial State */
     this.state = {
       prizeForm: {
-        currentStock: "",
-        description: "",
-        initialStock: "",
-        name: ""
+        ...this.defaultPrizeForm
       },
       saving: false
     };
@@ -87,12 +93,7 @@ export class AdminPrizeTab extends React.Component<
     try {
       await this.props.onSave(this.state.prizeForm as IPrize);
       this.setState({
-        prizeForm: {
-          currentStock: "",
-          description: "",
-          initialStock: "",
-          name: ""
-        }
+        prizeForm: { ...this.defaultPrizeForm }
       });
     } catch (e) {
       // noop
@@ -127,7 +128,7 @@ export class AdminPrizeTab extends React.Component<
                   required={true}
                 />
               </TableCell>
-              <TableCell colSpan={2}>
+              <TableCell>
                 <TextField
                   fullWidth={true}
                   variant="standard"
@@ -143,7 +144,7 @@ export class AdminPrizeTab extends React.Component<
                 <NumericTextField
                   fullWidth={true}
                   variant="standard"
-                  label="Initial Stock"
+                  label="Total"
                   value={prizeForm.initialStock}
                   onChange={changeHandlers.initialStock}
                   disabled={this.state.saving}
@@ -152,6 +153,18 @@ export class AdminPrizeTab extends React.Component<
                 />
               </TableCell>
               <TableCell numeric={true}>
+                <NumericTextField
+                  fullWidth={true}
+                  variant="standard"
+                  label="Weight"
+                  value={prizeForm.weight}
+                  onChange={changeHandlers.weight}
+                  disabled={this.state.saving}
+                  required={true}
+                  type="number"
+                />
+              </TableCell>
+              <TableCell>
                 {/* The button will be replaced by a spinner while saving */}
                 <SaveButton
                   color="secondary"

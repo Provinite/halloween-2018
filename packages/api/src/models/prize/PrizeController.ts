@@ -25,6 +25,6 @@ export class PrizeController extends RestRepositoryController<Prize> {
       ctx.status = 400;
       return null;
     }
-    return super.createOne(body);
+    return super.createOne(body, ctx);
   }
 }
