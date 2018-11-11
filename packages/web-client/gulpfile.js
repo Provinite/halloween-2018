@@ -15,6 +15,7 @@ const log = require("fancy-log");
 const open = require("gulp-open");
 const minimist = require("minimist");
 const envify = require("envify");
+const watchify = require("watchify");
 const args = minimist(process.argv.slice(2));
 const paths = {
   src: {
@@ -87,11 +88,11 @@ gulp.task("sass", () => {
   .pipe(sourcemaps.write('.'))
   .pipe(gulp.dest(paths.out.dev.css.root));
 });
-
-const bundler = browserify({
-  //debug: true,
+const browserifyOptions = {
   entries: paths.src.scripts.entry
-})
+};
+const bundlerOpts = {...browserifyOptions, ...watchify.args};
+const bundler = watchify(browserify(bundlerOpts))
 .plugin(tsify)
 .transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
 .transform(envify, {extensions: [".tsx", ".ts"]});
