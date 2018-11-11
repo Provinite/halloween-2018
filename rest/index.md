@@ -29,7 +29,7 @@ Once you have the `authCode`, you may trade that in for an access token by submi
 # API Routes
 Detailed information for each route and http verb are described here.
 
-<a name="login"><h2>/login</h2></a>
+## <a name="route-login">/login</a>
 Authentication endpoint.
 
 ### POST - _authenticate_
