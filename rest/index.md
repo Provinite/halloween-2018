@@ -1,11 +1,20 @@
 # Rest API
 The REST API facilitates communication between `web-client` and `api`.
-# Communication
+# Table of Contents
+- [Communication](#communication)
+- [Authentication](#authentication)
+  - [Logging In](#logging-in)
+- [Routes](#routes)
+  - [/login](#routes-login)
+  - [/prizes](#routes-prizes)
+    - [/prizes/{id}](#routes-prizes-id)
+
+# <a name="communication">Communication</a>
 - Request body payloads must be JSON encoded.
 - API results will be JSON encoded, javascript/typescript style responses are presented here for clarity. Actual API results will be valid JSON.
 - The API will issue meaningful HTTP status codes as often as possible.
 
-# Authentication
+# <a name="authentication">Authentication</a>
 Most endpoints will require authentication at launch.
 
 ## Authorizing Requests
@@ -14,7 +23,7 @@ To authorize a request, you must send a JWT `Bearer` token provided at login tim
 Authorization: Bearer ${jwt}
 ```
 
-## Logging In
+## <a name="logging-in">Logging In</a>
 Logging in can _only_ be performed using the DeviantArt OAuth system. Check out the [DeviantArt OAuth Guide](https://www.deviantart.com/developers/authentication). We use the authorization code workflow, so first, you'll need to get an authorization code by sending the client to log in via deviantart.
 
 Once you have the `authCode`, you may trade that in for an access token by submitting a login request:
@@ -26,10 +35,10 @@ Once you have the `authCode`, you may trade that in for an access token by submi
   token: ${jwt}
 }
 ```
-# API Routes
+# <a name="routes">API Routes</a>
 Detailed information for each route and http verb are described here.
 
-## <a name="route-login">/login</a>
+## <a name="routes-login">/login</a>
 Authentication endpoint.
 
 ### POST - _authenticate_
@@ -68,7 +77,7 @@ The JWT's secret is known only to the API, so it cannot be verified by a consume
 }
 ```
 
-## /prizes
+## <a name="routes-prizes">/prizes</a>
 Endpoint for management of prizes in the system.
 
 ### The Prize Model
@@ -148,7 +157,7 @@ Prize
 }
 ```
 
-## /prizes/{id}
+## <a name="routes-prizes-id">/prizes/{id}</a>
 Endpoint for management of a specific prize.
 
 ### GET - _getOne_
