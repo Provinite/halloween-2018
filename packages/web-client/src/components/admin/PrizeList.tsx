@@ -22,8 +22,10 @@ interface IPrizeListProps {
 }
 
 interface IPrizeListState {
-  /** If set, the confirmation dialog will be shown to delete this prize */
+  /** The prize to delete, if any. */
   prizeToDelete: IPrize;
+  /** If set, the confirmation dialog will be shown to delete the prize */
+  dialogOpen: boolean;
 }
 
 export class PrizeList extends React.Component<
@@ -34,7 +36,8 @@ export class PrizeList extends React.Component<
     super(props);
     /** Initial State */
     this.state = {
-      prizeToDelete: null
+      prizeToDelete: null,
+      dialogOpen: false
     };
 
     /** Bound functions */
@@ -42,6 +45,7 @@ export class PrizeList extends React.Component<
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
     this.handleConfirmClick = this.handleConfirmClick.bind(this);
     this.handleCancelClick = this.handleCancelClick.bind(this);
+    this.handleDialogExited = this.handleDialogExited.bind(this);
   }
   /**
    * Notify the parent of deletion after confirmation from the user.
@@ -49,7 +53,7 @@ export class PrizeList extends React.Component<
   async handleConfirmClick() {
     await this.props.onDelete(this.state.prizeToDelete);
     this.setState({
-      prizeToDelete: null
+      dialogOpen: false
     });
   }
 
@@ -57,7 +61,16 @@ export class PrizeList extends React.Component<
    * Close the dialog.
    */
   handleCancelClick() {
-    this.setState({ prizeToDelete: null });
+    this.setState({ dialogOpen: false });
+  }
+
+  /**
+   * Clear the prize to delete
+   */
+  handleDialogExited() {
+    this.setState({
+      prizeToDelete: null
+    });
   }
 
   /**
@@ -66,7 +79,8 @@ export class PrizeList extends React.Component<
    */
   handleDeleteClick(prize: IPrize) {
     this.setState({
-      prizeToDelete: prize
+      prizeToDelete: prize,
+      dialogOpen: true
     });
   }
 
@@ -94,7 +108,7 @@ export class PrizeList extends React.Component<
     );
   }
   render() {
-    const { prizeToDelete } = this.state;
+    const { prizeToDelete, dialogOpen } = this.state;
     return (
       <>
         <Table>
@@ -114,7 +128,8 @@ export class PrizeList extends React.Component<
           disableBackdropClick={true}
           disableEscapeKeyDown={true}
           maxWidth="md"
-          open={!!prizeToDelete}
+          open={dialogOpen}
+          onExited={this.handleDialogExited}
         >
           <DialogTitle>
             Delete {prizeToDelete ? prizeToDelete.name : ""}?
