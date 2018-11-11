@@ -89,6 +89,7 @@ gulp.task("sass", () => {
   .pipe(gulp.dest(paths.out.dev.css.root));
 });
 const browserifyOptions = {
+  debug: true,
   entries: paths.src.scripts.entry
 };
 const bundlerOpts = {...browserifyOptions, ...watchify.args};
@@ -99,12 +100,11 @@ const bundler = watchify(browserify(bundlerOpts))
 
 gulp.task("bundle", () => {
   return bundler.bundle()
-  .on('error', errorHandler)
+  .on("error", errorHandler)
   .pipe(source('app.js'))
   .pipe(buffer())
   .pipe(sourcemaps.init({loadMaps: true}))
-  .on('error', errorHandler)
-  .pipe(sourcemaps.write('./'))
+  .pipe(sourcemaps.write('.'))
   .pipe(gulp.dest(paths.out.dev.scripts.root));
 });
 
