@@ -21,7 +21,7 @@ Once you have the `authCode`, you may trade that in for an access token by submi
 ```ts
 // POST: /login {
 //  authCode: ${authCode}  
-//} =>
+//} => 200 OK
 {
   token: ${jwt}
 }
@@ -62,7 +62,7 @@ The JWT's secret is known only to the API, so it cannot be verified by a consume
 ```ts
 // POST: /login {
 //  authCode: ${authCode}
-//} =>
+//} => 200 OK
 {
   token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
@@ -99,7 +99,7 @@ Prize[]
 
 #### Sample
 ```ts
-// GET: /prizes =>
+// GET: /prizes => 200 OK
 [
   {
     id: 1,
@@ -137,7 +137,7 @@ Prize
 //   name: "Prize Two",
 //   description: "A prize for me",
 //   initialStock: 10
-// } =>
+// } => 201 CREATED
 {
   id: 2,
   name: "Prize Two",
@@ -163,7 +163,7 @@ Prize
 
 #### Sample
 ```ts
-// GET: /prizes/1 =>
+// GET: /prizes/1 => 200 OK
 {
   id: 1,
   name: "Prize",
@@ -185,7 +185,7 @@ A flag indicating success.
 ```
 #### Example
 ```ts
-// DELETE: /prizes/1 =>
+// DELETE: /prizes/1 => 200 OK
 {
   ok: true
 }
