@@ -56,8 +56,8 @@ The JWT's secret is known only to the API, so it cannot be verified by a consume
 {
   token: string
 }
-
 ```
+
 #### Sample
 ```ts
 // POST: /login {
@@ -67,6 +67,7 @@ The JWT's secret is known only to the API, so it cannot be verified by a consume
   token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
+
 ## /prizes
 Endpoint for management of prizes in the system.
 
