@@ -3,6 +3,7 @@ The REST API facilitates communication between `web-client` and `api`.
 # Communication
 - Request body payloads must be JSON encoded.
 - API results will be JSON encoded, javascript/typescript style responses are presented here for clarity. Actual API results will be valid JSON.
+- The API will issue meaningful HTTP status codes as often as possible.
 
 # Authentication
 Most endpoints will require authentication at launch.
@@ -26,10 +27,14 @@ Once you have the `authCode`, you may trade that in for an access token by submi
 }
 ```
 # API Routes
+Detailed information for each route and http verb are described here.
+
 ## /login
 Authentication endpoint.
+
 ### POST - _authenticate_
 Used to authenticate a DeviantArt authorization code. Note that logging in will also create the user if they did not already exist.
+
 ### Request Body
 ```ts
 {
@@ -37,17 +42,21 @@ Used to authenticate a DeviantArt authorization code. Note that logging in will 
   authCode: string
 }
 ```
+
 ### Response
-An object containing your JWT. The JWT will have the following claims:
+An object containing your JWT. The JWT will have the following claims.
 - `iat` - An issuance timestamp.
 - `exp` - An expiration timestamp.
 - `sub` - The user's deviantart UUID.
+
+The JWT's secret is known only to the API, so it cannot be verified by a consumer.
 
 #### Shape
 ```ts
 {
   token: string
 }
+
 ```
 #### Sample
 ```ts
@@ -76,14 +85,18 @@ Endpoint for management of prizes in the system.
   currentStock: number;
 }
 ```
+
 ### GET - _getAll_
 Fetch a complete list of prizes.
+
 ### Response
 A list of all prizes in the database.
+
 #### Shape
 ```ts
 Prize[]
 ```
+
 #### Sample
 ```ts
 // GET: /prizes =>
@@ -97,8 +110,10 @@ Prize[]
   }
 ]
 ```
+
 ### POST - _createOne_
 Create a new prize with its current stock equal to the initial stock.
+
 ### Request Body
 ```ts
 {
@@ -110,10 +125,12 @@ Create a new prize with its current stock equal to the initial stock.
 
 ### Response
 The newly created Prize.
+
 #### Shape
 ```ts
 Prize
 ```
+
 #### Sample
 ```ts
 // POST: /prizes {
@@ -132,13 +149,18 @@ Prize
 
 ## /prizes/{id}
 Endpoint for management of a specific prize.
+
 ### GET - _getOne_
 Fetch a prize by its id.
+
 ### Response
+The prize, if found.
+
 #### Shape
 ```ts
 Prize
 ```
+
 #### Sample
 ```ts
 // GET: /prizes/1 =>
@@ -150,9 +172,11 @@ Prize
   currentStock: 85
 }
 ```
+
 ### DELETE - _deleteOne_
 Delete a prize by its id.
 ### Response
+A flag indicating success.
 #### Shape
 ```ts
 {
