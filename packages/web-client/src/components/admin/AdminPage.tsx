@@ -47,6 +47,7 @@ export class AdminPage extends React.Component<
     // TODO: Make an @annotation for bound functions.
     this.handleTabSelect = this.handleTabSelect.bind(this);
     this.handlePrizeSave = this.handlePrizeSave.bind(this);
+    this.handlePrizeDelete = this.handlePrizeDelete.bind(this);
   }
 
   /**
@@ -73,6 +74,10 @@ export class AdminPage extends React.Component<
     });
   }
 
+  /**
+   * Create a new prize
+   * @param prize - The prize to create.
+   */
   async handlePrizeSave(prize: IPrize) {
     try {
       const result = await this.context.services.prizeService.create(prize);
@@ -88,6 +93,27 @@ export class AdminPage extends React.Component<
     } catch (error) {
       this.context.onApiError(error);
       throw error;
+    }
+  }
+
+  /**
+   * Delete a prize.
+   */
+  async handlePrizeDelete(prize: IPrize) {
+    try {
+      await this.context.services.prizeService.delete(prize.id);
+      this.setState(prevState => {
+        const { prizes } = prevState;
+        const { list } = prizes;
+        return {
+          prizes: {
+            ...prizes,
+            list: list.filter(p => p.id !== prize.id)
+          }
+        };
+      });
+    } catch (error) {
+      setImmediate(() => this.context.onApiError(error));
     }
   }
 
@@ -117,6 +143,7 @@ export class AdminPage extends React.Component<
             prizes={this.state.prizes.list}
             // tslint:disable-next-line
             onSave={this.handlePrizeSave}
+            onDelete={this.handlePrizeDelete}
           />
         </TabContainer>
       </div>

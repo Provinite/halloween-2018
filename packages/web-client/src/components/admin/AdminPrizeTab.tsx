@@ -6,6 +6,7 @@ import { SaveButton } from "../ui/SaveButton";
 import { WithSpinner } from "../ui/WithSpinner";
 import { PrizeList } from "./PrizeList";
 interface IAdminPrizeTabProps {
+  onDelete: (prize: IPrize) => any;
   onSave: (prize: Partial<IPrize>) => any;
   prizes: IPrize[];
 }
@@ -112,7 +113,7 @@ export class AdminPrizeTab extends React.Component<
         color="inherit"
       >
         {/* Display the prize list */}
-        <PrizeList prizes={this.props.prizes}>
+        <PrizeList prizes={this.props.prizes} onDelete={this.props.onDelete}>
           {/* Display the prize form in the footer of the prize list */}
           <TableRow>
             <TableCell>

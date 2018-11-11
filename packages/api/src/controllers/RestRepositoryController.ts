@@ -1,4 +1,4 @@
-import { Connection, Repository } from "typeorm";
+import { Connection, DeleteResult, Repository } from "typeorm";
 import { asClassMethod } from "../AwilixHelpers";
 import { HttpMethod } from "../HttpMethod";
 import { RouteRegistry } from "../web/RouteRegistry";
@@ -42,7 +42,8 @@ export abstract class RestRepositoryController<T> {
         [HttpMethod.POST]: this.createOne
       },
       [this.detailRoute]: {
-        [HttpMethod.GET]: this.getOne
+        [HttpMethod.GET]: this.getOne,
+        [HttpMethod.DELETE]: this.deleteOne
       }
     };
     for (const route of Object.keys(fallbackHandlers)) {
@@ -77,6 +78,16 @@ export abstract class RestRepositoryController<T> {
       (entity as any)[key] = requestBody[key];
     });
     return this.repository.save(entity as any);
+  }
+
+  /**
+   * Handler for detail-route DELETEs
+   * @Route DELETE /entityPlural/{id}
+   * @param id - The ID of the entity to delete.
+   */
+  async deleteOne(id: string): Promise<{ ok: boolean }> {
+    await this.repository.delete(id);
+    return { ok: true };
   }
 
   /**

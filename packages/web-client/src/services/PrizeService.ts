@@ -33,4 +33,13 @@ export class PrizeService {
     const { data } = await result;
     return data as IPrize;
   }
+
+  /**
+   * Delete a prize
+   */
+  async delete(prizeId: number): Promise<void> {
+    const safeId: number = Number.parseInt("" + prizeId, 10);
+    await this.apiClient.delete(`${baseRoute}/${safeId}`);
+    return;
+  }
 }
