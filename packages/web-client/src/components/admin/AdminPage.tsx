@@ -46,6 +46,7 @@ export class AdminPage extends React.Component<
     /* Bound Members */
     // TODO: Make an @annotation for bound functions.
     this.handleTabSelect = this.handleTabSelect.bind(this);
+    this.handlePrizeSave = this.handlePrizeSave.bind(this);
   }
 
   /**
@@ -70,6 +71,24 @@ export class AdminPage extends React.Component<
         loading: false
       }
     });
+  }
+
+  async handlePrizeSave(prize: IPrize) {
+    try {
+      const result = await this.context.services.prizeService.create(prize);
+      if (!result) {
+        return;
+      }
+      this.setState(prevState => {
+        const { prizes } = prevState;
+        prizes.list.push(result);
+        return { prizes };
+      });
+      return;
+    } catch (error) {
+      this.context.onApiError(error);
+      throw error;
+    }
   }
 
   render(): JSX.Element {
@@ -97,16 +116,7 @@ export class AdminPage extends React.Component<
           <AdminPrizeTab
             prizes={this.state.prizes.list}
             // tslint:disable-next-line
-            onSave={async (prize) => {
-              const result = await this.context.services.prizeService.create(
-                prize
-              );
-              this.setState(prevState => {
-                const { prizes } = prevState;
-                prizes.list.push(result);
-                return { prizes };
-              });
-            }}
+            onSave={this.handlePrizeSave}
           />
         </TabContainer>
       </div>

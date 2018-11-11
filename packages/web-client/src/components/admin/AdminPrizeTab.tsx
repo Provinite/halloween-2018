@@ -85,6 +85,14 @@ export class AdminPrizeTab extends React.Component<
     }
     try {
       await this.props.onSave(this.state.prizeForm as IPrize);
+      this.setState({
+        prizeForm: {
+          currentStock: "",
+          description: "",
+          initialStock: "",
+          name: ""
+        }
+      });
     } catch (e) {
       // TODO: error handling. Need a toast provider or something.
       throw e;
@@ -109,26 +117,32 @@ export class AdminPrizeTab extends React.Component<
           <TableRow>
             <TableCell>
               <TextField
+                fullWidth={true}
                 variant="standard"
                 label="Name"
                 value={prizeForm.name}
                 onChange={changeHandlers.name}
+                disabled={this.state.saving}
               />
             </TableCell>
             <TableCell>
               <TextField
+                fullWidth={true}
                 variant="standard"
                 label="Description"
                 value={prizeForm.description}
                 onChange={changeHandlers.description}
+                disabled={this.state.saving}
               />
             </TableCell>
             <TableCell numeric={true}>
               <NumericTextField
+                fullWidth={true}
                 variant="standard"
                 label="Initial Stock"
                 value={prizeForm.initialStock}
                 onChange={changeHandlers.initialStock}
+                disabled={this.state.saving}
                 type="number"
               />
             </TableCell>
