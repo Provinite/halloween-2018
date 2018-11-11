@@ -1,5 +1,8 @@
 # Rest API
-The REST API describes communication between `web-client` and `api`.
+The REST API facilitates communication between `web-client` and `api`.
+# Communication
+- Request body payloads must be JSON encoded.
+- API results will be JSON encoded, javascript/typescript style responses are presented here for clarity. Actual API results will be valid JSON.
 # Authentication
 ## Authorizing Requests
 To authorize a request, you must send a JWT `Bearer` token provided at login time by the API. This should be sent in the `Authorization` header like so
@@ -73,6 +76,7 @@ Endpoint for management of prizes in the system.
 ### GET - _getAll_
 Fetch a complete list of prizes.
 ### Response
+A list of all prizes in the database.
 #### Shape
 ```ts
 Prize[]
