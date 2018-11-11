@@ -14,8 +14,6 @@ const babelify = require("babelify");
 const log = require("fancy-log");
 const open = require("gulp-open");
 const minimist = require("minimist");
-const ftp = require("vinyl-ftp");
-const debug = require("gulp-debug");
 const envify = require("envify");
 const args = minimist(process.argv.slice(2));
 const paths = {
@@ -90,15 +88,15 @@ gulp.task("sass", () => {
   .pipe(gulp.dest(paths.out.dev.css.root));
 });
 
-gulp.task("bundle", () => {
-  const bundler = browserify({
-    debug: true,
-    entries: paths.src.scripts.entry
-  })
-  .plugin(tsify)
-  .transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
-  .transform(envify, {extensions: [".tsx", ".ts"]});
+const bundler = browserify({
+  //debug: true,
+  entries: paths.src.scripts.entry
+})
+.plugin(tsify)
+.transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
+.transform(envify, {extensions: [".tsx", ".ts"]});
 
+gulp.task("bundle", () => {
   return bundler.bundle()
   .on('error', errorHandler)
   .pipe(source('app.js'))
@@ -128,7 +126,6 @@ gulp.task("inject:index", () => {
     scripts: gulp.src(paths.out.dev.scripts.all, { read: false }),
     style: gulp.src(paths.out.dev.css.all, { read: false })
   };
-  gulp.src("./dist/**").pipe(debug());
   return gulp
     .src(paths.out.dev.html.index)
     .pipe(inject(injectables.scripts, { relative: true }))

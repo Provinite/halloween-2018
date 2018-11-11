@@ -1,0 +1,8 @@
+// class applied to the top-level element of the admin page.
+.cc-admin-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  align-items: center;
+  margin-bottom:30px;
+}

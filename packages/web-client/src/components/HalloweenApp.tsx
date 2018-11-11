@@ -1,3 +1,5 @@
+import { Backdrop, CssBaseline, Toolbar, Typography } from "@material-ui/core";
+import AppBar from "@material-ui/core/AppBar";
 import * as React from "react";
 import { Redirect, Route, RouteComponentProps, Switch } from "react-router-dom";
 import { ApiClient } from "../services/ApiClient";
@@ -7,12 +9,16 @@ import { PrizeService } from "../services/PrizeService";
 import * as _env from "../settings.env.json";
 import { IEnvConfig } from "../types/IEnvConfig";
 import { AdminPage } from "./admin/AdminPage";
+import { AppHeader } from "./AppHeader";
+import { ConfiguredTheme } from "./ui/ConfiguredTheme";
 import { LoginLink } from "./login/LoginLink";
 import { LoginPage } from "./login/LoginPage";
 import { SplashPage } from "./SplashPage";
 
 const env: IEnvConfig = _env as IEnvConfig;
 const SPLASH_KEY = "splash";
+
+(window as any).__MUI_USE_NEXT_TYPOGRAPHY_VARIANTS__ = true;
 
 export default class HalloweenApp extends React.Component<
   RouteComponentProps & {
@@ -102,19 +108,21 @@ export default class HalloweenApp extends React.Component<
         />
       );
     }
-    return [
-      splash,
-      <Switch key="cc-route-switch">
-        <Route path="/login" render={this.createLoginPage} />
-        <Route path="/admin" render={this.createAdminPage} />
-        <Route path="/">
-          <LoginLink>Log In</LoginLink>
-        </Route>
-        <Route>
-          <Redirect to="/splash" />
-        </Route>
-      </Switch>
-    ];
+    return (
+      <ConfiguredTheme>
+        {splash}
+        <Switch key="cc-route-switch">
+          <Route path="/login" render={this.createLoginPage} />
+          <Route path="/admin" render={this.createAdminPage} />
+          <Route path="/">
+            <LoginLink>Log In</LoginLink>
+          </Route>
+          <Route>
+            <Redirect to="/splash" />
+          </Route>
+        </Switch>
+      </ConfiguredTheme>
+    );
   }
 
   /** Private Methods */

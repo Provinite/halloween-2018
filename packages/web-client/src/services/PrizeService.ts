@@ -16,9 +16,21 @@ export class PrizeService {
     this.apiClient = apiClient;
   }
 
+  /**
+   * Fetch all prizes.
+   */
   async getAll(): Promise<IPrize[]> {
-    const result = this.apiClient.get(`${baseRoute}`);
+    const result = this.apiClient.get(baseRoute);
     const { data } = await result;
     return data as IPrize[];
+  }
+
+  /**
+   * Save a new prize
+   */
+  async create(prize: Partial<IPrize>): Promise<IPrize> {
+    const result = this.apiClient.post(baseRoute, prize);
+    const { data } = await result;
+    return data as IPrize;
   }
 }
