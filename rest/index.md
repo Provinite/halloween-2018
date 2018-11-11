@@ -6,6 +6,7 @@ The REST API facilitates communication between `web-client` and `api`.
   - [Logging In](#logging-in)
 - [Routes](#routes)
   - [/login](#routes-login)
+  - [/whoami](#routes-whoami)
   - [/prizes](#routes-prizes)
     - [/prizes/{id}](#routes-prizes-id)
 
@@ -76,6 +77,39 @@ The JWT's secret is known only to the API, so it cannot be verified by a consume
   token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
+## <a name="routes-whoami">/whoami</a>
+Endpoint to get information about the current user. Authentication is required.
+
+### The User Model
+```ts
+{
+  /** DeviantArt UUID */
+  deviantartUuid: string;
+  /** DeviantArt Username */
+  deviantartName: string;
+  /** DeviantArt icon url */
+  iconUrl: string;
+}
+```
+### GET - _existentialCrisis_
+Get information about the currently logged in user.
+
+#### Response
+The currently logged in user.
+##### Shape
+```ts
+User
+```
+
+##### Sample
+```ts
+// GET: /whoami => 200 OK
+{
+  deviantartUuid: "039438ae932cb...",
+  deviantartName: "provinite",
+  iconUrl: "https://some.domain.com/img.jpg?query=string"
+}
+```
 
 ## <a name="routes-prizes">/prizes</a>
 Endpoint for management of prizes in the system.
@@ -99,15 +133,15 @@ Endpoint for management of prizes in the system.
 ### GET - _getAll_
 Fetch a complete list of prizes.
 
-### Response
+#### Response
 A list of all prizes in the database.
 
-#### Shape
+##### Shape
 ```ts
 Prize[]
 ```
 
-#### Sample
+##### Sample
 ```ts
 // GET: /prizes => 200 OK
 [
@@ -124,7 +158,7 @@ Prize[]
 ### POST - _createOne_
 Create a new prize with its current stock equal to the initial stock.
 
-### Request Body
+#### Request Body
 ```ts
 {
   name: string;
@@ -133,15 +167,15 @@ Create a new prize with its current stock equal to the initial stock.
 }
 ```
 
-### Response
+#### Response
 The newly created Prize.
 
-#### Shape
+##### Shape
 ```ts
 Prize
 ```
 
-#### Sample
+##### Sample
 ```ts
 // POST: /prizes {
 //   name: "Prize Two",
@@ -163,15 +197,15 @@ Endpoint for management of a specific prize.
 ### GET - _getOne_
 Fetch a prize by its id.
 
-### Response
+#### Response
 The prize, if found.
 
-#### Shape
+##### Shape
 ```ts
 Prize
 ```
 
-#### Sample
+##### Sample
 ```ts
 // GET: /prizes/1 => 200 OK
 {
@@ -185,15 +219,15 @@ Prize
 
 ### DELETE - _deleteOne_
 Delete a prize by its id.
-### Response
+#### Response
 A flag indicating success.
-#### Shape
+##### Shape
 ```ts
 {
   ok: boolean
 }
 ```
-#### Example
+##### Example
 ```ts
 // DELETE: /prizes/1 => 200 OK
 {
