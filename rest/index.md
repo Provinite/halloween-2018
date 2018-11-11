@@ -143,3 +143,19 @@ Prize
   currentStock: 85
 }
 ```
+### DELETE - _deleteOne_
+Delete a prize by its id.
+### Response
+#### Shape
+```ts
+{
+  ok: boolean
+}
+```
+#### Example
+```ts
+// DELETE: /prizes/1 =>
+{
+  ok: true
+}
+```
