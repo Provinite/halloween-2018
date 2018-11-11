@@ -1,20 +1,20 @@
 import * as QueryString from "query-string";
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
-import { AuthenticationService } from "../../services/auth/AuthenticationService";
+import { AppContext, IAppContext } from "../AppContext";
 interface ILoginPageState {
   isLoading: boolean;
   username: string;
   iconUrl: string;
 }
 
-interface ILoginPageProps extends RouteComponentProps {
-  authenticationService: AuthenticationService;
-}
+type ILoginPageProps = RouteComponentProps;
 export class LoginPage extends React.Component<
   ILoginPageProps,
   ILoginPageState
 > {
+  static contextType = AppContext;
+  context: IAppContext;
   constructor(props) {
     super(props);
     this.state = {
@@ -26,7 +26,9 @@ export class LoginPage extends React.Component<
   async componentDidMount() {
     const parts = QueryString.parse(this.props.location.search);
     const authCode = parts.code as string;
-    const result = await this.props.authenticationService.login(authCode);
+    const result = await this.context.services.authenticationService.login(
+      authCode
+    );
     this.setState({
       iconUrl: result.iconUrl,
       isLoading: false,

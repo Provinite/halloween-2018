@@ -1,5 +1,3 @@
-import { Backdrop, CssBaseline, Toolbar, Typography } from "@material-ui/core";
-import AppBar from "@material-ui/core/AppBar";
 import * as React from "react";
 import { Redirect, Route, RouteComponentProps, Switch } from "react-router-dom";
 import { ApiClient } from "../services/ApiClient";
@@ -9,11 +7,11 @@ import { PrizeService } from "../services/PrizeService";
 import * as _env from "../settings.env.json";
 import { IEnvConfig } from "../types/IEnvConfig";
 import { AdminPage } from "./admin/AdminPage";
-import { AppHeader } from "./AppHeader";
-import { ConfiguredTheme } from "./ui/ConfiguredTheme";
+import { AppContext, defaultAppContext } from "./AppContext";
 import { LoginLink } from "./login/LoginLink";
 import { LoginPage } from "./login/LoginPage";
 import { SplashPage } from "./SplashPage";
+import { ConfiguredTheme } from "./ui/ConfiguredTheme";
 
 const env: IEnvConfig = _env as IEnvConfig;
 const SPLASH_KEY = "splash";
@@ -50,8 +48,6 @@ export default class HalloweenApp extends React.Component<
     super(props);
 
     this.handleSplashHide = this.handleSplashHide.bind(this);
-    this.createLoginPage = this.createLoginPage.bind(this);
-    this.createAdminPage = this.createAdminPage.bind(this);
 
     // TODO: environmentally dependent
     this.apiClient = new ApiClient("http://localhost:8081");
@@ -109,39 +105,21 @@ export default class HalloweenApp extends React.Component<
       );
     }
     return (
-      <ConfiguredTheme>
-        {splash}
-        <Switch key="cc-route-switch">
-          <Route path="/login" render={this.createLoginPage} />
-          <Route path="/admin" render={this.createAdminPage} />
-          <Route path="/">
-            <LoginLink>Log In</LoginLink>
-          </Route>
-          <Route>
-            <Redirect to="/splash" />
-          </Route>
-        </Switch>
-      </ConfiguredTheme>
-    );
-  }
-
-  /** Private Methods */
-  private createLoginPage(routeProps: RouteComponentProps) {
-    return (
-      <LoginPage
-        {...routeProps}
-        authenticationService={this.authenticationService}
-      />
-    );
-  }
-
-  private createAdminPage(routeProps: RouteComponentProps) {
-    return (
-      <AdminPage
-        {...routeProps}
-        apiClient={this.apiClient}
-        prizeService={this.prizeService}
-      />
+      <AppContext.Provider value={defaultAppContext}>
+        <ConfiguredTheme>
+          {splash}
+          <Switch key="cc-route-switch">
+            <Route path="/login" component={LoginPage} />
+            <Route path="/admin" component={AdminPage} />
+            <Route path="/">
+              <LoginLink>Log In</LoginLink>
+            </Route>
+            <Route>
+              <Redirect to="/splash" />
+            </Route>
+          </Switch>
+        </ConfiguredTheme>
+      </AppContext.Provider>
     );
   }
 }

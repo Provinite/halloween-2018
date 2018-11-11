@@ -2,18 +2,15 @@ import { AppBar, Tab, Tabs, Typography } from "@material-ui/core";
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
 import { IPrize } from "../../models/IPrize";
-import { ApiClient } from "../../services/ApiClient";
-import { PrizeService } from "../../services/PrizeService";
+import { AppContext, IAppContext } from "../AppContext";
 import { AppHeader } from "../AppHeader";
 import { TabContainer } from "../ui/TabContainer";
 import { AdminPrizeTab } from "./AdminPrizeTab";
 /**
  * Props for the admin page component.
  */
-interface IAdminPageProps extends RouteComponentProps {
-  apiClient: ApiClient;
-  prizeService: PrizeService;
-}
+type IAdminPageProps = RouteComponentProps;
+
 /**
  * State for the admin page component.
  */
@@ -35,6 +32,8 @@ export class AdminPage extends React.Component<
   IAdminPageProps,
   IAdminPageState
 > {
+  static contextType = AppContext;
+  context: IAppContext;
   constructor(props) {
     super(props);
     this.state = {
@@ -58,7 +57,8 @@ export class AdminPage extends React.Component<
   }
 
   async componentDidMount() {
-    const prizes = await this.props.prizeService.getAll();
+    const prizes = await this.context.services.prizeService.getAll();
+    // const prizes = await this.props.prizeService.getAll();
     this.setState({
       prizes: {
         list: prizes,
@@ -93,7 +93,9 @@ export class AdminPage extends React.Component<
             prizes={this.state.prizes.list}
             // tslint:disable-next-line
             onSave={async (prize) => {
-              const result = await this.props.prizeService.create(prize);
+              const result = await this.context.services.prizeService.create(
+                prize
+              );
               this.setState(prevState => {
                 const { prizes } = prevState;
                 prizes.list.push(result);
