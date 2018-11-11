@@ -95,8 +95,7 @@ export class AdminPrizeTab extends React.Component<
         }
       });
     } catch (e) {
-      // TODO: error handling. Need a toast provider or something.
-      throw e;
+      // noop
     } finally {
       this.setState({ saving: false });
     }
@@ -113,51 +112,57 @@ export class AdminPrizeTab extends React.Component<
         color="inherit"
       >
         {/* Display the prize list */}
-        <PrizeList prizes={this.props.prizes} onDelete={this.props.onDelete}>
-          {/* Display the prize form in the footer of the prize list */}
-          <TableRow>
-            <TableCell>
-              <TextField
-                fullWidth={true}
-                variant="standard"
-                label="Name"
-                value={prizeForm.name}
-                onChange={changeHandlers.name}
-                disabled={this.state.saving}
-              />
-            </TableCell>
-            <TableCell>
-              <TextField
-                fullWidth={true}
-                variant="standard"
-                label="Description"
-                value={prizeForm.description}
-                onChange={changeHandlers.description}
-                disabled={this.state.saving}
-              />
-            </TableCell>
-            <TableCell numeric={true}>
-              <NumericTextField
-                fullWidth={true}
-                variant="standard"
-                label="Initial Stock"
-                value={prizeForm.initialStock}
-                onChange={changeHandlers.initialStock}
-                disabled={this.state.saving}
-                type="number"
-              />
-            </TableCell>
-            <TableCell numeric={true}>
-              {/* The button will be replaced by a spinner while saving */}
-              <SaveButton
-                color="secondary"
-                size="small"
-                onClick={this.handleSaveButtonClick}
-                saving={this.state.saving}
-              />
-            </TableCell>
-          </TableRow>
-        </PrizeList>
+        <form>
+          <PrizeList prizes={this.props.prizes} onDelete={this.props.onDelete}>
+            {/* Display the prize form in the footer of the prize list */}
+            <TableRow>
+              <TableCell>
+                <TextField
+                  fullWidth={true}
+                  variant="standard"
+                  label="Name"
+                  value={prizeForm.name}
+                  onChange={changeHandlers.name}
+                  disabled={this.state.saving}
+                  required={true}
+                />
+              </TableCell>
+              <TableCell colSpan={2}>
+                <TextField
+                  fullWidth={true}
+                  variant="standard"
+                  label="Description"
+                  multiline={true}
+                  value={prizeForm.description}
+                  onChange={changeHandlers.description}
+                  disabled={this.state.saving}
+                  required={true}
+                />
+              </TableCell>
+              <TableCell numeric={true}>
+                <NumericTextField
+                  fullWidth={true}
+                  variant="standard"
+                  label="Initial Stock"
+                  value={prizeForm.initialStock}
+                  onChange={changeHandlers.initialStock}
+                  disabled={this.state.saving}
+                  required={true}
+                  type="number"
+                />
+              </TableCell>
+              <TableCell numeric={true}>
+                {/* The button will be replaced by a spinner while saving */}
+                <SaveButton
+                  color="secondary"
+                  size="small"
+                  onClick={this.handleSaveButtonClick}
+                  saving={this.state.saving}
+                />
+              </TableCell>
+            </TableRow>
+          </PrizeList>
+        </form>
       </WithSpinner>
     );
   }

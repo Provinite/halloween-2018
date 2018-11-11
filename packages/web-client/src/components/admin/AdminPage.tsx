@@ -81,9 +81,6 @@ export class AdminPage extends React.Component<
   async handlePrizeSave(prize: IPrize) {
     try {
       const result = await this.context.services.prizeService.create(prize);
-      if (!result) {
-        return;
-      }
       this.setState(prevState => {
         const { prizes } = prevState;
         prizes.list.push(result);
