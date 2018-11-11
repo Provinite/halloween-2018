@@ -36,7 +36,7 @@ export class LoginController {
   }
 
   @Route("/whoami")
-  async whoami(ctx: Context) {
+  async whoami(ctx: Context): Promise<User> {
     const token = ctx.get("Authorization").replace("Bearer ", "");
     const payload = await this.authService.authenticateToken(token);
     return this.userRepository.findOne(payload.sub);

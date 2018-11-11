@@ -14,9 +14,8 @@ const babelify = require("babelify");
 const log = require("fancy-log");
 const open = require("gulp-open");
 const minimist = require("minimist");
-const ftp = require("vinyl-ftp");
-const debug = require("gulp-debug");
 const envify = require("envify");
+const watchify = require("watchify");
 const args = minimist(process.argv.slice(2));
 const paths = {
   src: {
@@ -89,23 +88,23 @@ gulp.task("sass", () => {
   .pipe(sourcemaps.write('.'))
   .pipe(gulp.dest(paths.out.dev.css.root));
 });
+const browserifyOptions = {
+  debug: true,
+  entries: paths.src.scripts.entry
+};
+const bundlerOpts = {...browserifyOptions, ...watchify.args};
+const bundler = watchify(browserify(bundlerOpts))
+.plugin(tsify)
+.transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
+.transform(envify, {extensions: [".tsx", ".ts"]});
 
 gulp.task("bundle", () => {
-  const bundler = browserify({
-    debug: true,
-    entries: paths.src.scripts.entry
-  })
-  .plugin(tsify)
-  .transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
-  .transform(envify, {extensions: [".tsx", ".ts"]});
-
   return bundler.bundle()
-  .on('error', errorHandler)
+  .on("error", errorHandler)
   .pipe(source('app.js'))
   .pipe(buffer())
   .pipe(sourcemaps.init({loadMaps: true}))
-  .on('error', errorHandler)
-  .pipe(sourcemaps.write('./'))
+  .pipe(sourcemaps.write('.'))
   .pipe(gulp.dest(paths.out.dev.scripts.root));
 });
 
@@ -128,7 +127,6 @@ gulp.task("inject:index", () => {
     scripts: gulp.src(paths.out.dev.scripts.all, { read: false }),
     style: gulp.src(paths.out.dev.css.all, { read: false })
   };
-  gulp.src("./dist/**").pipe(debug());
   return gulp
     .src(paths.out.dev.html.index)
     .pipe(inject(injectables.scripts, { relative: true }))

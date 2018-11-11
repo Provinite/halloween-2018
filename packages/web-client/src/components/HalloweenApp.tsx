@@ -1,53 +1,69 @@
 import * as React from "react";
 import { Redirect, Route, RouteComponentProps, Switch } from "react-router-dom";
+import { ApiClient } from "../services/ApiClient";
+import { AuthenticationService } from "../services/auth/AuthenticationService";
 import { LocalStorageService } from "../services/LocalStorageService";
+import { PrizeService } from "../services/PrizeService";
 import * as _env from "../settings.env.json";
 import { IEnvConfig } from "../types/IEnvConfig";
+import { AdminPage } from "./admin/AdminPage";
+import { AppContext, IAppContext } from "./AppContext";
 import { LoginLink } from "./login/LoginLink";
 import { LoginPage } from "./login/LoginPage";
 import { SplashPage } from "./SplashPage";
+import { ConfiguredTheme } from "./ui/ConfiguredTheme";
 
 const env: IEnvConfig = _env as IEnvConfig;
 const SPLASH_KEY = "splash";
+
+(window as any).__MUI_USE_NEXT_TYPOGRAPHY_VARIANTS__ = true;
 
 export default class HalloweenApp extends React.Component<
   RouteComponentProps & {
     env: IEnvConfig;
   },
   {
-    /**
-     * @member splash State parameters related to the splash screen.
-     */
+    /** State parameters related to the splash screen. */
     splash: {
-      /**
-       * @member shown False if the splash screen has been shown before
-       */
+      /** False if the splash screen has been shown before */
       shown: boolean;
-      /**
-       * @member open Controls the splash page component's visibility
-       */
+      /** Controls the splash page component's visibility */
       open: boolean;
     };
+    context: IAppContext;
   }
 > {
+  /** Lifecycle */
   constructor(props) {
     super(props);
 
     this.handleSplashHide = this.handleSplashHide.bind(this);
 
+    const apiClient = new ApiClient("http://localhost:8081");
+    const authenticationService = new AuthenticationService(apiClient);
+    const prizeService = new PrizeService(apiClient);
+
+    const context: IAppContext = {
+      services: {
+        apiClient,
+        authenticationService,
+        prizeService
+      },
+      onApiError: this.handleApiError
+    };
+    // Default state
     this.state = {
       splash: {
         open: true,
         shown: false
-      }
+      },
+      context
     };
   }
 
   componentWillMount(): void {
-    if (
-      !LocalStorageService.get(SPLASH_KEY) ||
-      this.props.location.pathname === "/splash"
-    ) {
+    const { pathname } = this.props.location;
+    if (!LocalStorageService.get(SPLASH_KEY) || pathname === "/splash") {
       this.setState({
         splash: {
           open: true,
@@ -57,6 +73,10 @@ export default class HalloweenApp extends React.Component<
     }
   }
 
+  /** Public Methods */
+  /**
+   * Update state and localstorage once the splash page has been hidden.
+   */
   handleSplashHide(): void {
     this.setState({
       splash: {
@@ -73,8 +93,24 @@ export default class HalloweenApp extends React.Component<
     }
   }
 
+  /**
+   * Fallback handler for api errors. Eventually this will cause a snackbar
+   * to pop up with the error.
+   * @param error - The error.
+   */
+  handleApiError(error: any): void {
+    // tslint:disable
+    console.log("*************************");
+    console.log("*        API Error      *");
+    console.log("*************************");
+    console.log(error);
+    // tslint:enable
+  }
+
+  /**
+   * Render the application.
+   */
   render() {
-    const createRedirect = to => () => <Redirect to={to} />;
     let splash;
     if (this.state.splash.shown) {
       splash = (
@@ -85,15 +121,22 @@ export default class HalloweenApp extends React.Component<
         />
       );
     }
-    return [
-      splash,
-      <Switch key="cc-route-switch">
-        <Route path="/login" component={LoginPage} />
-        <Route path="/">
-          <LoginLink>Log In</LoginLink>
-        </Route>
-        <Route component={createRedirect("/splash")} />
-      </Switch>
-    ];
+    return (
+      <AppContext.Provider value={this.state.context}>
+        <ConfiguredTheme>
+          {splash}
+          <Switch key="cc-route-switch">
+            <Route path="/login" component={LoginPage} />
+            <Route path="/admin" component={AdminPage} />
+            <Route path="/">
+              <LoginLink>Log In</LoginLink>
+            </Route>
+            <Route>
+              <Redirect to="/splash" />
+            </Route>
+          </Switch>
+        </ConfiguredTheme>
+      </AppContext.Provider>
+    );
   }
 }

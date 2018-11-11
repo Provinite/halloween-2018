@@ -2,7 +2,7 @@ import { asClass, asValue, AwilixContainer } from "awilix";
 import * as Koa from "koa";
 import * as BodyParser from "koa-bodyparser";
 import { Connection } from "typeorm";
-import { RestRepository } from "../controllers/RestRepository";
+import { RestRepositoryController } from "../controllers/RestRepositoryController";
 import { CorsMiddlewareFactory } from "../middlewares/CorsMiddlewareFactory";
 import { RenderMiddlewareFactory } from "../middlewares/RenderMiddlewareFactory";
 import { RouterMiddlewareFactory } from "../middlewares/RouterMiddlewareFactory";
@@ -49,15 +49,5 @@ export class KoaConfiguration {
     this.webserver.use(rendererMiddleware);
     this.webserver.use(corsMiddleware);
     this.webserver.listen(this.webserverConfig.port);
-  }
-}
-/* tslint:disable:max-classes-per-file */
-@Controller()
-export class Foo extends RestRepository<User> {
-  constructor(orm: Connection) {
-    super(orm, User);
-  }
-  getSome(): string {
-    return "some";
   }
 }
