@@ -94,3 +94,6 @@ The API authenticates clients using [JSON Web Tokens](https://jwt.io).
 - `cch2018_da_redirect_uri`
   - The redirect URI for the oauth flow.
   - Example `http://localhost:8080/login`
+- `cch2018_api_base`
+  - The base URL for the api
+  - Example: `http://localhost:8081`

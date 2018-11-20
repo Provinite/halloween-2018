@@ -14,6 +14,8 @@ import { SplashPage } from "./SplashPage";
 import { ConfiguredTheme } from "./ui/ConfiguredTheme";
 import { ErrorSnackbar } from "./ui/ErrorSnackbar";
 
+const apiBase = process.env.cch2018_api_base;
+
 const env: IEnvConfig = _env as IEnvConfig;
 const SPLASH_KEY = "splash";
 interface IHalloweenAppState {
@@ -56,7 +58,7 @@ export default class HalloweenApp extends React.Component<
     this.handleErrorExited = this.handleErrorExited.bind(this);
     this.handleSuccess = this.handleSuccess.bind(this);
 
-    const apiClient = new ApiClient("http://localhost:8081");
+    const apiClient = new ApiClient(apiBase);
     const authenticationService = new AuthenticationService(apiClient);
     const prizeService = new PrizeService(apiClient);
 
