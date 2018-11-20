@@ -91,3 +91,6 @@ The API authenticates clients using [JSON Web Tokens](https://jwt.io).
 - `cch2018_wc_base: string`
   - The <base href="..."> value for the environment.
   - Example `/`, `/app/`, `https://www.clovercoin.com/app`
+- `cch2018_da_redirect_uri`
+  - The redirect URI for the oauth flow.
+  - Example `http://localhost:8080/login`
