@@ -35,6 +35,7 @@ function FSaveButton(props: ISaveButtonProps) {
   const { classes, children, saving, size, ...other } = props;
   return (
     <Button
+      type="submit"
       variant="contained"
       size={size}
       disabled={saving}

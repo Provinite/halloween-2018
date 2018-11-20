@@ -1,3 +1,5 @@
+import * as fastMemoize from "fast-memoize";
+
 /**
  * Trim up to 1 forward slash from the end of a string.
  * @param str
@@ -15,3 +17,8 @@ export function ensureNoTrailingSlash(str: string) {
 export function ensureTrailingSlash(str: string) {
   return str.endsWith("/") ? str : `${str}/`;
 }
+
+/**
+ * Memoize helper.
+ */
+export const memoize: typeof fastMemoize.default = fastMemoize as any;

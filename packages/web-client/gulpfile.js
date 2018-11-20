@@ -17,6 +17,8 @@ const minimist = require("minimist");
 const envify = require("envify");
 const watchify = require("watchify");
 const args = minimist(process.argv.slice(2));
+const replace = require("gulp-replace");
+
 const paths = {
   src: {
     root: "./src",
@@ -93,10 +95,27 @@ const browserifyOptions = {
   entries: paths.src.scripts.entry
 };
 const bundlerOpts = {...browserifyOptions, ...watchify.args};
-const bundler = watchify(browserify(bundlerOpts))
-.plugin(tsify)
-.transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
-.transform(envify, {extensions: [".tsx", ".ts"]});
+let bundler;
+
+const initializeBundler = (done) => {
+  if (bundler) {return done()};
+
+  bundler = browserify(bundlerOpts)
+  .plugin(tsify)
+  .transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
+  .transform(envify, {extensions: [".tsx", ".ts"]});
+  done();
+};
+
+const initializeWatchifyBundler = (done) => {
+  if (bundler) {return done()};
+
+  bundler = watchify(browserify(bundlerOpts))
+  .plugin(tsify)
+  .transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
+  .transform(envify, {extensions: [".tsx", ".ts"]});
+  done();
+}
 
 gulp.task("bundle", () => {
   return bundler.bundle()
@@ -125,22 +144,24 @@ gulp.task("copy:static", () => {
 gulp.task("inject:index", () => {
   const injectables = {
     scripts: gulp.src(paths.out.dev.scripts.all, { read: false }),
-    style: gulp.src(paths.out.dev.css.all, { read: false })
+    style: gulp.src(paths.out.dev.css.all, { read: false})
   };
   return gulp
     .src(paths.out.dev.html.index)
-    .pipe(inject(injectables.scripts, { relative: true }))
-    .pipe(inject(injectables.style, { relative: true }))
+    .pipe(inject(injectables.scripts, { relative: false, ignorePath: "dist/" }))
+    .pipe(inject(injectables.style, { relative: false, ignorePath: "dist/" }))
+    .pipe(replace("<!-- inject:base /-->", `<base href="${process.env.cch2018_wc_base}" />`))
     .pipe(gulp.dest(paths.out.dev.root));
 });
 
 gulp.task("build", 
   gulp.series(
+    initializeBundler,
     gulp.parallel("sass","bundle","copy:html","copy:static"),
     "inject:index"
   ));
 
-gulp.task("serve", gulp.series("build", function() {
+gulp.task("serve", gulp.series(initializeWatchifyBundler, "build", function() {
   connect.server({
     root: "./dist",
     fallback: "./dist/index.html"

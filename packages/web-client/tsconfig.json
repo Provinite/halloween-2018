@@ -5,7 +5,9 @@
     "jsx": "react",
     "moduleResolution": "node",
     "sourceMap": true,
-    "allowJs": true
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true
   },
   "parserOptions": {
 

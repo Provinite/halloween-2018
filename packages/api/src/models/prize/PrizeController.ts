@@ -1,3 +1,4 @@
+import { Context } from "koa";
 import { Connection } from "typeorm";
 import { RestRepositoryController } from "../../controllers/RestRepositoryController";
 import { HttpMethod } from "../../HttpMethod";
@@ -15,11 +16,15 @@ export class PrizeController extends RestRepositoryController<Prize> {
     route: "/prizes",
     method: HttpMethod.POST
   })
-  async createOne(requestBody: any): Promise<Prize> {
+  async createPrize(requestBody: any, ctx: Context): Promise<Prize> {
     const body = { ...requestBody } as Partial<Prize>;
     if (!body.currentStock) {
       body.currentStock = body.initialStock;
     }
-    return super.createOne(body);
+    if (body.initialStock === undefined || !body.description || !body.name) {
+      ctx.status = 400;
+      return null;
+    }
+    return super.createOne(body, ctx);
   }
 }
