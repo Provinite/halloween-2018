@@ -86,3 +86,8 @@ The API authenticates clients using [JSON Web Tokens](https://jwt.io).
 - `cch2018_token_secret: string`
   - The secret to use when the API signs a JWT bearer token.
   - Should be some secure random secret.
+
+### Web Client Configuration
+- `cch2018_wc_base: string`
+  - The <base href="..."> value for the environment.
+  - Example `/`, `/app/`, `https://www.clovercoin.com/app`

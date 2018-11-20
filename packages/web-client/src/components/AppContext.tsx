@@ -9,6 +9,7 @@ export interface IAppContext {
     prizeService: PrizeService;
   };
   onApiError: (error: any) => void;
+  onSuccess: (message: string) => void;
 }
 
 export const AppContext = React.createContext<IAppContext>(null);

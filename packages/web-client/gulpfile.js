@@ -17,6 +17,8 @@ const minimist = require("minimist");
 const envify = require("envify");
 const watchify = require("watchify");
 const args = minimist(process.argv.slice(2));
+const replace = require("gulp-replace");
+
 const paths = {
   src: {
     root: "./src",
@@ -125,12 +127,13 @@ gulp.task("copy:static", () => {
 gulp.task("inject:index", () => {
   const injectables = {
     scripts: gulp.src(paths.out.dev.scripts.all, { read: false }),
-    style: gulp.src(paths.out.dev.css.all, { read: false })
+    style: gulp.src(paths.out.dev.css.all, { read: false})
   };
   return gulp
     .src(paths.out.dev.html.index)
-    .pipe(inject(injectables.scripts, { relative: true }))
-    .pipe(inject(injectables.style, { relative: true }))
+    .pipe(inject(injectables.scripts, { relative: false, ignorePath: "dist/" }))
+    .pipe(inject(injectables.style, { relative: false, ignorePath: "dist/" }))
+    .pipe(replace("<!-- inject:base /-->", `<base href="${process.env.cch2018_wc_base}" />`))
     .pipe(gulp.dest(paths.out.dev.root));
 });
 

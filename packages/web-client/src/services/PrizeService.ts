@@ -35,6 +35,17 @@ export class PrizeService {
   }
 
   /**
+   * Patch a prize by id.
+   * @param prize - The prize to patch.
+   */
+  async update(prize: Partial<IPrize> & { id: IPrize["id"] }) {
+    const { id, ...other } = prize;
+    const result = this.apiClient.patch(`${baseRoute}/${id}`, other);
+    const { data } = await result;
+    return data as IPrize;
+  }
+
+  /**
    * Delete a prize
    */
   async delete(prizeId: number): Promise<void> {

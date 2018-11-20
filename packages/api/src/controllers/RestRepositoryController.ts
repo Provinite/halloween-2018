@@ -44,7 +44,8 @@ export abstract class RestRepositoryController<T> {
       },
       [this.detailRoute]: {
         [HttpMethod.GET]: this.getOne,
-        [HttpMethod.DELETE]: this.deleteOne
+        [HttpMethod.DELETE]: this.deleteOne,
+        [HttpMethod.PATCH]: this.updateOne
       }
     };
     for (const route of Object.keys(fallbackHandlers)) {
@@ -80,6 +81,22 @@ export abstract class RestRepositoryController<T> {
     });
     try {
       return await this.repository.save(entity as any);
+    } catch (error) {
+      ctx.status = 400;
+      ctx.state.result = "";
+      return null;
+    }
+  }
+
+  /**
+   * Handler for detail-route PATCHes
+   * @Route PATCH /entityPlural/{id}
+   * @param id - The ID of the entity to delete.
+   */
+  async updateOne(id: string, requestBody: any, ctx: Context) {
+    try {
+      const result = await this.repository.update(id, requestBody);
+      return await this.getOne(id);
     } catch (error) {
       ctx.status = 400;
       ctx.state.result = "";

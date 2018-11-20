@@ -54,6 +54,7 @@ export default class HalloweenApp extends React.Component<
     this.handleApiError = this.handleApiError.bind(this);
     this.handleErrorClose = this.handleErrorClose.bind(this);
     this.handleErrorExited = this.handleErrorExited.bind(this);
+    this.handleSuccess = this.handleSuccess.bind(this);
 
     const apiClient = new ApiClient("http://localhost:8081");
     const authenticationService = new AuthenticationService(apiClient);
@@ -65,7 +66,8 @@ export default class HalloweenApp extends React.Component<
         authenticationService,
         prizeService
       },
-      onApiError: this.handleApiError
+      onApiError: this.handleApiError,
+      onSuccess: this.handleSuccess
     };
 
     // Default state
@@ -136,6 +138,13 @@ export default class HalloweenApp extends React.Component<
     if (this.props.location.pathname === "/splash") {
       this.props.history.push("/");
     }
+  }
+  /**
+   * Fallback handler for successful actions. Toast a success message.
+   * @param message - The message.
+   */
+  handleSuccess(message: string): void {
+    this.handleApiError(message);
   }
 
   /**

@@ -18,7 +18,8 @@ export class Prize {
   currentStock: number;
 
   @Column({
-    default: 1.0
+    default: 1.0,
+    type: "double precision"
   })
   weight: number;
 }
