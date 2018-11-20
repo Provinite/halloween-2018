@@ -95,10 +95,27 @@ const browserifyOptions = {
   entries: paths.src.scripts.entry
 };
 const bundlerOpts = {...browserifyOptions, ...watchify.args};
-const bundler = watchify(browserify(bundlerOpts))
-.plugin(tsify)
-.transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
-.transform(envify, {extensions: [".tsx", ".ts"]});
+let bundler;
+
+const initializeBundler = (done) => {
+  if (bundler) {return done()};
+
+  bundler = browserify(bundlerOpts)
+  .plugin(tsify)
+  .transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
+  .transform(envify, {extensions: [".tsx", ".ts"]});
+  done();
+};
+
+const initializeWatchifyBundler = (done) => {
+  if (bundler) {return done()};
+
+  bundler = watchify(browserify(bundlerOpts))
+  .plugin(tsify)
+  .transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
+  .transform(envify, {extensions: [".tsx", ".ts"]});
+  done();
+}
 
 gulp.task("bundle", () => {
   return bundler.bundle()
@@ -139,11 +156,12 @@ gulp.task("inject:index", () => {
 
 gulp.task("build", 
   gulp.series(
+    initializeBundler,
     gulp.parallel("sass","bundle","copy:html","copy:static"),
     "inject:index"
   ));
 
-gulp.task("serve", gulp.series("build", function() {
+gulp.task("serve", gulp.series(initializeWatchifyBundler, "build", function() {
   connect.server({
     root: "./dist",
     fallback: "./dist/index.html"
