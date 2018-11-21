@@ -148,8 +148,8 @@ gulp.task("inject:index", () => {
   };
   return gulp
     .src(paths.out.dev.html.index)
-    .pipe(inject(injectables.scripts, { relative: false, ignorePath: "dist/" }))
-    .pipe(inject(injectables.style, { relative: false, ignorePath: "dist/" }))
+    .pipe(inject(injectables.scripts, { relative: true, ignorePath: "dist/" }))
+    .pipe(inject(injectables.style, { relative: true, ignorePath: "dist/" }))
     .pipe(replace("<!-- inject:base /-->", `<base href="${process.env.cch2018_wc_base}" />`))
     .pipe(gulp.dest(paths.out.dev.root));
 });
