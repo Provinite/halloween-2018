@@ -16,7 +16,7 @@ function renderApp(props: RouteComponentProps) {
 
 function main(): void {
   ReactDOM.render(
-    <BrowserRouter>
+    <BrowserRouter basename={process.env.cch2018_wc_base}>
       <Route render={renderApp} />
     </BrowserRouter>,
     document.getElementById("app")
