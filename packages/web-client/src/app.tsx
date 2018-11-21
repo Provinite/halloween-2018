@@ -7,6 +7,7 @@ import { BrowserRouter, Route, RouteComponentProps } from "react-router-dom";
 import HalloweenApp from "./components/HalloweenApp";
 import * as _env from "./settings.env.json";
 import { IEnvConfig } from "./types/IEnvConfig";
+import { ensureNoTrailingSlash } from "./utils/Utils";
 
 const env: IEnvConfig = _env as IEnvConfig;
 
@@ -16,7 +17,9 @@ function renderApp(props: RouteComponentProps) {
 
 function main(): void {
   ReactDOM.render(
-    <BrowserRouter basename={process.env.cch2018_wc_base}>
+    <BrowserRouter
+      basename={ensureNoTrailingSlash(process.env.cch2018_wc_base)}
+    >
       <Route render={renderApp} />
     </BrowserRouter>,
     document.getElementById("app")
