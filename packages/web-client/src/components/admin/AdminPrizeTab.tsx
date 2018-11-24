@@ -21,6 +21,9 @@ export class AdminPrizeTab extends React.Component<IAdminPrizeTabProps> {
 
   render() {
     return (
+      // TODO: Move this up a level. Not really the responsibility of this
+      // component to display its loader, since it isn't responsible for
+      // fetching the data.
       /* Don't show the page until prizes have loaded. */
       <WithSpinner
         style={{
