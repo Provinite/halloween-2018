@@ -1,0 +1,26 @@
+{
+  "name": "@clovercoin/constants",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "Collin Driscoll <provinite@gmail.com>",
+  "homepage": "https://github.com/provinite/halloween-2018/tree/master/packages/constants#readme",
+  "license": "UNLICENSED",
+  "main": "lib/constants.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Provinite/halloween-2018.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/Provinite/halloween-2018/issues"
+  },
+  "types": "lib/constants"
+}

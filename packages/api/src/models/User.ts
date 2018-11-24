@@ -1,5 +1,4 @@
 import { Column, Entity, PrimaryColumn, Unique } from "typeorm";
-
 @Entity({
   name: "halloweenUsers"
 })

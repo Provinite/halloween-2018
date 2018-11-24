@@ -43,6 +43,7 @@
     }
   },
   "dependencies": {
+    "@clovercoin/constants": "^0.0.0",
     "awilix": "^3.0.9",
     "axios": "^0.18.0",
     "glob": "^7.1.3",
