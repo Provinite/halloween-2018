@@ -1,5 +1,6 @@
 import { Context } from "koa";
 import { Connection } from "typeorm";
+import { RoleLiteral } from "../../auth/RoleLiteral";
 import { RestRepositoryController } from "../../controllers/RestRepositoryController";
 import { HttpMethod } from "../../HttpMethod";
 import { Component } from "../../reflection/Component";
@@ -8,6 +9,7 @@ import { Prize } from "../Prize";
 
 @Component()
 export class PrizeController extends RestRepositoryController<Prize> {
+  protected defaultRoles: RoleLiteral[] = ["user"];
   constructor(orm: Connection) {
     super(orm, Prize);
   }

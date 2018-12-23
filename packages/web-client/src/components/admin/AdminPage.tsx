@@ -1,9 +1,12 @@
+import { ROLES } from "@clovercoin/constants";
 import { AppBar, Tab, Tabs, Typography } from "@material-ui/core";
 import { Location, UnregisterCallback } from "history";
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
 import { Link } from "react-router-dom";
 import { IPrize } from "../../models/IPrize";
+import { IRole } from "../../models/IRole";
+import { IUser } from "../../models/IUser";
 import { AppContext, IAppContext } from "../AppContext";
 import { AppHeader } from "../AppHeader";
 import { TabContainer } from "../ui/TabContainer";
@@ -27,6 +30,12 @@ interface IAdminPageState {
     /** If true, the prize list is currently fetching. */
     loading: boolean;
   };
+  /** Stateful data regarding users */
+  users: {
+    /** The list of users from the API */
+    list: IUser[];
+    loading: boolean;
+  };
   /** The currently selected tab */
   selectedTab: number;
   /** The next tab to switch to when transitions are done */
@@ -43,11 +52,16 @@ export class AdminPage extends React.Component<
 > {
   static contextType = AppContext;
   context: IAppContext;
+
   private historyUnregisterCallback: UnregisterCallback;
   constructor(props: IAdminPageProps) {
     super(props);
     this.state = {
       prizes: {
+        list: [],
+        loading: false
+      },
+      users: {
         list: [],
         loading: false
       },
@@ -95,24 +109,71 @@ export class AdminPage extends React.Component<
   }
 
   /**
+   * Fetch prizes and update the state.
+   */
+  async loadPrizes() {
+    const loadingPrizes = prevState => ({
+      prizes: {
+        ...prevState.prizes,
+        loading: true
+      }
+    });
+    this.setState(loadingPrizes);
+    const prizes = await this.context.services.prizeService
+      .getAll()
+      .catch(err => {
+        this.context.onApiError(err);
+        return [];
+      });
+    const finalState = {
+      prizes: {
+        list: prizes,
+        loading: false
+      }
+    };
+    return new Promise(resolve => {
+      this.setState(finalState, resolve);
+    });
+  }
+
+  /**
+   * Fetch users and update the state.
+   */
+  async loadUsers() {
+    const loadingUsers = prevState => ({
+      users: {
+        ...prevState.users,
+        loading: true
+      }
+    });
+    this.setState(loadingUsers);
+    const users = await this.context.services.userService
+      .getAll()
+      .catch(err => {
+        this.context.onApiError(err);
+        return [];
+      });
+    const finalState = {
+      users: {
+        list: users,
+        loading: false
+      }
+    };
+    return new Promise(resolve => {
+      this.setState(finalState, resolve);
+    });
+  }
+
+  /**
    * Request data from the api, make sure the current tab is synched with
    * the url, and register the history listener for the tabs.
    */
-  async componentDidMount() {
-    let prizes;
-    try {
-      prizes = await this.context.services.prizeService.getAll();
-    } catch (error) {
-      setImmediate(() => this.context.onApiError(error));
-    }
+  componentDidMount() {
     this.syncTabWithUrl();
     this.registerHistoryListener();
-    this.setState({
-      prizes: {
-        list: prizes || [],
-        loading: false
-      }
-    });
+
+    this.loadPrizes();
+    this.loadUsers();
   }
 
   /**
@@ -199,6 +260,42 @@ export class AdminPage extends React.Component<
   }
 
   /**
+   * Add a role to a user.
+   */
+  handleUserAddRole = async (user: IUser, role: IRole) => {
+    if (role.name === ROLES.admin) {
+    }
+    const result = await this.context.services.userService.addRole(user, role);
+    this.setState(prevState => ({
+      users: {
+        ...prevState.users,
+        list: prevState.users.list.map(
+          u => (u.deviantartUuid === result.deviantartUuid ? result : u)
+        )
+      }
+    }));
+  };
+
+  /**
+   * Remove a role from a user.
+   */
+  handleUserDeleteRole = async (user: IUser, role: IRole) => {
+    const result = await this.context.services.userService.removeRole(
+      user,
+      role
+    );
+    // obvious "reducer" type stuff here.
+    this.setState(prevState => ({
+      users: {
+        ...prevState.users,
+        list: prevState.users.list.map(
+          u => (u.deviantartUuid === result.deviantartUuid ? result : u)
+        )
+      }
+    }));
+  };
+
+  /**
    * Render the component.
    */
   render(): JSX.Element {
@@ -256,7 +353,11 @@ export class AdminPage extends React.Component<
           onExited={this.handleTabExited}
           hidden={selectedTab !== 1}
         >
-          <AdminUsersTab />
+          <AdminUsersTab
+            users={this.state.users.list}
+            onAddRole={this.handleUserAddRole}
+            onDeleteRole={this.handleUserDeleteRole}
+          />
         </TabContainer>
         <TabContainer
           direction={getDirection(2)}

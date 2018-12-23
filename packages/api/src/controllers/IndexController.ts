@@ -1,7 +1,6 @@
 import { HttpMethod } from "../HttpMethod";
 import { Component } from "../reflection/Component";
 import { Route } from "../reflection/Route";
-import { User } from "../models";
 
 @Component()
 export class IndexController {

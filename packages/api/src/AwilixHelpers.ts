@@ -51,5 +51,13 @@ function makeProxyAwilixFriendly(
   injectable: (...args: any[]) => any,
   realFunction: (...args: any[]) => any
 ) {
-  injectable.toString = () => "function " + realFunction.toString();
+  injectable.toString = () => {
+    let result = realFunction.toString();
+    let prefix = "function";
+    if (result.startsWith("async")) {
+      result = result.replace(/async/, "");
+      prefix = "async " + prefix;
+    }
+    return prefix + " " + result;
+  };
 }

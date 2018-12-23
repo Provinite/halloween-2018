@@ -2,6 +2,11 @@ import { Context, Middleware } from "koa";
 import { IMiddlewareFactory } from "./IMiddlewareFactory";
 import { INextCallback } from "./INextCallback";
 
+/**
+ * Middleware that renders responses from ctx.state.result. Note that this
+ * middleware is intended to be placed at the top of the chain, as it
+ * defers rendering until after next() has resolved.
+ */
 export class RenderMiddlewareFactory implements IMiddlewareFactory {
   create(): Middleware {
     /* These middlewares will be delegated-to based on type */
@@ -9,17 +14,17 @@ export class RenderMiddlewareFactory implements IMiddlewareFactory {
       ctx: Context,
       next: INextCallback
     ) => {
-      ctx.body = ctx.state.result;
       await next();
+      ctx.body = ctx.state.result;
     };
 
     const renderObject: Middleware = async (
       ctx: Context,
       next: INextCallback
     ) => {
+      await next();
       ctx.body = JSON.stringify(ctx.state.result);
       ctx.response.set("content-type", "application/json");
-      await next();
     };
 
     /* This middleware will intelligently delegate to those above */
@@ -28,9 +33,9 @@ export class RenderMiddlewareFactory implements IMiddlewareFactory {
       next: INextCallback
     ) => {
       if (typeof ctx.state.result === "string") {
-        return renderString(ctx, next);
+        return await renderString(ctx, next);
       } else {
-        return renderObject(ctx, next);
+        return await renderObject(ctx, next);
       }
     };
     return smartRender;

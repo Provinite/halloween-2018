@@ -1,32 +1,33 @@
 import { asValue, AwilixContainer } from "awilix";
 import { Context, Middleware } from "koa";
-import { asClassMethod } from "../AwilixHelpers";
-import { RequestParsingService } from "../config/RequestParsingService";
-import { RouteTransformationService } from "../config/RouteTransformationService";
 import { getMethod, HttpMethod } from "../HttpMethod";
-import { IRouter } from "../reflection/IRouterClass";
+import { MethodNotSupportedError } from "../web/MethodNotSupportedError";
 import { RouteRegistry } from "../web/RouteRegistry";
+import { UnknownMethodError } from "../web/UnknownMethodError";
+import { UnknownRouteError } from "../web/UnknownRouteError";
 import { IMiddlewareFactory } from "./IMiddlewareFactory";
 import { INextCallback } from "./INextCallback";
 
+/**
+ * Middleware factory that provides a routing middleware. The created
+ * middleware will examine incoming requests, map them to the proper route
+ * handler, create a request-scoped DI container, and use it to invoke the
+ * handler.
+ */
 export class RouterMiddlewareFactory implements IMiddlewareFactory {
-  private requestParsingService: RequestParsingService;
-  private routeRegistry: RouteRegistry;
-  private container: AwilixContainer;
-  constructor(
-    container: AwilixContainer,
-    requestParsingService: RequestParsingService,
-    routeRegistry: RouteRegistry
-  ) {
-    this.container = container;
-    this.requestParsingService = requestParsingService;
-    this.routeRegistry = routeRegistry;
-  }
+  /**
+   * @param routeRegistry - The route registry to use when mapping requests.
+   */
+  constructor(private routeRegistry: RouteRegistry) {}
+  /**
+   * Create the router middleware.
+   */
   create(): Middleware {
     return async (ctx: Context, next: INextCallback) => {
       const path: string = ctx.path;
       const method: HttpMethod = getMethod(ctx.method);
       if (!method) {
+        throw new UnknownMethodError();
         // https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
         // 10.5.2 501 Not Implemented
         // "The server does not support the functionality required to fulfill
@@ -38,10 +39,7 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
       }
 
       // Create the request-scoped DI container
-      const requestContainer: AwilixContainer = this.container.createScope();
-
-      // Register the koa context to the request-scoped DI container
-      requestContainer.register("ctx", asValue(ctx));
+      const requestContainer: AwilixContainer = ctx.state.requestContainer;
 
       const {
         resolver,
@@ -56,27 +54,16 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
             ctx.status = 200;
             ctx.state.result = "";
           } else {
-            // method not supported
-            ctx.status = 405;
-            ctx.state.result = `${method} not allowed.`;
+            throw new MethodNotSupportedError();
           }
         } else if (error === "ROUTE_NOT_SUPPORTED") {
-          ctx.state.result = "Not Found.";
-          ctx.status = 404;
+          throw new UnknownRouteError();
         }
       } else {
         registerPathVariables(pathVariables, requestContainer);
-        this.requestParsingService.parse(ctx, requestContainer);
-        try {
-          ctx.state.result = await requestContainer.build(resolver);
-        } catch (e) {
-          ctx.state.result = "";
-          /* tslint:disable */
-          console.log("Exception during controller execution");
-          console.log("Route: ", path);
-          console.log(e);
-          /* tslint:enable */
-        }
+        // Invoke this route's handler, and store its response on the context
+        // for later rendering.
+        ctx.state.result = await requestContainer.build(resolver);
       }
       if (ctx.state.result === undefined) {
         ctx.state.result = "200 OK";
@@ -87,6 +74,12 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
   }
 }
 
+/**
+ * Register each path variable on the DI container.
+ * @param pathVariables - A map of path variable keys to values
+ * @param requestContainer - The request-scoped DI container to inject the values
+ *    into.
+ */
 function registerPathVariables(
   pathVariables: { [key: string]: string },
   requestContainer: AwilixContainer

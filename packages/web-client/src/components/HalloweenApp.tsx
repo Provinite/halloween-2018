@@ -1,9 +1,12 @@
+import { ROLES } from "@clovercoin/constants";
 import * as React from "react";
 import { Redirect, Route, RouteComponentProps, Switch } from "react-router-dom";
 import { ApiClient } from "../services/ApiClient";
 import { AuthenticationService } from "../services/auth/AuthenticationService";
 import { LocalStorageService } from "../services/LocalStorageService";
 import { PrizeService } from "../services/PrizeService";
+import { RoleService } from "../services/RoleService";
+import { UserService } from "../services/UserService";
 import * as _env from "../settings.env.json";
 import { IEnvConfig } from "../types/IEnvConfig";
 import { AdminPage } from "./admin/AdminPage";
@@ -19,6 +22,8 @@ const apiBase = process.env.cch2018_api_base;
 const env: IEnvConfig = _env as IEnvConfig;
 const SPLASH_KEY = "splash";
 interface IHalloweenAppState {
+  /** If true, the entire app will on hold to finish bootstrapping. */
+  loading: boolean;
   /** State parameters related to the splash screen. */
   splash: {
     /** False if the splash screen has been shown before */
@@ -58,22 +63,35 @@ export default class HalloweenApp extends React.Component<
     this.handleErrorExited = this.handleErrorExited.bind(this);
     this.handleSuccess = this.handleSuccess.bind(this);
 
-    const apiClient = new ApiClient(apiBase);
+    const apiClient = new ApiClient(apiBase, () => {
+      console.log("Logged out!");
+      this.props.history.push("/login");
+    });
     const authenticationService = new AuthenticationService(apiClient);
     const prizeService = new PrizeService(apiClient);
+    const userService = new UserService(apiClient);
+    const roleService = new RoleService(apiClient);
 
     const context: IAppContext = {
       services: {
         apiClient,
         authenticationService,
-        prizeService
+        prizeService,
+        userService,
+        roleService
       },
       onApiError: this.handleApiError,
-      onSuccess: this.handleSuccess
+      onSuccess: this.handleSuccess,
+      roles: {
+        admin: null,
+        moderator: null,
+        user: null
+      }
     };
 
     // Default state
     this.state = {
+      loading: true,
       splash: {
         open: true,
         shown: false
@@ -86,7 +104,7 @@ export default class HalloweenApp extends React.Component<
     };
   }
 
-  componentWillMount(): void {
+  async componentDidMount() {
     const { pathname } = this.props.location;
     if (!LocalStorageService.get(SPLASH_KEY) || pathname === "/splash") {
       this.setState({
@@ -96,6 +114,26 @@ export default class HalloweenApp extends React.Component<
         }
       });
     }
+    try {
+      await this.state.context.services.authenticationService.login();
+    } catch (e) {
+      // a thrown exception here just means we're not logged in. Most likely,
+      // there is no stored key in local storage.
+    }
+    const roles = await this.state.context.services.roleService.getAll();
+    this.setState(prevState => {
+      return {
+        loading: false,
+        context: {
+          ...prevState.context,
+          roles: {
+            admin: roles.find(role => role.name === ROLES.admin),
+            moderator: roles.find(role => role.name === ROLES.moderator),
+            user: roles.find(role => role.name === ROLES.user)
+          }
+        }
+      };
+    });
   }
 
   /** Public Methods */
@@ -161,7 +199,6 @@ export default class HalloweenApp extends React.Component<
     console.log("*        API Error      *");
     console.log("*************************");
     */
-    console.log(error);
     // tslint:enable
     this.errorQueue.push(error);
     this.setState(prevState => ({
@@ -178,6 +215,9 @@ export default class HalloweenApp extends React.Component<
    * Render the application.
    */
   render() {
+    if (this.state.loading) {
+      return <></>;
+    }
     let splash;
     if (this.state.splash.shown) {
       splash = (

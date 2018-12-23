@@ -1,15 +1,27 @@
 import { Connection, Repository } from "typeorm";
-import { RestRepositoryController } from "./RestRepositoryController";
+import { RoleLiteral } from "../auth/RoleLiteral";
+import {
+  IFallbackHandlerMap,
+  RestRepositoryController
+} from "./RestRepositoryController";
 class MockEntity {}
 /**
  * Minimal implementation of RestRepositoryController used to test
  * fallback implementations.
  */
-// tslint:disable-next-line
+// tslint:disable-next-line max-classes-per-file
 class MockRestRepository extends RestRepositoryController<MockEntity> {
+  protected defaultRoles: RoleLiteral[] = ["user"];
+  /**
+   * Test helper method to expose protected route data.
+   */
   getRoutes() {
     const { baseRoute, listRoute, detailRoute } = this;
     return { baseRoute, listRoute, detailRoute };
+  }
+
+  configureFallbackHandlers(fallbackHandlers: IFallbackHandlerMap) {
+    // noop still
   }
 }
 
@@ -42,6 +54,8 @@ describe("abstract:RestRepositoryController", () => {
 
     /* Default Controller */
     ctrl = new MockRestRepository(mocks.orm, MockEntity);
+
+    jest.spyOn(ctrl, "configureFallbackHandlers");
   });
 
   afterEach(() => {

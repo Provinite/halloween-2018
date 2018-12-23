@@ -9,6 +9,7 @@ import {
 import { IScannableClass } from "../reflection/ScannableClass";
 import {
   httpMethods,
+  requiredRoles,
   routableMethods,
   targetRoute
 } from "../reflection/Symbols";
@@ -69,10 +70,12 @@ export class RouteComponentProcessor {
         router[routableMethods].forEach(routableMethod => {
           const route: string = routableMethod[targetRoute];
           const methods = routableMethod[httpMethods];
+          const roles = routableMethod[requiredRoles];
           this.routeRegistry.registerRoute(
             route,
             methods,
-            asClassMethod(router, routableMethod)
+            asClassMethod(router, routableMethod),
+            roles
           );
         });
       }

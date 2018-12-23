@@ -1,3 +1,7 @@
 module.exports = {
-  FOO: "bar"
+  ROLES: {
+    admin: "ADMINISTRATOR",
+    moderator: "MODERATOR",
+    user: "USER",
+  }
 };

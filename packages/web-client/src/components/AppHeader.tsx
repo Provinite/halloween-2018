@@ -5,7 +5,7 @@ import * as React from "react";
  * Functional component presenting the shared top bar for the app.
  */
 export const AppHeader = () => (
-  <AppBar position="static" color="primary">
+  <AppBar position="relative" color="primary">
     <Toolbar>
       <Typography variant="h6" color="inherit">
         Pillowing Pile

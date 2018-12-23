@@ -13,4 +13,3 @@ will be built.
 | HalloweenAppDevRunner.ts | Dev environment application entry point |
 | HalloweenAppRunner.ts | Interface for application entry points |
 | app.ts | Actual application entry point |
-

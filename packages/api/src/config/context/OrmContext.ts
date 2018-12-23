@@ -1,5 +1,6 @@
 import { asFunction, asValue, AwilixContainer } from "awilix";
 import { Connection, createConnection } from "typeorm";
+import { asStaticMethod } from "../../AwilixHelpers";
 import { MODELS } from "../../models";
 import { EnvService } from "../env/EnvService";
 
@@ -38,13 +39,19 @@ export class OrmContext {
     // Register the ORM connection.
     container.register("orm", asValue(connection));
 
-    // Register a repository for each model.
-    MODELS.forEach(model => {
+    MODELS.forEach(async model => {
+      // Register a repository for each model.
       const name = createRepositoryName(model);
       const proxy = (orm: Connection) => orm.getRepository(model);
       const resolver = asFunction(proxy).singleton();
       container.register(name, resolver);
+
+      // Fire the create initial entities hook
+      if (model.createInitialEntities) {
+        await container.build(asStaticMethod(model.createInitialEntities));
+      }
     });
+
     return container;
   }
 }

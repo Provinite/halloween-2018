@@ -1,6 +1,8 @@
 import { Resolver } from "awilix";
+import { RoleLiteral } from "../auth/RoleLiteral";
 import { RouteTransformationService } from "../config/RouteTransformationService";
 import { HttpMethod } from "../HttpMethod";
+import { logger } from "../logging";
 import { Component } from "../reflection/Component";
 @Component()
 /**
@@ -22,8 +24,12 @@ export class RouteRegistry {
   registerRoute(
     route: string,
     methods: HttpMethod | HttpMethod[],
-    resolver: Resolver<any> | ((...args: any[]) => any)
+    resolver: Resolver<any> | ((...args: any[]) => any),
+    requiredRoles: RoleLiteral[]
   ): this {
+    logger.info(
+      `RouteRegistry#registerRoute: Registering endpoint "${route}" [${methods}]`
+    );
     if (!this.map[route]) {
       this.map[route] = {};
     }
@@ -31,7 +37,10 @@ export class RouteRegistry {
       methods = [methods];
     }
     methods.forEach(method => {
-      this.map[route][method] = resolver;
+      this.map[route][method] = {
+        handler: resolver,
+        allowedRoles: requiredRoles
+      };
     });
     return this;
   }
@@ -44,10 +53,30 @@ export class RouteRegistry {
     requestPath: string,
     method: HttpMethod
   ): {
+    /**
+     * An awilix resolver for the actual route handler. If lookup fails,
+     * undefined.
+     */
     resolver?: Resolver<any> | ((...args: any[]) => any);
+    /**
+     * A map of the extracted path variables for the request (name => value).
+     * Undefined if lookup fails.
+     */
     pathVariables?: { [key: string]: string };
+    /**
+     * Information indicating why a lookup failed. Undefined if lookup
+     * succeeded.
+     */
     error?: "METHOD_NOT_SUPPORTED" | "ROUTE_NOT_SUPPORTED";
+    /**
+     * A list of allowed HTTP methods for the matched route. Undefined if the
+     * route is unsupported.
+     */
     allow?: HttpMethod[];
+    /**
+     * A list of roles that may use this route.
+     */
+    allowedRoles?: RoleLiteral[];
   } {
     // Exact match (but don't get false exact matches on wildcard routes if the
     // request path literally contains something like {id})
@@ -55,7 +84,8 @@ export class RouteRegistry {
       if (this.map[requestPath]) {
         if (this.map[requestPath][method]) {
           return {
-            resolver: this.map[requestPath][method]
+            resolver: this.map[requestPath][method].handler,
+            allowedRoles: this.map[requestPath][method].allowedRoles
           };
         } else {
           return {
@@ -82,7 +112,8 @@ export class RouteRegistry {
         // route matched, check method support
         if (this.map[route][method]) {
           return {
-            resolver: this.map[route][method],
+            resolver: this.map[route][method].handler,
+            allowedRoles: this.map[route][method].allowedRoles,
             pathVariables
           };
         } else {
@@ -105,7 +136,10 @@ export class RouteRegistry {
  * Object mapping http methods to resolvers for a given route.
  */
 type IRouteHandler = {
-  [method in HttpMethod]?: Resolver<any> | ((...args: any[]) => any)
+  [method in HttpMethod]?: {
+    handler: Resolver<any> | ((...args: any[]) => any);
+    allowedRoles: RoleLiteral[];
+  }
 };
 /**
  * Object mapping routes to handler objects.

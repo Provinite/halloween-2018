@@ -16,6 +16,7 @@ describe("service:RouteRegistry", () => {
       const result = routeRegistry.registerRoute(
         "/foo/bar",
         HttpMethod.GET,
+        null,
         null
       );
       expect(result).toBe(routeRegistry);
@@ -31,7 +32,7 @@ describe("service:RouteRegistry", () => {
       insertedResolver = {};
     });
     it("returns the same resolver inserted on exact match", () => {
-      routeRegistry.registerRoute("/foo/bar", method, insertedResolver);
+      routeRegistry.registerRoute("/foo/bar", method, insertedResolver, null);
       const { resolver: returnedResolver } = routeRegistry.lookupRoute(
         "/foo/bar",
         method
@@ -39,7 +40,7 @@ describe("service:RouteRegistry", () => {
       expect(returnedResolver).toBe(insertedResolver);
     });
     it("works for wildcard routes", () => {
-      routeRegistry.registerRoute("/{foo}/", method, insertedResolver);
+      routeRegistry.registerRoute("/{foo}/", method, insertedResolver, null);
       const { resolver } = routeRegistry.lookupRoute("/bar/", method);
       expect(resolver).toBe(insertedResolver);
     });
@@ -48,7 +49,8 @@ describe("service:RouteRegistry", () => {
         routeRegistry.registerRoute(
           "/{user}/{action}",
           method,
-          insertedResolver
+          insertedResolver,
+          null
         );
         const { pathVariables, error } = routeRegistry.lookupRoute(
           "/username/delete",
@@ -68,7 +70,8 @@ describe("service:RouteRegistry", () => {
         routeRegistry.registerRoute(
           "/foo",
           [HttpMethod.DELETE, HttpMethod.GET],
-          {} as any
+          {} as any,
+          null
         );
         const { error } = routeRegistry.lookupRoute("/foo", HttpMethod.POST);
         expect(error).toBe("METHOD_NOT_SUPPORTED");
@@ -77,7 +80,8 @@ describe("service:RouteRegistry", () => {
         routeRegistry.registerRoute(
           "/foo",
           [HttpMethod.GET, HttpMethod.DELETE],
-          {} as any
+          {} as any,
+          null
         );
         const { error, allow } = routeRegistry.lookupRoute(
           "/foo",
@@ -89,8 +93,8 @@ describe("service:RouteRegistry", () => {
 
     describe("method:registerRoute", () => {
       it("overwrites existing registrations", () => {
-        routeRegistry.registerRoute("/", method, {} as any);
-        routeRegistry.registerRoute("/", method, insertedResolver);
+        routeRegistry.registerRoute("/", method, {} as any, null);
+        routeRegistry.registerRoute("/", method, insertedResolver, null);
         const { resolver } = routeRegistry.lookupRoute("/", method);
         expect(resolver).toBe(insertedResolver);
       });

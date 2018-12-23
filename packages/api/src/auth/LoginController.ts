@@ -1,13 +1,10 @@
-import Axios, { AxiosError } from "axios";
 import { Context } from "koa";
-import { stringify } from "querystring";
 import { Repository } from "typeorm";
 import { HttpMethod } from "../HttpMethod";
 import { User } from "../models";
 import { Component } from "../reflection/Component";
 import { Route } from "../reflection/Route";
 import { AuthenticationService } from "./AuthenticationService";
-import { DeviantartApiConsumer } from "./deviantart/DeviantartApiConsumer";
 
 @Component()
 export class LoginController {
@@ -22,7 +19,8 @@ export class LoginController {
   }
   @Route({
     route: "/login",
-    method: HttpMethod.POST
+    method: HttpMethod.POST,
+    roles: ["public"]
   })
   async handleLogin(requestBody: { [key: string]: any }) {
     if (!requestBody.authCode) {
@@ -35,7 +33,11 @@ export class LoginController {
     };
   }
 
-  @Route("/whoami")
+  @Route({
+    route: "/whoami",
+    method: HttpMethod.GET,
+    roles: ["user"]
+  })
   async whoami(ctx: Context): Promise<User> {
     const token = ctx.get("Authorization").replace("Bearer ", "");
     const payload = await this.authService.authenticateToken(token);

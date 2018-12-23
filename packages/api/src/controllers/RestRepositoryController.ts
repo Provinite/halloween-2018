@@ -1,8 +1,13 @@
 import { Context } from "koa";
-import { Connection, DeleteResult, Repository } from "typeorm";
+import { Connection, Repository } from "typeorm";
+import { RoleLiteral } from "../auth/RoleLiteral";
 import { asClassMethod } from "../AwilixHelpers";
 import { HttpMethod } from "../HttpMethod";
 import { RouteRegistry } from "../web/RouteRegistry";
+/**
+ * Pluralize a given string.
+ * @param str - The string to pluralize.
+ */
 const pluralize: (str: string) => string = (str: string) => {
   if (str.endsWith("s")) {
     return `${str}es`;
@@ -12,8 +17,24 @@ const pluralize: (str: string) => string = (str: string) => {
   }
   return `${str}s`;
 };
+
+/**
+ * Creates a baseroute for the given class.
+ * @param clazz - The entity class for the route.
+ */
 export function getRoute(clazz: new () => any) {
   return "/" + clazz.name[0].toLowerCase() + clazz.name.substr(1);
+}
+/**
+ * Interface for objects mapping HTTP methods and routes to class methods.
+ */
+export interface IFallbackHandlerMap {
+  [key: string]: {
+    [method in HttpMethod]?: {
+      fn: (...args: any[]) => any;
+      roles: RoleLiteral[];
+    }
+  };
 }
 export abstract class RestRepositoryController<T> {
   protected modelClass: new () => T;
@@ -21,6 +42,7 @@ export abstract class RestRepositoryController<T> {
   protected baseRoute: string;
   protected listRoute: string;
   protected detailRoute: string;
+  protected abstract defaultRoles: RoleLiteral[];
   constructor(orm: Connection, modelClass: new () => T) {
     this.modelClass = modelClass;
     this.repository = orm.getRepository(this.modelClass);
@@ -28,37 +50,68 @@ export abstract class RestRepositoryController<T> {
     this.listRoute = pluralize(this.baseRoute);
     this.detailRoute = `${this.listRoute}/{id}`;
   }
+
   /**
    * Registers default fallback handlers for this repository if they are
    * not already registered.
    * @param routeRegistry The route registry to write to.
    */
   registerRoutes(routeRegistry: RouteRegistry) {
-    interface IFallbackHandlerMap {
-      [key: string]: { [method in HttpMethod]?: (...args: any[]) => any };
-    }
     const fallbackHandlers: IFallbackHandlerMap = {
       [this.listRoute]: {
-        [HttpMethod.GET]: this.getAll,
-        [HttpMethod.POST]: this.createOne
+        [HttpMethod.GET]: {
+          fn: this.getAll,
+          roles: this.defaultRoles
+        },
+        [HttpMethod.POST]: {
+          fn: this.createOne,
+          roles: this.defaultRoles
+        }
       },
       [this.detailRoute]: {
-        [HttpMethod.GET]: this.getOne,
-        [HttpMethod.DELETE]: this.deleteOne,
-        [HttpMethod.PATCH]: this.updateOne
+        [HttpMethod.GET]: { fn: this.getOne, roles: this.defaultRoles },
+        [HttpMethod.DELETE]: { fn: this.deleteOne, roles: this.defaultRoles },
+        [HttpMethod.PATCH]: { fn: this.updateOne, roles: this.defaultRoles }
       }
     };
+    // allow for configuration of the map before applying it
+    this.configureFallbackHandlers(fallbackHandlers);
+
+    // apply the map without overwriting any existing routes
     for (const route of Object.keys(fallbackHandlers)) {
       const methodMap = fallbackHandlers[route];
       for (const method of Object.keys(methodMap) as HttpMethod[]) {
         const { error } = routeRegistry.lookupRoute(route, method);
         if (error) {
           // handler isn't covered, register the route
-          const resolver = asClassMethod(this, methodMap[method]);
-          routeRegistry.registerRoute(route, method, resolver);
+          const resolver = asClassMethod(this, methodMap[method].fn);
+          routeRegistry.registerRoute(
+            route,
+            method,
+            resolver,
+            methodMap[method].roles
+          );
         }
       }
     }
+  }
+
+  /**
+   * Overridable method that allows for the fallback route handler map to
+   * be modified prior to being applied. Default implementation is a no-op.
+   *
+   * This method will be invoked with the fallback handler map that is used to
+   * generate default endpoints for the controller.
+   *
+   * This method may (should) modify the map in-place.
+   *
+   * @param fallbackHandlers - A route map. This map will be iterated over
+   * and any (route, method) pairs defined in it that are not already registered
+   * will be registered.
+   * @see registerRoutes
+   */
+  configureFallbackHandlers(fallbackHandlers: IFallbackHandlerMap): void {
+    // noop
   }
 
   /**
