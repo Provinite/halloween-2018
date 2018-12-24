@@ -5,9 +5,10 @@
   "main": "index.js",
   "author": "Collin Driscoll",
   "license": "UNLICENSED",
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": {
+    "packages": ["packages/*"],
+    "nohoist": ["@clovercoin/**"]
+  },
   "private": true,
   "devDependencies": {
     "cz-conventional-changelog": "^2.1.0",
