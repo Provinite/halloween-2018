@@ -17,7 +17,7 @@
     "url": "git+https://github.com/Provinite/halloween-2018.git"
   },
   "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "test": "echo \"No tests for constants.\" && exit 0"
   },
   "bugs": {
     "url": "https://github.com/Provinite/halloween-2018/issues"
