@@ -7,7 +7,7 @@ cache:
   - packages/web-client/node_modules
   - packages/api/node_modules
 before_install:
-  - curl -o- -L https://yarnpkg.com/install.sh | bash
+  - curl -o- -L https://yarnpkg.com/install.sh | bash && source ~/.bashrc
 install:
   - yarn install
   #- lerna bootstrap
