@@ -7,7 +7,6 @@
   "license": "UNLICENSED",
   "workspaces": {
     "packages": ["packages/*"],
-    "nohoist": ["@clovercoin/**"]
   },
   "private": true,
   "devDependencies": {
