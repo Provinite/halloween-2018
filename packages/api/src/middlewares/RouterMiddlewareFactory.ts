@@ -28,14 +28,6 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
       const method: HttpMethod = getMethod(ctx.method);
       if (!method) {
         throw new UnknownMethodError();
-        // https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
-        // 10.5.2 501 Not Implemented
-        // "The server does not support the functionality required to fulfill
-        // the request. This is the appropriate response when the server does
-        // not recognize the request method and is not capable of supporting it
-        // for any resource."
-        ctx.state.result = `${ctx.method}`;
-        ctx.status = 501;
       }
 
       // Create the request-scoped DI container
