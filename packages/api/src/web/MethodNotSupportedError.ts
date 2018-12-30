@@ -1,7 +1,8 @@
 import { HttpMethod } from "../HttpMethod";
 
 /**
- * Error indicating that the requested method is not supported for this route.
+ * Error indicating that the requested HTTP method is not supported for this
+ * route.
  */
 export class MethodNotSupportedError extends Error {
   /**
