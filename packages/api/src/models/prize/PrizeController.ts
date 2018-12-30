@@ -16,7 +16,8 @@ export class PrizeController extends RestRepositoryController<Prize> {
 
   @Route({
     route: "/prizes",
-    method: HttpMethod.POST
+    method: HttpMethod.POST,
+    roles: ["admin"]
   })
   async createPrize(requestBody: any, ctx: Context): Promise<Prize> {
     const body = { ...requestBody } as Partial<Prize>;
