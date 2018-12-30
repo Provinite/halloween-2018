@@ -11,8 +11,8 @@ import { INextCallback } from "./INextCallback";
 /**
  * Middleware factory that provides a routing middleware. The created
  * middleware will examine incoming requests, map them to the proper route
- * handler, create a request-scoped DI container, and use it to invoke the
- * handler.
+ * handler, and use the request-scoped DI container to invoke that handler.
+ * Depends on ctx.state.requestContainer being set.
  */
 export class RouterMiddlewareFactory implements IMiddlewareFactory {
   /**
