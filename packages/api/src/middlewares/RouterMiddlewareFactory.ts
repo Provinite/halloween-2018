@@ -36,30 +36,15 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
       }
       const requestContainer: AwilixContainer = ctx.state.requestContainer;
 
-      const {
-        resolver,
-        pathVariables,
-        error,
-        allow
-      } = this.routeRegistry.lookupRoute(path, method);
-      if (error) {
-        if (error === "METHOD_NOT_SUPPORTED") {
-          ctx.set("Allow", allow.join(", "));
-          if (method === HttpMethod.OPTIONS) {
-            ctx.status = 200;
-            ctx.state.result = "";
-          } else {
-            throw new MethodNotSupportedError();
-          }
-        } else if (error === "ROUTE_NOT_SUPPORTED") {
-          throw new UnknownRouteError();
-        }
-      } else {
-        registerPathVariables(pathVariables, requestContainer);
-        // Invoke this route's handler, and store its response on the context
-        // for later rendering.
-        ctx.state.result = await requestContainer.build(resolver);
-      }
+      const { resolver, pathVariables } = this.routeRegistry.lookupRoute(
+        path,
+        method
+      );
+      registerPathVariables(pathVariables, requestContainer);
+      // Invoke this route's handler, and store its response on the context
+      // for later rendering.
+      ctx.state.result = await requestContainer.build(resolver);
+      // TODO: get rid of this, or move it somewhere else.
       if (ctx.state.result === undefined) {
         ctx.state.result = "200 OK";
         ctx.status = 200;

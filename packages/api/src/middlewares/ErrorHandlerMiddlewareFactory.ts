@@ -2,6 +2,7 @@ import { Context } from "koa";
 import { AuthenticationFailureException } from "../auth/AuthenticationFailureException";
 import { AuthenticationTokenExpiredError } from "../auth/AuthenticationTokenExpiredError";
 import { PermissionDeniedError } from "../auth/PermissionDeniedError";
+import { getMethod, HttpMethod } from "../HttpMethod";
 import { logger } from "../logging";
 import { MethodNotSupportedError } from "../web/MethodNotSupportedError";
 import { ResourceNotFoundError } from "../web/ResourceNotFoundError";
@@ -30,7 +31,15 @@ export class ErrorHandlerMiddlewareFactory implements IMiddlewareFactory {
       } else if (e instanceof AuthenticationTokenExpiredError) {
         ctx.status = 401;
       } else if (e instanceof MethodNotSupportedError) {
-        ctx.status = 405;
+        /* Method not supported errors must present an ALLOW header. */
+        // TODO: This is leaking info :(
+        const method = getMethod(ctx.method);
+        if (method === HttpMethod.OPTIONS) {
+          ctx.status = 200;
+        } else {
+          ctx.status = 405;
+        }
+        ctx.set("Allow", e.allow.join(", "));
       } else {
         ctx.status = 500;
       }
