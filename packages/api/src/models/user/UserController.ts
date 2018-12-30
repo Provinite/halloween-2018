@@ -12,7 +12,7 @@ import { User } from "../User";
 
 @Controller()
 export class UserController extends RestRepositoryController<User> {
-  protected defaultRoles: RoleLiteral[] = ["user"];
+  protected defaultRoles: RoleLiteral[] = ["admin"];
   constructor(
     orm: Connection,
     private userRepository: Repository<User>,
@@ -64,6 +64,5 @@ export class UserController extends RestRepositoryController<User> {
     delete fallbackHandlers[this.listRoute][HttpMethod.POST];
     delete fallbackHandlers[this.detailRoute][HttpMethod.DELETE];
     delete fallbackHandlers[this.detailRoute][HttpMethod.PATCH];
-    fallbackHandlers[this.listRoute][HttpMethod.GET].roles = ["admin"];
   }
 }
