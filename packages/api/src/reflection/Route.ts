@@ -13,6 +13,8 @@ import {
   targetRoute
 } from "./Symbols";
 
+export const defaultAllowedRoles: RoleLiteral[] = ["public"];
+
 export function Route(
   route:
     | string
@@ -41,7 +43,7 @@ export function Route(
         HttpMethod.PUT,
         HttpMethod.DELETE
       ];
-      requestedRoles = ["public"];
+      requestedRoles = defaultAllowedRoles;
     } else {
       // configuration object provided
       requestedRoute = route.route;
@@ -54,7 +56,7 @@ export function Route(
           route.method = [route.method];
         }
         requestedMethods = [...route.method];
-        requestedRoles = route.roles || ["user"];
+        requestedRoles = route.roles || defaultAllowedRoles;
       } else {
         throw new Error(
           `Decorator:@Route: No methods defined for ${requestedRoute} (${
