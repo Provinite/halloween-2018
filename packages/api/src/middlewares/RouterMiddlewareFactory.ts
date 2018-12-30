@@ -30,7 +30,10 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
         throw new UnknownMethodError();
       }
 
-      // Create the request-scoped DI container
+      // Fetch the DI container for this request
+      if (!ctx.state.requestContainer) {
+        throw new Error("No request container available.");
+      }
       const requestContainer: AwilixContainer = ctx.state.requestContainer;
 
       const {
