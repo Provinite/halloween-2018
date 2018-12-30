@@ -8,8 +8,8 @@ import {
 } from "../reflection/IRouterClass";
 import { IScannableClass } from "../reflection/ScannableClass";
 import {
+  allowedRoles,
   httpMethods,
-  requiredRoles,
   routableMethods,
   targetRoute
 } from "../reflection/Symbols";
@@ -70,7 +70,7 @@ export class RouteComponentProcessor {
         router[routableMethods].forEach(routableMethod => {
           const route: string = routableMethod[targetRoute];
           const methods = routableMethod[httpMethods];
-          const roles = routableMethod[requiredRoles];
+          const roles = routableMethod[allowedRoles];
           this.routeRegistry.registerRoute(
             route,
             methods,

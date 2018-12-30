@@ -27,7 +27,7 @@ export class RouteRegistry {
     route: string,
     methods: HttpMethod | HttpMethod[],
     resolver: Resolver<any> | ((...args: any[]) => any),
-    requiredRoles: RoleLiteral[]
+    allowedRoles: RoleLiteral[]
   ): this {
     logger.info(
       `RouteRegistry#registerRoute: Registering endpoint "${route}" [${methods}]`
@@ -41,7 +41,7 @@ export class RouteRegistry {
     methods.forEach(method => {
       this.map[route][method] = {
         handler: resolver,
-        allowedRoles: requiredRoles
+        allowedRoles
       };
     });
     return this;

@@ -3,12 +3,12 @@ import { HttpMethod } from "../HttpMethod";
 import { IRoutableMethod } from "./IRoutableMethod";
 import { IRouterClass } from "./IRouterClass";
 import {
+  allowedRoles,
   decoratedType,
   DecoratedTypes,
   httpMethods,
   isRoutable,
   isRouter,
-  requiredRoles,
   routableMethods,
   targetRoute
 } from "./Symbols";
@@ -67,7 +67,7 @@ export function Route(
     value[targetRoute] = requestedRoute;
     value[httpMethods] = requestedMethods;
     value[decoratedType] = DecoratedTypes.METHOD;
-    value[requiredRoles] = requestedRoles;
+    value[allowedRoles] = requestedRoles;
     (target.constructor as IRouterClass)[isRouter] = true;
     if (!target[routableMethods]) {
       target[routableMethods] = [];
