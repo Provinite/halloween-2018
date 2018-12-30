@@ -3,7 +3,9 @@ import { Connection, Repository } from "typeorm";
 import { RoleLiteral } from "../auth/RoleLiteral";
 import { asClassMethod } from "../AwilixHelpers";
 import { HttpMethod } from "../HttpMethod";
+import { MethodNotSupportedError } from "../web/MethodNotSupportedError";
 import { RouteRegistry } from "../web/RouteRegistry";
+import { UnknownRouteError } from "../web/UnknownRouteError";
 /**
  * Pluralize a given string.
  * @param str - The string to pluralize.
@@ -81,16 +83,24 @@ export abstract class RestRepositoryController<T> {
     for (const route of Object.keys(fallbackHandlers)) {
       const methodMap = fallbackHandlers[route];
       for (const method of Object.keys(methodMap) as HttpMethod[]) {
-        const { error } = routeRegistry.lookupRoute(route, method);
-        if (error) {
-          // handler isn't covered, register the route
-          const resolver = asClassMethod(this, methodMap[method].fn);
-          routeRegistry.registerRoute(
-            route,
-            method,
-            resolver,
-            methodMap[method].roles
-          );
+        try {
+          routeRegistry.lookupRoute(route, method);
+        } catch (e) {
+          if (
+            e instanceof UnknownRouteError ||
+            e instanceof MethodNotSupportedError
+          ) {
+            // handler isn't covered, register it
+            const resolver = asClassMethod(this, methodMap[method].fn);
+            routeRegistry.registerRoute(
+              route,
+              method,
+              resolver,
+              methodMap[method].roles
+            );
+          } else {
+            throw e;
+          }
         }
       }
     }
