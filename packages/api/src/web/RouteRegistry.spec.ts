@@ -1,6 +1,8 @@
 import { RouteTransformationService } from "../config/RouteTransformationService";
 import { HttpMethod } from "../HttpMethod";
+import { MethodNotSupportedError } from "./MethodNotSupportedError";
 import { RouteRegistry } from "./RouteRegistry";
+import { UnknownRouteError } from "./UnknownRouteError";
 
 describe("service:RouteRegistry", () => {
   afterEach(() => {
@@ -52,42 +54,46 @@ describe("service:RouteRegistry", () => {
           insertedResolver,
           null
         );
-        const { pathVariables, error } = routeRegistry.lookupRoute(
+        const { pathVariables } = routeRegistry.lookupRoute(
           "/username/delete",
           method
         );
-        expect(error).toBeUndefined();
         expect(pathVariables).toEqual({
           user: "username",
           action: "delete"
         });
       });
-      it("returns the ROUTE_NOT_SUPPORTED error appropriately", () => {
-        const { error } = routeRegistry.lookupRoute("/foo", method);
-        expect(error).toBe("ROUTE_NOT_SUPPORTED");
+      it("throws an UnknownRouteError", () => {
+        try {
+          routeRegistry.lookupRoute("/foo", method);
+          throw new Error("The above line should have thrown.");
+        } catch (e) {
+          const isExpectedError = e instanceof UnknownRouteError;
+          if (!isExpectedError) {
+            throw e;
+          }
+        }
       });
-      it("returns the METHOD_NOT_SUPPORTED error appropriately", () => {
+      it("throws a MethodNotSupportedError with an appropriate allow array", () => {
         routeRegistry.registerRoute(
           "/foo",
           [HttpMethod.DELETE, HttpMethod.GET],
           {} as any,
-          null
+          ["public"]
         );
-        const { error } = routeRegistry.lookupRoute("/foo", HttpMethod.POST);
-        expect(error).toBe("METHOD_NOT_SUPPORTED");
-      });
-      it("returns an allow array with METHOD_NOT_SUPPORTED", () => {
-        routeRegistry.registerRoute(
-          "/foo",
-          [HttpMethod.GET, HttpMethod.DELETE],
-          {} as any,
-          null
-        );
-        const { error, allow } = routeRegistry.lookupRoute(
-          "/foo",
-          HttpMethod.POST
-        );
-        expect(allow.sort()).toEqual([HttpMethod.DELETE, HttpMethod.GET]);
+        try {
+          routeRegistry.lookupRoute("/foo", HttpMethod.POST);
+          throw new Error("The above line should have thrown.");
+        } catch (e) {
+          const isExpectedError = e instanceof MethodNotSupportedError;
+          if (e instanceof MethodNotSupportedError) {
+            expect(e.allow.sort()).toEqual(
+              [HttpMethod.DELETE, HttpMethod.GET].sort()
+            );
+          } else {
+            throw e;
+          }
+        }
       });
     });
 
