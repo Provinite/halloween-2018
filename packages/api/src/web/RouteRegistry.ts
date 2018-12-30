@@ -4,6 +4,8 @@ import { RouteTransformationService } from "../config/RouteTransformationService
 import { HttpMethod } from "../HttpMethod";
 import { logger } from "../logging";
 import { Component } from "../reflection/Component";
+import { MethodNotSupportedError } from "./MethodNotSupportedError";
+import { UnknownRouteError } from "./UnknownRouteError";
 @Component()
 /**
  * Class used for mapping request paths and http methods to handler resolvers.
@@ -64,16 +66,6 @@ export class RouteRegistry {
      */
     pathVariables?: { [key: string]: string };
     /**
-     * Information indicating why a lookup failed. Undefined if lookup
-     * succeeded.
-     */
-    error?: "METHOD_NOT_SUPPORTED" | "ROUTE_NOT_SUPPORTED";
-    /**
-     * A list of allowed HTTP methods for the matched route. Undefined if the
-     * route is unsupported.
-     */
-    allow?: HttpMethod[];
-    /**
      * A list of roles that may use this route.
      */
     allowedRoles?: RoleLiteral[];
@@ -88,10 +80,9 @@ export class RouteRegistry {
             allowedRoles: this.map[requestPath][method].allowedRoles
           };
         } else {
-          return {
-            error: "METHOD_NOT_SUPPORTED",
-            allow: Object.keys(this.map[requestPath]) as HttpMethod[]
-          };
+          throw new MethodNotSupportedError(Object.keys(
+            this.map[requestPath]
+          ) as HttpMethod[]);
         }
       }
     }
@@ -117,17 +108,14 @@ export class RouteRegistry {
             pathVariables
           };
         } else {
-          return {
-            error: "METHOD_NOT_SUPPORTED",
-            allow: Object.keys(this.map[route]) as HttpMethod[]
-          };
+          throw new MethodNotSupportedError(Object.keys(
+            this.map[route]
+          ) as HttpMethod[]);
         }
       }
     }
     // No matches found
-    return {
-      error: "ROUTE_NOT_SUPPORTED"
-    };
+    throw new UnknownRouteError();
   }
 }
 
