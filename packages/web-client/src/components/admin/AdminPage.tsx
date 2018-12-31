@@ -131,9 +131,7 @@ export class AdminPage extends React.Component<
         loading: false
       }
     };
-    return new Promise(resolve => {
-      this.setState(finalState, resolve);
-    });
+    this.setState(finalState);
   }
 
   /**
@@ -159,9 +157,7 @@ export class AdminPage extends React.Component<
         loading: false
       }
     };
-    return new Promise(resolve => {
-      this.setState(finalState, resolve);
-    });
+    this.setState(finalState);
   }
 
   /**
@@ -263,14 +259,12 @@ export class AdminPage extends React.Component<
    * Add a role to a user.
    */
   handleUserAddRole = async (user: IUser, role: IRole) => {
-    if (role.name === ROLES.admin) {
-    }
     const result = await this.context.services.userService.addRole(user, role);
     this.setState(prevState => ({
       users: {
         ...prevState.users,
-        list: prevState.users.list.map(
-          u => (u.deviantartUuid === result.deviantartUuid ? result : u)
+        list: prevState.users.list.map(u =>
+          u.deviantartUuid === result.deviantartUuid ? result : u
         )
       }
     }));
@@ -288,8 +282,8 @@ export class AdminPage extends React.Component<
     this.setState(prevState => ({
       users: {
         ...prevState.users,
-        list: prevState.users.list.map(
-          u => (u.deviantartUuid === result.deviantartUuid ? result : u)
+        list: prevState.users.list.map(u =>
+          u.deviantartUuid === result.deviantartUuid ? result : u
         )
       }
     }));
