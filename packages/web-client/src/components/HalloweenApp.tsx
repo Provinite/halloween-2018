@@ -2,6 +2,7 @@ import { ROLES } from "@clovercoin/constants";
 import * as React from "react";
 import { Redirect, Route, RouteComponentProps, Switch } from "react-router-dom";
 import { ApiClient } from "../services/ApiClient";
+import { AuthenticationError } from "../services/auth/AuthenticationError";
 import { AuthenticationService } from "../services/auth/AuthenticationService";
 import { LocalStorageService } from "../services/LocalStorageService";
 import { PrizeService } from "../services/PrizeService";
@@ -114,10 +115,14 @@ export default class HalloweenApp extends React.Component<
       });
     }
     try {
+      // try to log in with a token from local storage
       await this.state.context.services.authenticationService.login();
     } catch (e) {
-      // a thrown exception here just means we're not logged in. Most likely,
-      // there is no stored key in local storage.
+      if (e instanceof AuthenticationError) {
+        // no token!
+      } else {
+        this.state.context.onApiError(e);
+      }
     }
     const roles = await this.state.context.services.roleService.getAll();
     this.setState(prevState => {
