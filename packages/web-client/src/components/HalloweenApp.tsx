@@ -64,7 +64,6 @@ export default class HalloweenApp extends React.Component<
     this.handleSuccess = this.handleSuccess.bind(this);
 
     const apiClient = new ApiClient(apiBase, () => {
-      console.log("Logged out!");
       this.props.history.push("/login");
     });
     const authenticationService = new AuthenticationService(apiClient);
