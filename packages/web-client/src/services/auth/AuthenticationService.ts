@@ -11,7 +11,6 @@ interface IAuthResult {
   uuid: string;
 }
 export class AuthenticationService {
-
   /**
    * Forget the current user's credentials
    */
