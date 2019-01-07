@@ -1,6 +1,7 @@
 import { ROLES } from "@clovercoin/constants";
 import { IRole } from "../../models/IRole";
 import { IUser } from "../../models/IUser";
+import { isAxiosError, isTokenExpiredResponse } from "../../utils/Utils";
 import { ApiClient } from "../ApiClient";
 import { LocalStorageService } from "../LocalStorageService";
 import { AuthenticationError } from "./AuthenticationError";
@@ -11,18 +12,19 @@ interface IAuthResult {
   uuid: string;
 }
 export class AuthenticationService {
+  private apiClient: ApiClient;
+  constructor(apiClient: ApiClient) {
+    this.apiClient = apiClient;
+  }
   /**
    * Forget the current user's credentials
    */
-  static logout() {
+  logout() {
     LocalStorageService.put("username", null);
     LocalStorageService.put("token", null);
     LocalStorageService.put("iconUrl", null);
     LocalStorageService.put("uuid", null);
-  }
-  private apiClient: ApiClient;
-  constructor(apiClient: ApiClient) {
-    this.apiClient = apiClient;
+    this.apiClient.unsetToken();
   }
   /**
    * Authenticate with the given oauth authcode. Updates the api client's
@@ -44,7 +46,18 @@ export class AuthenticationService {
       token = loginResponse.data.token;
     }
     this.apiClient.setToken(token);
-    const userResponse = await this.apiClient.get("whoami");
+    let userResponse;
+    userResponse = await this.apiClient.get("whoami", {
+      validateStatus: status => status < 500
+    });
+    if (isTokenExpiredResponse(userResponse.data)) {
+      this.apiClient.unsetToken();
+      throw new AuthenticationError("Session expired.");
+    }
+    const { data } = userResponse;
+    if (!data.deviantartName || !data.deviantartUuid || !data.iconUrl) {
+      throw new Error("Unexpected response to identity query.");
+    }
     const {
       deviantartName: username,
       deviantartUuid: uuid,

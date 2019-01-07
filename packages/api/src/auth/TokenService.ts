@@ -28,7 +28,7 @@ export class TokenService {
         payload,
         this.config.secret,
         {
-          expiresIn: 60 * 55
+          expiresIn: 60 * 55 // 55 minutes
         },
         (err, result) => {
           if (err) {
