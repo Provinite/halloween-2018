@@ -2,6 +2,7 @@ import { ROLES } from "@clovercoin/constants";
 import * as React from "react";
 import { Redirect, Route, RouteComponentProps, Switch } from "react-router-dom";
 import { ApiClient } from "../services/ApiClient";
+import { makeAuthAxiosInterceptor } from "../services/auth/AuthAxiosInterceptor";
 import { AuthenticationError } from "../services/auth/AuthenticationError";
 import { AuthenticationService } from "../services/auth/AuthenticationService";
 import { LocalStorageService } from "../services/LocalStorageService";
@@ -64,13 +65,15 @@ export default class HalloweenApp extends React.Component<
     this.handleErrorExited = this.handleErrorExited.bind(this);
     this.handleSuccess = this.handleSuccess.bind(this);
 
-    const apiClient = new ApiClient(apiBase, () => {
-      this.props.history.push("/login");
-    });
+    const apiClient = new ApiClient(apiBase);
     const authenticationService = new AuthenticationService(apiClient);
     const prizeService = new PrizeService(apiClient);
     const userService = new UserService(apiClient);
     const roleService = new RoleService(apiClient);
+
+    apiClient.useResponseInterceptor(
+      makeAuthAxiosInterceptor(authenticationService, this.handleAuthLogout)
+    );
 
     const context: IAppContext = {
       services: {
@@ -119,7 +122,7 @@ export default class HalloweenApp extends React.Component<
       await this.state.context.services.authenticationService.login();
     } catch (e) {
       if (e instanceof AuthenticationError) {
-        // no token!
+        // no token, or otherwise expired
       } else {
         this.state.context.onApiError(e);
       }
@@ -140,7 +143,13 @@ export default class HalloweenApp extends React.Component<
     });
   }
 
-  /** Public Methods */
+  // Public Methods
+
+  /**
+   * Handler for logout events. Sends the user back to the login page.
+   */
+  handleAuthLogout = () => this.props.history.push("/login");
+
   /**
    * Close the error snackbar.
    */
@@ -258,9 +267,10 @@ export default class HalloweenApp extends React.Component<
       </AppContext.Provider>
     );
   }
-  /** Private Methods */
+  // Private Methods
+
   /**
-   * Display the next error.
+   * Display the next error in the queue.
    */
   private displayNextError() {
     if (this.errorQueue.length) {
