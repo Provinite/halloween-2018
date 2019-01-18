@@ -12,7 +12,7 @@ import { User } from "../User";
 
 @Controller()
 export class UserController extends RestRepositoryController<User> {
-  protected defaultRoles: RoleLiteral[] = ["admin"];
+  protected defaultRoles: RoleLiteral[] = ["admin", "user"];
   constructor(
     orm: Connection,
     private userRepository: Repository<User>,
@@ -27,7 +27,7 @@ export class UserController extends RestRepositoryController<User> {
   @Route({
     route: "/users/{userId}/roles/{roleId}",
     method: HttpMethod.PUT,
-    roles: ["admin"]
+    roles: ["admin", "user"]
   })
   async addRole(userId: string, roleId: string) {
     const [user, role] = await Promise.all([
@@ -45,7 +45,7 @@ export class UserController extends RestRepositoryController<User> {
   @Route({
     route: "/users/{userId}/roles/{roleId}",
     method: HttpMethod.DELETE,
-    roles: ["admin"]
+    roles: ["admin", "user"]
   })
   async removeRole(userId: string, roleId: string) {
     const user = await this.userRepository.findOneOrFail(userId);

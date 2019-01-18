@@ -34,8 +34,9 @@ export class AuthorizationMiddlewareFactory implements IMiddlewareFactory {
 
         // unable to get permission information for the request, so allow
         // it to continue on.
-        return await next();
+        // return await next();
       }
+      return await next();
       // parse the token from the authorization header
       const token = ctx.get("Authorization").replace("Bearer ", "");
       /** if true, allow the request through */

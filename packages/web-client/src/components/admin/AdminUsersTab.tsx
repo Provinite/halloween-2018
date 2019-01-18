@@ -17,6 +17,7 @@ import {
 import * as React from "react";
 import { IRole } from "../../models/IRole";
 import { IUser } from "../../models/IUser";
+import { ArgumentTypes } from "../../types/ArgumentTypes";
 import { memoize } from "../../utils/Utils";
 import { AppContext, IAppContext } from "../AppContext";
 import { WithMuiTheme } from "../ui/mui/WithMuiTheme";
@@ -32,6 +33,17 @@ export interface IAdminUsersTabState {
   dialogOpen: boolean;
 }
 
+function handlerFactory<F extends (...args: any[]) => any>(
+  handler: F
+): (...args: ArgumentTypes<F>) => (...eventArgs: any[]) => ReturnType<F> {
+  const factoryWrapper = (...args: ArgumentTypes<F>) => (...eventArgs: any[]) =>
+    handler(...args, ...eventArgs);
+  const memoizedFactory = memoize(factoryWrapper, {
+    strategy: memoize.strategies.variadic
+  });
+  return memoizedFactory;
+}
+
 export class AdminUsersTab extends React.Component<
   IAdminUsersTabProps,
   IAdminUsersTabState
@@ -39,40 +51,34 @@ export class AdminUsersTab extends React.Component<
   static contextType = AppContext;
   context: IAppContext;
 
+  handleToggle = handlerFactory((user: IUser, role: IRole, e?: any) => {
+    console.log("Toggling.");
+    console.log(e);
+    const { authenticationService } = this.context.services;
+    if (authenticationService.hasRole(user, role)) {
+      this.props.onDeleteRole(user, role);
+    } else {
+      if (authenticationService.isAdminRole(role)) {
+        this.setState({
+          dialogOpen: true,
+          userToPromote: user,
+          roleToAdd: role
+        });
+      } else {
+        this.props.onAddRole(user, role);
+      }
+    }
+  });
+
   constructor(props) {
     super(props);
-
-    this.makeHandleToggle = memoize(this.makeHandleToggle);
-
+    console.log("Constructed.");
     this.state = {
       dialogOpen: false,
       userToPromote: null,
       roleToAdd: null
     };
   }
-
-  /**
-   * Create an event handler for toggling a permission level on or off.
-   * Should be memoized.
-   */
-  makeHandleToggle = (user: IUser, role: IRole) => {
-    const { authenticationService } = this.context.services;
-    return () => {
-      if (authenticationService.hasRole(user, role)) {
-        this.props.onDeleteRole(user, role);
-      } else {
-        if (authenticationService.isAdminRole(role)) {
-          this.setState({
-            dialogOpen: true,
-            userToPromote: user,
-            roleToAdd: role
-          });
-        } else {
-          this.props.onAddRole(user, role);
-        }
-      }
-    };
-  };
 
   /**
    * Event handler for dialog cancellation. Closes the dialog.
@@ -157,16 +163,13 @@ export class AdminUsersTab extends React.Component<
                   {/* TODO: Get this stuff going. We want to be able to toggle perms on and off. */}
                   <Switch
                     checked={isAdmin(user)}
-                    onChange={this.makeHandleToggle(
-                      user,
-                      this.context.roles.admin
-                    )}
+                    onChange={this.handleToggle(user, this.context.roles.admin)}
                   />
                 </TableCell>
                 <TableCell>
                   <Switch
                     checked={isMod(user)}
-                    onChange={this.makeHandleToggle(
+                    onChange={this.handleToggle(
                       user,
                       this.context.roles.moderator
                     )}
@@ -175,10 +178,7 @@ export class AdminUsersTab extends React.Component<
                 <TableCell>
                   <Switch
                     checked={isUser(user)}
-                    onChange={this.makeHandleToggle(
-                      user,
-                      this.context.roles.user
-                    )}
+                    onChange={this.handleToggle(user, this.context.roles.user)}
                   />
                 </TableCell>
                 <TableCell>{user.deviantartUuid}</TableCell>
