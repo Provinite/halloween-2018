@@ -1,7 +1,10 @@
 import { Context } from "koa";
 import { Connection } from "typeorm";
 import { RoleLiteral } from "../../auth/RoleLiteral";
-import { RestRepositoryController } from "../../controllers/RestRepositoryController";
+import {
+  IFallbackHandlerMap,
+  RestRepositoryController
+} from "../../controllers/RestRepositoryController";
 import { HttpMethod } from "../../HttpMethod";
 import { Component } from "../../reflection/Component";
 import { Route } from "../../reflection/Route";
@@ -9,9 +12,13 @@ import { Prize } from "../Prize";
 
 @Component()
 export class PrizeController extends RestRepositoryController<Prize> {
-  protected defaultRoles: RoleLiteral[] = ["user"];
+  protected defaultRoles: RoleLiteral[] = ["admin"];
   constructor(orm: Connection) {
     super(orm, Prize);
+  }
+
+  configureFallbackHandlers(fallbackHandlers: IFallbackHandlerMap) {
+    fallbackHandlers[this.detailRoute][HttpMethod.GET].roles = ["user"];
   }
 
   @Route({
