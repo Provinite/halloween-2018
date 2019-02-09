@@ -2,7 +2,6 @@ import { Typography } from "@material-ui/core";
 import * as React from "react";
 import { IPrize } from "../../models/IPrize";
 import { WithMuiTheme } from "../ui/mui/WithMuiTheme";
-import { WithSpinner } from "../ui/WithSpinner";
 import { PrizeList } from "./PrizeList";
 interface IAdminPrizeTabProps {
   onDelete: (prize: IPrize) => any;
@@ -25,15 +24,7 @@ export class AdminPrizeTab extends React.Component<IAdminPrizeTabProps> {
       // component to display its loader, since it isn't responsible for
       // fetching the data.
       /* Don't show the page until prizes have loaded. */
-      <WithSpinner
-        style={{
-          margin: "40px auto",
-          display: "block"
-        }}
-        loading={!this.props.prizes}
-        color="inherit"
-      >
-        {/* Display the prize list */}
+      <>
         <WithMuiTheme>
           {({ spacing }) => (
             <div
@@ -58,7 +49,7 @@ export class AdminPrizeTab extends React.Component<IAdminPrizeTabProps> {
           )}
         </WithMuiTheme>
         <PrizeList {...this.props} />
-      </WithSpinner>
+      </>
     );
   }
 }

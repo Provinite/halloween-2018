@@ -1,4 +1,4 @@
-import { AppBar, Tab, Tabs, Typography } from "@material-ui/core";
+import { AppBar, Tab, Tabs } from "@material-ui/core";
 import { Location, UnregisterCallback } from "history";
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
@@ -8,6 +8,7 @@ import { IUser } from "../../models/IUser";
 import { AppContext, IAppContext } from "../AppContext";
 import { AppHeader } from "../AppHeader";
 import { TabContainer } from "../ui/TabContainer";
+import { WithSpinner } from "../ui/WithSpinner";
 import { AdminPrizeTab } from "./AdminPrizeTab";
 import { AdminUsersTab } from "./AdminUsersTab";
 
@@ -286,9 +287,6 @@ export class AdminPage extends React.Component<
    */
   render(): JSX.Element {
     const { selectedTab, nextTab, lastTab } = this.state;
-    if (this.state.prizes.loading) {
-      return <Typography variant="h1">Please hold. . .</Typography>;
-    }
     /** Calculate the appropriate slide direction for a tab */
     const getDirection = (index: number) => {
       if (selectedTab === index) {
@@ -326,12 +324,21 @@ export class AdminPage extends React.Component<
           hidden={selectedTab !== 0}
           onExited={this.handleTabExited}
         >
-          <AdminPrizeTab
-            prizes={this.state.prizes.list}
-            onSave={this.handlePrizeSave}
-            onDelete={this.handlePrizeDelete}
-            onUpdate={this.handlePrizeEdit}
-          />
+          <WithSpinner
+            style={{
+              margin: "40px auto",
+              display: "block"
+            }}
+            loading={this.state.prizes.loading}
+            color="inherit"
+          >
+            <AdminPrizeTab
+              prizes={this.state.prizes.list}
+              onSave={this.handlePrizeSave}
+              onDelete={this.handlePrizeDelete}
+              onUpdate={this.handlePrizeEdit}
+            />
+          </WithSpinner>
         </TabContainer>
         <TabContainer
           direction={getDirection(1)}
