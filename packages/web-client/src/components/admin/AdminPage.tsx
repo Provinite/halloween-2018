@@ -52,6 +52,7 @@ export class AdminPage extends React.Component<
   context: IAppContext;
 
   private historyUnregisterCallback: UnregisterCallback;
+
   constructor(props: IAdminPageProps) {
     super(props);
     this.state = {
@@ -67,27 +68,20 @@ export class AdminPage extends React.Component<
       nextTab: null,
       lastTab: null
     };
-    /* Bound Members */
-    // TODO: Make an @annotation for bound functions.
-    this.handleTabSelect = this.handleTabSelect.bind(this);
-    this.handlePrizeSave = this.handlePrizeSave.bind(this);
-    this.handlePrizeDelete = this.handlePrizeDelete.bind(this);
-    this.handleTabExited = this.handleTabExited.bind(this);
-    this.handlePrizeEdit = this.handlePrizeEdit.bind(this);
   }
 
   /**
    * Update the selected tab when one is selected.
    * @param selectedTab - The new selected tab.
    */
-  handleTabSelect(_, nextTab: number) {
+  handleTabSelect = (_, nextTab: number) => {
     this.switchToTab(nextTab);
-  }
+  };
 
   /**
    * Switch to the new tab after transitions are complete.
    */
-  handleTabExited() {
+  handleTabExited = () => {
     this.setState(
       prevState => {
         return {
@@ -104,7 +98,7 @@ export class AdminPage extends React.Component<
         }
       }
     );
-  }
+  };
 
   /**
    * Fetch prizes and update the state.
@@ -181,7 +175,7 @@ export class AdminPage extends React.Component<
    * Create a new prize
    * @param prize - The prize to create.
    */
-  async handlePrizeSave(prize: IPrize) {
+  handlePrizeSave = async (prize: IPrize) => {
     try {
       const result = await this.context.services.prizeService.create(prize);
       this.setState(prevState => {
@@ -202,13 +196,13 @@ export class AdminPage extends React.Component<
       }
       return Promise.reject();
     }
-  }
+  };
 
   /**
    * Patch the given prize.
    * @param prize - The prize to modify.
    */
-  async handlePrizeEdit(prize: Partial<IPrize> & { id: IPrize["id"] }) {
+  handlePrizeEdit = async (prize: Partial<IPrize> & { id: IPrize["id"] }) => {
     try {
       const result = await this.context.services.prizeService.update(prize);
       this.setState(prevState => {
@@ -225,12 +219,12 @@ export class AdminPage extends React.Component<
       }
       return Promise.reject();
     }
-  }
+  };
 
   /**
    * Delete a prize.
    */
-  async handlePrizeDelete(prize: IPrize) {
+  handlePrizeDelete = async (prize: IPrize) => {
     try {
       await this.context.services.prizeService.delete(prize.id);
       this.setState(
@@ -251,7 +245,7 @@ export class AdminPage extends React.Component<
     } catch (error) {
       setImmediate(() => this.context.onApiError(error));
     }
-  }
+  };
 
   /**
    * Add a role to a user.
