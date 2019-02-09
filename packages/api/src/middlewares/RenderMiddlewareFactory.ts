@@ -4,8 +4,8 @@ import { INextCallback } from "./INextCallback";
 
 /**
  * Middleware that renders responses from ctx.state.result. Note that this
- * middleware is intended to be placed at the top of the chain, as it
- * defers rendering until after next() has resolved.
+ * middleware is intended to be placed before the middlewares that populate
+ * ctx.state.result, as it defers rendering until after next() has resolved.
  */
 export class RenderMiddlewareFactory implements IMiddlewareFactory {
   create(): Middleware {
