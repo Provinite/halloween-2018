@@ -1,9 +1,8 @@
 {
   "name": "@clovercoin/constants",
   "version": "0.0.0",
-  "description": "> TODO: description",
-  "author": "Collin Driscoll <provinite@gmail.com>",
-  "homepage": "https://github.com/provinite/halloween-2018/tree/master/packages/constants#readme",
+  "description": "Application constants.",
+  "author": "",
   "license": "UNLICENSED",
   "main": "lib/constants.js",
   "directories": {
