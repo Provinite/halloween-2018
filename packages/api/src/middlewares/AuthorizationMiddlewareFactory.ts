@@ -12,7 +12,7 @@ import { IMiddlewareFactory } from "./IMiddlewareFactory";
 
 /**
  * Authorization middleware responsible for verifying user permissions for a
- * request. Attaches the current user to request-scoped DI container.
+ * request. Attaches the current user to request-scoped DI container as "user".
  */
 export class AuthorizationMiddlewareFactory implements IMiddlewareFactory {
   constructor(
