@@ -1,7 +1,7 @@
 import { ROLES } from "@clovercoin/constants";
 import { IRole } from "../../models/IRole";
 import { IUser } from "../../models/IUser";
-import { isAxiosError, isTokenExpiredResponse } from "../../utils/Utils";
+import { isTokenExpiredResponse } from "../../utils/Utils";
 import { ApiClient } from "../ApiClient";
 import { LocalStorageService } from "../LocalStorageService";
 import { AuthenticationError } from "./AuthenticationError";

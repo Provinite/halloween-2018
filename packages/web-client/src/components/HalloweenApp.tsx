@@ -21,7 +21,6 @@ import { ErrorSnackbar } from "./ui/ErrorSnackbar";
 
 const apiBase = process.env.cch2018_api_base;
 
-const env: IEnvConfig = _env as IEnvConfig;
 const SPLASH_KEY = "splash";
 interface IHalloweenAppState {
   /** If true, the entire app will on hold to finish bootstrapping. */

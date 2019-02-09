@@ -1,7 +1,6 @@
-import Axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
+import Axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { InterceptorDefinition } from "../types/Axios";
 import { ensureTrailingSlash } from "../utils/Utils";
-import { makeAuthAxiosInterceptor } from "./auth/AuthAxiosInterceptor";
 
 /**
  * Low-level helper class for communicating with the application's API. Includes

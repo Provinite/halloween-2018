@@ -1,9 +1,7 @@
-import { ROLES } from "@clovercoin/constants";
 import { AppBar, Tab, Tabs, Typography } from "@material-ui/core";
 import { Location, UnregisterCallback } from "history";
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
-import { Link } from "react-router-dom";
 import { IPrize } from "../../models/IPrize";
 import { IRole } from "../../models/IRole";
 import { IUser } from "../../models/IUser";

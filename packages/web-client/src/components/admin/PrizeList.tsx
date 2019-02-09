@@ -14,7 +14,6 @@ import {
   TableRow,
   TextField
 } from "@material-ui/core";
-import { TableRowProps } from "@material-ui/core/TableRow";
 import { TextFieldProps } from "@material-ui/core/TextField";
 import CancelIcon from "@material-ui/icons/Cancel";
 import CardGiftCardIcon from "@material-ui/icons/CardGiftcard";
@@ -24,7 +23,7 @@ import SaveIcon from "@material-ui/icons/Save";
 import * as React from "react";
 import { IPrize } from "../../models/IPrize";
 import { memoize } from "../../utils/Utils";
-import { IWithCssShakeProps, WithCssShake } from "../ui/motion/WithCssShake";
+import { WithCssShake } from "../ui/motion/WithCssShake";
 import { NumericTextField } from "../ui/NumericTextField";
 import { SaveButton } from "../ui/SaveButton";
 import { WithSpinner } from "../ui/WithSpinner";
@@ -322,11 +321,6 @@ export class PrizeList extends React.Component<
 
     const label =
       labels[field] || field[0].toUpperCase() + field.substr(1).toLowerCase();
-
-    const shakeProps: IWithCssShakeProps = {
-      shake: this.state.shakeForm,
-      onRest
-    } as any;
 
     const sharedFieldProps = {
       fullWidth: true
