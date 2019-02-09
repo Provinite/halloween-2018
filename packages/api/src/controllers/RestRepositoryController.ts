@@ -158,7 +158,7 @@ export abstract class RestRepositoryController<T> {
    */
   async updateOne(id: string, requestBody: any, ctx: Context) {
     try {
-      const result = await this.repository.update(id, requestBody);
+      await this.repository.update(id, requestBody);
       return await this.getOne(id);
     } catch (error) {
       ctx.status = 400;

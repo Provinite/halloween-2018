@@ -86,7 +86,7 @@ describe("service:RouteRegistry", () => {
           throw new Error("The above line should have thrown.");
         } catch (e) {
           const isExpectedError = e instanceof MethodNotSupportedError;
-          if (e instanceof MethodNotSupportedError) {
+          if (isExpectedError) {
             expect(e.allow.sort()).toEqual(
               [HttpMethod.DELETE, HttpMethod.GET].sort()
             );

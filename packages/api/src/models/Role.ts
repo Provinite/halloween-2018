@@ -16,7 +16,7 @@ export class Role {
    */
   static async createInitialEntities(roleRepository: Repository<Role>) {
     const requiredRoleNames = ROLES;
-    for (const [_, roleName] of Object.entries(requiredRoleNames)) {
+    for (const [, roleName] of Object.entries(requiredRoleNames)) {
       const role = roleRepository.create();
       role.name = roleName;
       try {

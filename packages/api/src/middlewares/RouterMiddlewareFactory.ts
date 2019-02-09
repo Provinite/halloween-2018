@@ -1,10 +1,8 @@
 import { asValue, AwilixContainer } from "awilix";
 import { Context, Middleware } from "koa";
 import { getMethod, HttpMethod } from "../HttpMethod";
-import { MethodNotSupportedError } from "../web/MethodNotSupportedError";
 import { RouteRegistry } from "../web/RouteRegistry";
 import { UnknownMethodError } from "../web/UnknownMethodError";
-import { UnknownRouteError } from "../web/UnknownRouteError";
 import { IMiddlewareFactory } from "./IMiddlewareFactory";
 import { INextCallback } from "./INextCallback";
 

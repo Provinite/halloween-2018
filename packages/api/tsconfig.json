@@ -11,7 +11,8 @@
     "noImplicitAny": true,
     "alwaysStrict": false,
     "sourceMap": true,
-    "sourceRoot": "./src/"
+    "sourceRoot": "./src/",
+    "noUnusedLocals": true
   },
   "parserOptions": {
   },
