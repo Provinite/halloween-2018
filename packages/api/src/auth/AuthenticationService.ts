@@ -71,7 +71,6 @@ export class AuthenticationService {
    */
   async authenticateToken(token: string) {
     try {
-      // throw new TokenExpiredError("", 0);
       return await this.tokenService.readToken(token);
     } catch (e) {
       let message;
