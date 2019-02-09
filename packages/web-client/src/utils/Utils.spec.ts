@@ -1,4 +1,8 @@
-import { ensureNoTrailingSlash, ensureTrailingSlash } from "./Utils";
+import {
+  ensureNoTrailingSlash,
+  ensureTrailingSlash,
+  handlerFactory
+} from "./Utils";
 describe("utils", () => {
   const expectToBeIdempotent = (
     fn: (...args: any[]) => any,
@@ -33,6 +37,29 @@ describe("utils", () => {
           expectToBeIdempotent(ensureTrailingSlash, provided);
         });
       });
+    });
+  });
+
+  describe("function:handlerFactory", () => {
+    it("produces stable outputs given stable inputs", () => {
+      const handler = jest.fn();
+      const factory = handlerFactory(handler);
+
+      const fooHandler = factory("foo");
+      const barHandler = factory("bar");
+      expect(fooHandler).toBe(factory("foo"));
+      expect(barHandler).toBe(factory("bar"));
+    });
+
+    it("invokes the underlying function with all args and returns the value", () => {
+      const handler = jest.fn().mockReturnValue("baz");
+      const factory = handlerFactory(handler);
+      const eventHandler = factory("foo");
+      expect(handler).toHaveBeenCalledTimes(0);
+      const baz = eventHandler("bar");
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(handler).toHaveBeenCalledWith("foo", "bar");
+      expect(baz).toEqual("baz");
     });
   });
 });

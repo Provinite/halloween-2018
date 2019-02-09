@@ -17,7 +17,7 @@ import {
 import * as React from "react";
 import { IRole } from "../../models/IRole";
 import { IUser } from "../../models/IUser";
-import { memoize } from "../../utils/Utils";
+import { handlerFactory } from "../../utils/Utils";
 import { AppContext, IAppContext } from "../AppContext";
 import { WithMuiTheme } from "../ui/mui/WithMuiTheme";
 export interface IAdminUsersTabProps {
@@ -39,25 +39,9 @@ export class AdminUsersTab extends React.Component<
   static contextType = AppContext;
   context: IAppContext;
 
-  constructor(props) {
-    super(props);
-
-    this.makeHandleToggle = memoize(this.makeHandleToggle);
-
-    this.state = {
-      dialogOpen: false,
-      userToPromote: null,
-      roleToAdd: null
-    };
-  }
-
-  /**
-   * Create an event handler for toggling a permission level on or off.
-   * Should be memoized.
-   */
-  makeHandleToggle = (user: IUser, role: IRole) => {
-    const { authenticationService } = this.context.services;
-    return () => {
+  handleToggle = handlerFactory(
+    (user: IUser, role: IRole, e?: React.ChangeEvent) => {
+      const { authenticationService } = this.context.services;
       if (authenticationService.hasRole(user, role)) {
         this.props.onDeleteRole(user, role);
       } else {
@@ -71,8 +55,17 @@ export class AdminUsersTab extends React.Component<
           this.props.onAddRole(user, role);
         }
       }
+    }
+  );
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      dialogOpen: false,
+      userToPromote: null,
+      roleToAdd: null
     };
-  };
+  }
 
   /**
    * Event handler for dialog cancellation. Closes the dialog.
@@ -157,16 +150,13 @@ export class AdminUsersTab extends React.Component<
                   {/* TODO: Get this stuff going. We want to be able to toggle perms on and off. */}
                   <Switch
                     checked={isAdmin(user)}
-                    onChange={this.makeHandleToggle(
-                      user,
-                      this.context.roles.admin
-                    )}
+                    onChange={this.handleToggle(user, this.context.roles.admin)}
                   />
                 </TableCell>
                 <TableCell>
                   <Switch
                     checked={isMod(user)}
-                    onChange={this.makeHandleToggle(
+                    onChange={this.handleToggle(
                       user,
                       this.context.roles.moderator
                     )}
@@ -175,10 +165,7 @@ export class AdminUsersTab extends React.Component<
                 <TableCell>
                   <Switch
                     checked={isUser(user)}
-                    onChange={this.makeHandleToggle(
-                      user,
-                      this.context.roles.user
-                    )}
+                    onChange={this.handleToggle(user, this.context.roles.user)}
                   />
                 </TableCell>
                 <TableCell>{user.deviantartUuid}</TableCell>
