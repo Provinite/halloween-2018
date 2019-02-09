@@ -12,7 +12,7 @@ import { User } from "../User";
 
 @Controller()
 export class UserController extends RestRepositoryController<User> {
-  protected defaultRoles: RoleLiteral[] = ["admin"];
+  protected defaultRoles: RoleLiteral[] = ["user"];
   constructor(
     orm: Connection,
     private userRepository: Repository<User>,
