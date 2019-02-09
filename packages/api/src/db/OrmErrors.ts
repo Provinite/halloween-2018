@@ -6,7 +6,7 @@ import { PostgresErrorCodes } from "./PostgresErrorCodes";
  * postgres error)
  * @param e The thrown error.
  */
-export function isCodedException(e: any): e is ICodedError {
+export function isCodedError(e: any): e is ICodedError {
   return e instanceof Object && Object.keys(e).includes("code");
 }
 
@@ -14,6 +14,6 @@ export function isCodedException(e: any): e is ICodedError {
  * Determine if the given error is a postgres duplicate key exception.
  * @param e The thrown error.
  */
-export function isDuplicateKeyException(e: any): e is ICodedError {
-  return isCodedException(e) && e.code === PostgresErrorCodes.duplicateKey;
+export function isDuplicateKeyError(e: any): e is ICodedError {
+  return isCodedError(e) && e.code === PostgresErrorCodes.duplicateKey;
 }

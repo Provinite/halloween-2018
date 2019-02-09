@@ -1,6 +1,6 @@
 import { ROLES } from "@clovercoin/constants";
 import { Column, Entity, PrimaryGeneratedColumn, Repository } from "typeorm";
-import { isDuplicateKeyException } from "../db/OrmExceptions";
+import { isDuplicateKeyError } from "../db/OrmErrors";
 
 @Entity()
 /**
@@ -23,7 +23,7 @@ export class Role {
         await roleRepository.save(role);
       } catch (e) {
         // ignore duplicate key exceptions
-        if (!isDuplicateKeyException(e)) {
+        if (!isDuplicateKeyError(e)) {
           throw e;
         }
       }
