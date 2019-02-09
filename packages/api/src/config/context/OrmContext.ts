@@ -39,18 +39,22 @@ export class OrmContext {
     // Register the ORM connection.
     container.register("orm", asValue(connection));
 
-    MODELS.forEach(async model => {
+    MODELS.forEach(model => {
       // Register a repository for each model.
       const name = createRepositoryName(model);
       const proxy = (orm: Connection) => orm.getRepository(model);
       const resolver = asFunction(proxy).singleton();
       container.register(name, resolver);
-
-      // Fire the create initial entities hook
-      if (model.createInitialEntities) {
-        await container.build(asStaticMethod(model.createInitialEntities));
-      }
     });
+
+    // Fire off createInitialEntites for each model
+    await Promise.all(
+      MODELS.map(model =>
+        model.createInitialEntities
+          ? container.build(asStaticMethod(model.createInitialEntities))
+          : Promise.resolve()
+      )
+    );
 
     return container;
   }
