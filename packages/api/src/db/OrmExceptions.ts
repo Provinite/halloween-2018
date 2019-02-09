@@ -1,4 +1,4 @@
-import { ICodedError } from "./ICodedException";
+import { ICodedError } from "./ICodedError";
 import { PostgresErrorCodes } from "./PostgresErrorCodes";
 
 /**
