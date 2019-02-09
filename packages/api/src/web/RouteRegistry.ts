@@ -40,7 +40,7 @@ export class RouteRegistry {
     }
     methods.forEach(method => {
       this.map[route][method] = {
-        handler: resolver,
+        resolver,
         allowedRoles
       };
     });
@@ -76,7 +76,7 @@ export class RouteRegistry {
       if (this.map[requestPath]) {
         if (this.map[requestPath][method]) {
           return {
-            resolver: this.map[requestPath][method].handler,
+            resolver: this.map[requestPath][method].resolver,
             allowedRoles: this.map[requestPath][method].allowedRoles
           };
         } else {
@@ -103,7 +103,7 @@ export class RouteRegistry {
         // route matched, check method support
         if (this.map[route][method]) {
           return {
-            resolver: this.map[route][method].handler,
+            resolver: this.map[route][method].resolver,
             allowedRoles: this.map[route][method].allowedRoles,
             pathVariables
           };
@@ -125,7 +125,7 @@ export class RouteRegistry {
  */
 type IRouteHandler = {
   [method in HttpMethod]?: {
-    handler: Resolver<any> | ((...args: any[]) => any);
+    resolver: Resolver<any> | ((...args: any[]) => any);
     allowedRoles: RoleLiteral[];
   }
 };
