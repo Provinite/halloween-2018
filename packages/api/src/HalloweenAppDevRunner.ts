@@ -39,7 +39,7 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
     // Register all @components with our DI container
     await ComponentRegistrar.configureContainer(container, components);
 
-    // Arbitrary entry point for the DI-controlled portion of the app.
+    // Hook up middlewares and start the webserver listening
     const koaConfiguration: KoaConfiguration =
       container.cradle.koaConfiguration;
     koaConfiguration.configure();

@@ -10,7 +10,6 @@ import { IEnvConfig } from "./types/IEnvConfig";
 import { ensureNoTrailingSlash } from "./utils/Utils";
 
 const env: IEnvConfig = _env as IEnvConfig;
-
 function renderApp(props: RouteComponentProps) {
   return <HalloweenApp env={env} {...props} />;
 }

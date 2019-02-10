@@ -1,6 +1,5 @@
 import { Button } from "@material-ui/core";
 import * as React from "react";
-import { Link } from "react-router-dom";
 // TODO: make client id & return url env vars
 const clientId = process.env.cch2018_da_client_id;
 const redirectUri = process.env.cch2018_da_redirect_uri;

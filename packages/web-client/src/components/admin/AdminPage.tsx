@@ -1,12 +1,14 @@
-import { AppBar, Tab, Tabs, Typography } from "@material-ui/core";
+import { AppBar, Tab, Tabs } from "@material-ui/core";
 import { Location, UnregisterCallback } from "history";
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
-import { Link } from "react-router-dom";
 import { IPrize } from "../../models/IPrize";
+import { IRole } from "../../models/IRole";
+import { IUser } from "../../models/IUser";
 import { AppContext, IAppContext } from "../AppContext";
 import { AppHeader } from "../AppHeader";
 import { TabContainer } from "../ui/TabContainer";
+import { WithSpinner } from "../ui/WithSpinner";
 import { AdminPrizeTab } from "./AdminPrizeTab";
 import { AdminUsersTab } from "./AdminUsersTab";
 
@@ -27,6 +29,12 @@ interface IAdminPageState {
     /** If true, the prize list is currently fetching. */
     loading: boolean;
   };
+  /** Stateful data regarding users */
+  users: {
+    /** The list of users from the API */
+    list: IUser[];
+    loading: boolean;
+  };
   /** The currently selected tab */
   selectedTab: number;
   /** The next tab to switch to when transitions are done */
@@ -43,7 +51,9 @@ export class AdminPage extends React.Component<
 > {
   static contextType = AppContext;
   context: IAppContext;
+
   private historyUnregisterCallback: UnregisterCallback;
+
   constructor(props: IAdminPageProps) {
     super(props);
     this.state = {
@@ -51,31 +61,28 @@ export class AdminPage extends React.Component<
         list: [],
         loading: false
       },
+      users: {
+        list: [],
+        loading: false
+      },
       selectedTab: this.getTabFromUrl() || 0,
       nextTab: null,
       lastTab: null
     };
-    /* Bound Members */
-    // TODO: Make an @annotation for bound functions.
-    this.handleTabSelect = this.handleTabSelect.bind(this);
-    this.handlePrizeSave = this.handlePrizeSave.bind(this);
-    this.handlePrizeDelete = this.handlePrizeDelete.bind(this);
-    this.handleTabExited = this.handleTabExited.bind(this);
-    this.handlePrizeEdit = this.handlePrizeEdit.bind(this);
   }
 
   /**
    * Update the selected tab when one is selected.
    * @param selectedTab - The new selected tab.
    */
-  handleTabSelect(_, nextTab: number) {
+  handleTabSelect = (_, nextTab: number) => {
     this.switchToTab(nextTab);
-  }
+  };
 
   /**
    * Switch to the new tab after transitions are complete.
    */
-  handleTabExited() {
+  handleTabExited = () => {
     this.setState(
       prevState => {
         return {
@@ -92,27 +99,70 @@ export class AdminPage extends React.Component<
         }
       }
     );
+  };
+
+  /**
+   * Fetch prizes and update the state.
+   */
+  async loadPrizes() {
+    const loadingPrizes = prevState => ({
+      prizes: {
+        ...prevState.prizes,
+        loading: true
+      }
+    });
+    this.setState(loadingPrizes);
+    const prizes = await this.context.services.prizeService
+      .getAll()
+      .catch(err => {
+        this.context.onApiError(err);
+        return [];
+      });
+    const finalState = {
+      prizes: {
+        list: prizes,
+        loading: false
+      }
+    };
+    this.setState(finalState);
+  }
+
+  /**
+   * Fetch users and update the state.
+   */
+  async loadUsers() {
+    const loadingUsers = prevState => ({
+      users: {
+        ...prevState.users,
+        loading: true
+      }
+    });
+    this.setState(loadingUsers);
+    const users = await this.context.services.userService
+      .getAll()
+      .catch(err => {
+        this.context.onApiError(err);
+        return [];
+      });
+    const finalState = {
+      users: {
+        list: users,
+        loading: false
+      }
+    };
+    this.setState(finalState);
   }
 
   /**
    * Request data from the api, make sure the current tab is synched with
    * the url, and register the history listener for the tabs.
    */
-  async componentDidMount() {
-    let prizes;
-    try {
-      prizes = await this.context.services.prizeService.getAll();
-    } catch (error) {
-      setImmediate(() => this.context.onApiError(error));
-    }
+  componentDidMount() {
     this.syncTabWithUrl();
     this.registerHistoryListener();
-    this.setState({
-      prizes: {
-        list: prizes || [],
-        loading: false
-      }
-    });
+
+    this.loadPrizes();
+    this.loadUsers();
   }
 
   /**
@@ -126,7 +176,7 @@ export class AdminPage extends React.Component<
    * Create a new prize
    * @param prize - The prize to create.
    */
-  async handlePrizeSave(prize: IPrize) {
+  handlePrizeSave = async (prize: IPrize) => {
     try {
       const result = await this.context.services.prizeService.create(prize);
       this.setState(prevState => {
@@ -147,13 +197,13 @@ export class AdminPage extends React.Component<
       }
       return Promise.reject();
     }
-  }
+  };
 
   /**
    * Patch the given prize.
    * @param prize - The prize to modify.
    */
-  async handlePrizeEdit(prize: Partial<IPrize> & { id: IPrize["id"] }) {
+  handlePrizeEdit = async (prize: Partial<IPrize> & { id: IPrize["id"] }) => {
     try {
       const result = await this.context.services.prizeService.update(prize);
       this.setState(prevState => {
@@ -170,12 +220,12 @@ export class AdminPage extends React.Component<
       }
       return Promise.reject();
     }
-  }
+  };
 
   /**
    * Delete a prize.
    */
-  async handlePrizeDelete(prize: IPrize) {
+  handlePrizeDelete = async (prize: IPrize) => {
     try {
       await this.context.services.prizeService.delete(prize.id);
       this.setState(
@@ -196,16 +246,47 @@ export class AdminPage extends React.Component<
     } catch (error) {
       setImmediate(() => this.context.onApiError(error));
     }
-  }
+  };
+
+  /**
+   * Add a role to a user.
+   */
+  handleUserAddRole = async (user: IUser, role: IRole) => {
+    const result = await this.context.services.userService.addRole(user, role);
+    this.setState(prevState => ({
+      users: {
+        ...prevState.users,
+        list: prevState.users.list.map(u =>
+          u.deviantartUuid === result.deviantartUuid ? result : u
+        )
+      }
+    }));
+  };
+
+  /**
+   * Remove a role from a user.
+   */
+  handleUserDeleteRole = async (user: IUser, role: IRole) => {
+    const result = await this.context.services.userService.removeRole(
+      user,
+      role
+    );
+    // obvious "reducer" type stuff here.
+    this.setState(prevState => ({
+      users: {
+        ...prevState.users,
+        list: prevState.users.list.map(u =>
+          u.deviantartUuid === result.deviantartUuid ? result : u
+        )
+      }
+    }));
+  };
 
   /**
    * Render the component.
    */
   render(): JSX.Element {
     const { selectedTab, nextTab, lastTab } = this.state;
-    if (this.state.prizes.loading) {
-      return <Typography variant="h1">Please hold. . .</Typography>;
-    }
     /** Calculate the appropriate slide direction for a tab */
     const getDirection = (index: number) => {
       if (selectedTab === index) {
@@ -243,12 +324,21 @@ export class AdminPage extends React.Component<
           hidden={selectedTab !== 0}
           onExited={this.handleTabExited}
         >
-          <AdminPrizeTab
-            prizes={this.state.prizes.list}
-            onSave={this.handlePrizeSave}
-            onDelete={this.handlePrizeDelete}
-            onUpdate={this.handlePrizeEdit}
-          />
+          <WithSpinner
+            style={{
+              margin: "40px auto",
+              display: "block"
+            }}
+            loading={this.state.prizes.loading}
+            color="inherit"
+          >
+            <AdminPrizeTab
+              prizes={this.state.prizes.list}
+              onSave={this.handlePrizeSave}
+              onDelete={this.handlePrizeDelete}
+              onUpdate={this.handlePrizeEdit}
+            />
+          </WithSpinner>
         </TabContainer>
         <TabContainer
           direction={getDirection(1)}
@@ -256,7 +346,11 @@ export class AdminPage extends React.Component<
           onExited={this.handleTabExited}
           hidden={selectedTab !== 1}
         >
-          <AdminUsersTab />
+          <AdminUsersTab
+            users={this.state.users.list}
+            onAddRole={this.handleUserAddRole}
+            onDeleteRole={this.handleUserDeleteRole}
+          />
         </TabContainer>
         <TabContainer
           direction={getDirection(2)}

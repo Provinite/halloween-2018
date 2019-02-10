@@ -1,5 +1,6 @@
 import { Repository } from "typeorm";
-import { User } from "../models";
+import { Role, User } from "../models";
+import { mockRoles } from "./__mocks__/Roles";
 import { AuthenticationService } from "./AuthenticationService";
 import { DeviantartApiConsumer } from "./deviantart/DeviantartApiConsumer";
 import { IDeviantartAuthResult } from "./deviantart/IDeviantartAuthResult";
@@ -18,6 +19,7 @@ describe("service:AuthenticationService", () => {
       authResult: IDeviantartAuthResult;
       daUser: IDeviantartUser;
       userRepository: jest.Mocked<Repository<User>>;
+      roleRepository: jest.Mocked<Repository<Role>>;
       user: User;
       tokenService: jest.Mocked<TokenService>;
       token: string;
@@ -45,26 +47,26 @@ describe("service:AuthenticationService", () => {
         user: {
           deviantartName: "some_da_username",
           iconUrl: "some_icon_url",
-          deviantartUuid: "some_da_uuid"
+          deviantartUuid: "some_da_uuid",
+          roles: [mockRoles.user]
         },
-        token: "some_jwt"
-      } as any;
-      /* Dependencies */
-      mocks.userRepository = {
-        findOne: jest.fn(),
-        create: jest.fn(),
-        save: jest.fn()
-      } as any;
-
-      mocks.deviantartApiConsumer = {
-        authenticate: jest.fn(),
-        getUser: jest.fn()
-      } as any;
-
-      mocks.tokenService = {
-        createToken: jest.fn()
-      } as any;
-
+        token: "some_jwt",
+        userRepository: {
+          findOne: jest.fn(),
+          create: jest.fn(),
+          save: jest.fn()
+        } as any,
+        tokenService: {
+          createToken: jest.fn()
+        } as any,
+        roleRepository: {
+          findOneOrFail: jest.fn()
+        } as any,
+        deviantartApiConsumer: {
+          authenticate: jest.fn(),
+          getUser: jest.fn()
+        } as any
+      };
       /* Stubs */
       mocks.deviantartApiConsumer.authenticate.mockResolvedValue(
         mocks.authResult
@@ -75,10 +77,17 @@ describe("service:AuthenticationService", () => {
       mocks.userRepository.save.mockResolvedValue(mocks.user);
       mocks.userRepository.create.mockReturnValue({});
 
+      mocks.roleRepository.findOneOrFail.mockImplementation(
+        (role: Partial<Role>) => {
+          return Object.values(mockRoles).find(r => r.name === role.name);
+        }
+      );
+
       mocks.tokenService.createToken.mockResolvedValue(mocks.token);
       /* Default Service */
       authenticationService = new AuthenticationService(
         mocks.deviantartApiConsumer,
+        mocks.roleRepository,
         mocks.userRepository,
         mocks.tokenService
       );

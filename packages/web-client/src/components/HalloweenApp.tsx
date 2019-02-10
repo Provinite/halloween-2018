@@ -1,9 +1,14 @@
+import { ROLES } from "@clovercoin/constants";
 import * as React from "react";
 import { Redirect, Route, RouteComponentProps, Switch } from "react-router-dom";
 import { ApiClient } from "../services/ApiClient";
+import { makeAuthAxiosInterceptor } from "../services/auth/AuthAxiosInterceptor";
+import { AuthenticationError } from "../services/auth/AuthenticationError";
 import { AuthenticationService } from "../services/auth/AuthenticationService";
 import { LocalStorageService } from "../services/LocalStorageService";
 import { PrizeService } from "../services/PrizeService";
+import { RoleService } from "../services/RoleService";
+import { UserService } from "../services/UserService";
 import * as _env from "../settings.env.json";
 import { IEnvConfig } from "../types/IEnvConfig";
 import { AdminPage } from "./admin/AdminPage";
@@ -16,9 +21,10 @@ import { ErrorSnackbar } from "./ui/ErrorSnackbar";
 
 const apiBase = process.env.cch2018_api_base;
 
-const env: IEnvConfig = _env as IEnvConfig;
 const SPLASH_KEY = "splash";
 interface IHalloweenAppState {
+  /** If true, the entire app will on hold to finish bootstrapping. */
+  loading: boolean;
   /** State parameters related to the splash screen. */
   splash: {
     /** False if the splash screen has been shown before */
@@ -61,19 +67,33 @@ export default class HalloweenApp extends React.Component<
     const apiClient = new ApiClient(apiBase);
     const authenticationService = new AuthenticationService(apiClient);
     const prizeService = new PrizeService(apiClient);
+    const userService = new UserService(apiClient);
+    const roleService = new RoleService(apiClient);
+
+    apiClient.useResponseInterceptor(
+      makeAuthAxiosInterceptor(authenticationService, this.handleAuthLogout)
+    );
 
     const context: IAppContext = {
       services: {
         apiClient,
         authenticationService,
-        prizeService
+        prizeService,
+        userService,
+        roleService
       },
       onApiError: this.handleApiError,
-      onSuccess: this.handleSuccess
+      onSuccess: this.handleSuccess,
+      roles: {
+        admin: null,
+        moderator: null,
+        user: null
+      }
     };
 
     // Default state
     this.state = {
+      loading: true,
       splash: {
         open: true,
         shown: false
@@ -86,7 +106,7 @@ export default class HalloweenApp extends React.Component<
     };
   }
 
-  componentWillMount(): void {
+  async componentDidMount() {
     const { pathname } = this.props.location;
     if (!LocalStorageService.get(SPLASH_KEY) || pathname === "/splash") {
       this.setState({
@@ -96,9 +116,39 @@ export default class HalloweenApp extends React.Component<
         }
       });
     }
+    try {
+      // try to log in with a token from local storage
+      await this.state.context.services.authenticationService.login();
+    } catch (e) {
+      if (e instanceof AuthenticationError) {
+        // no token, or otherwise expired
+      } else {
+        this.state.context.onApiError(e);
+      }
+    }
+    const roles = await this.state.context.services.roleService.getAll();
+    this.setState(prevState => {
+      return {
+        loading: false,
+        context: {
+          ...prevState.context,
+          roles: {
+            admin: roles.find(role => role.name === ROLES.admin),
+            moderator: roles.find(role => role.name === ROLES.moderator),
+            user: roles.find(role => role.name === ROLES.user)
+          }
+        }
+      };
+    });
   }
 
-  /** Public Methods */
+  // Public Methods
+
+  /**
+   * Handler for logout events. Sends the user back to the login page.
+   */
+  handleAuthLogout = () => this.props.history.push("/login");
+
   /**
    * Close the error snackbar.
    */
@@ -161,7 +211,6 @@ export default class HalloweenApp extends React.Component<
     console.log("*        API Error      *");
     console.log("*************************");
     */
-    console.log(error);
     // tslint:enable
     this.errorQueue.push(error);
     this.setState(prevState => ({
@@ -178,6 +227,9 @@ export default class HalloweenApp extends React.Component<
    * Render the application.
    */
   render() {
+    if (this.state.loading) {
+      return <></>;
+    }
     let splash;
     if (this.state.splash.shown) {
       splash = (
@@ -214,9 +266,10 @@ export default class HalloweenApp extends React.Component<
       </AppContext.Provider>
     );
   }
-  /** Private Methods */
+  // Private Methods
+
   /**
-   * Display the next error.
+   * Display the next error in the queue.
    */
   private displayNextError() {
     if (this.errorQueue.length) {

@@ -1,8 +1,6 @@
 import { decoratedType, DecoratedTypes, isScannable } from "./Symbols";
 
-interface IClass {
-  new (..._: any[]): this;
-}
+type IClass = new (..._: any[]) => any;
 
 export function classIsScannable(fn: IClass): fn is IScannableClass {
   return fn && fn.hasOwnProperty(isScannable);

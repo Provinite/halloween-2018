@@ -1,0 +1,25 @@
+{
+  "name": "@clovercoin/constants",
+  "version": "0.0.0",
+  "description": "Application constants.",
+  "author": "",
+  "license": "UNLICENSED",
+  "main": "lib/constants.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Provinite/halloween-2018.git"
+  },
+  "scripts": {
+    "test": "echo \"No tests for constants.\" && exit 0"
+  },
+  "bugs": {
+    "url": "https://github.com/Provinite/halloween-2018/issues"
+  },
+  "types": "lib/constants"
+}

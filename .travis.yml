@@ -6,12 +6,13 @@ cache:
   - node_modules
   - packages/web-client/node_modules
   - packages/api/node_modules
+before_install:
+  - curl -o- -L https://yarnpkg.com/install.sh | bash && source ~/.bashrc
 install:
-- yarn install
-- lerna bootstrap
+  - yarn install
 script:
-- lerna run build
-- lerna run test
+  - lerna run build --parallel
+  - lerna run test --parallel
 deploy:
   - provider: heroku
     app: pillowing-halloween-2018-api

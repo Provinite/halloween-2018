@@ -15,7 +15,8 @@ describe.only("config:OrmContext", () => {
     mocks = {} as IMocks;
     /* Mocks */
     const MockContainer = jest.fn<AwilixContainer>(() => ({
-      register: jest.fn()
+      register: jest.fn(),
+      build: jest.fn()
     }));
     const MockConnection = jest.fn<typeorm.Connection>(() => ({}));
 

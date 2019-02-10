@@ -26,8 +26,8 @@ export class RouteTransformationService {
 
   /**
    * Get a map of populated path variables for the specified route & request path.
-   * @param route - The route to populate.
-   * @param path - The request path to pull params from.
+   * @param route - The (parsed) route to populate.
+   * @param path - The actual request path to pull params from.
    * @return An object mapping path param names to string values. Returns void if
    *    the route did not match this path.
    */

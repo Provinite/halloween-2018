@@ -6,7 +6,7 @@ import {
 import { PaletteOptions } from "@material-ui/core/styles/createPalette";
 import { TypographyOptions } from "@material-ui/core/styles/createTypography";
 import * as React from "react";
-const themeName = "Mine Shaft Sunshade Horn Shark";
+// const themeName = "Mine Shaft Sunshade Horn Shark";
 const palette: PaletteOptions = {
   background: {
     default: "#303030",

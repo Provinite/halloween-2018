@@ -1,8 +1,9 @@
-import { request } from "https";
+import { RoleLiteral } from "../auth/RoleLiteral";
 import { HttpMethod } from "../HttpMethod";
 import { IRoutableMethod } from "./IRoutableMethod";
 import { IRouterClass } from "./IRouterClass";
 import {
+  allowedRoles,
   decoratedType,
   DecoratedTypes,
   httpMethods,
@@ -12,8 +13,16 @@ import {
   targetRoute
 } from "./Symbols";
 
+export const defaultAllowedRoles: RoleLiteral[] = ["public"];
+
 export function Route(
-  route: string | { route: string; method?: HttpMethod | HttpMethod[] }
+  route:
+    | string
+    | {
+        route: string;
+        method?: HttpMethod | HttpMethod[];
+        roles?: RoleLiteral[];
+      }
 ) {
   return function(
     target: any,
@@ -23,6 +32,7 @@ export function Route(
     const value = descriptor.value as IRoutableMethod;
     let requestedRoute: string;
     let requestedMethods: HttpMethod[];
+    let requestedRoles: RoleLiteral[];
     if (typeof route === "string") {
       // simple version, use the provided route and default methods
       requestedRoute = route;
@@ -33,6 +43,7 @@ export function Route(
         HttpMethod.PUT,
         HttpMethod.DELETE
       ];
+      requestedRoles = defaultAllowedRoles;
     } else {
       // configuration object provided
       requestedRoute = route.route;
@@ -45,6 +56,7 @@ export function Route(
           route.method = [route.method];
         }
         requestedMethods = [...route.method];
+        requestedRoles = route.roles || defaultAllowedRoles;
       } else {
         throw new Error(
           `Decorator:@Route: No methods defined for ${requestedRoute} (${
@@ -57,6 +69,7 @@ export function Route(
     value[targetRoute] = requestedRoute;
     value[httpMethods] = requestedMethods;
     value[decoratedType] = DecoratedTypes.METHOD;
+    value[allowedRoles] = requestedRoles;
     (target.constructor as IRouterClass)[isRouter] = true;
     if (!target[routableMethods]) {
       target[routableMethods] = [];
