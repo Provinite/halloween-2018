@@ -15,6 +15,7 @@ export class DeviantartApiConsumer {
    * Attempt to authenticate against the API with the provided
    * authorization_code (fetched by the client during login step).
    * @param authCode - The authorization code to use.
+   * @param redirectUri - The redirect URI the client is using.
    * @return The login result.
    */
   async authenticate(authCode: string): Promise<IDeviantartAuthResult> {
@@ -26,7 +27,7 @@ export class DeviantartApiConsumer {
         client_secret: clientSecret,
         grant_type: "authorization_code",
         code: authCode,
-        redirect_uri: "http://localhost:8080/login"
+        redirect_uri: this.config.redirectUri
       })
     );
 

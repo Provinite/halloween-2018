@@ -22,12 +22,11 @@ export class LoginController {
     method: HttpMethod.POST,
     roles: ["public"]
   })
-  async handleLogin(requestBody: { [key: string]: any }) {
+  async handleLogin(requestBody: { authCode?: string }) {
     if (!requestBody.authCode) {
       // todo: return a bad request http response
       return;
     }
-    // ~~\_o_/~~
     return {
       token: await this.authService.authenticate(requestBody.authCode)
     };

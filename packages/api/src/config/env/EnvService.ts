@@ -119,11 +119,13 @@ export class EnvService {
     );
     const clientId = env.cch2018_da_client_id;
     const clientSecret = env.cch2018_da_client_secret;
+    const redirectUri = env.cch2018_da_redirect_uri;
     return {
       baseRoute,
       oauthEndpoint,
       clientId,
-      clientSecret
+      clientSecret,
+      redirectUri
     };
   }
   /**

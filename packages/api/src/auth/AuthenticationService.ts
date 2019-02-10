@@ -24,6 +24,7 @@ export class AuthenticationService {
    * Authenticate using the given oauth authorization code. Creates a new user
    * if they are not already registered. Updates a user's associated DeviantArt
    * information if necessary.
+   * @param authCode - The DeviantArt oAuth2 auth code
    * @return A bearer token.
    */
   async authenticate(authCode: string): Promise<string> {
