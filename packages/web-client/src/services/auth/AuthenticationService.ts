@@ -41,7 +41,9 @@ export class AuthenticationService {
       }
     } else {
       const loginResponse = await this.apiClient.post("login", {
-        authCode
+        authCode,
+        // TODO: Move to env service
+        redirectUri: process.env.cch2018_da_redirect_uri
       });
       token = loginResponse.data.token;
     }

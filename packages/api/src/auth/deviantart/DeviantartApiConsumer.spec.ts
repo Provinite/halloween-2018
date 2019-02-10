@@ -38,7 +38,7 @@ describe("service:DeviantartApiConsumer", () => {
       svc = new DeviantartApiConsumer(mocks.envService);
     });
     it("makes a POST request to the oauth endpoint", async () => {
-      await svc.authenticate("boop");
+      await svc.authenticate("boop", "beep");
       expect(Axios.post).toHaveBeenCalledWith(
         mocks.config.oauthEndpoint,
         expect.anything()

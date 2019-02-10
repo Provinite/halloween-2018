@@ -24,11 +24,14 @@ export class AuthenticationService {
    * Authenticate using the given oauth authorization code. Creates a new user
    * if they are not already registered. Updates a user's associated DeviantArt
    * information if necessary.
+   * @param authCode - The DeviantArt oAuth2 auth code
+   * @param redirectUri - The redirect URI the client is using.
    * @return A bearer token.
    */
-  async authenticate(authCode: string): Promise<string> {
+  async authenticate(authCode: string, redirectUri: string): Promise<string> {
+    // TODO: Verify redirectUri
     // authenticate against the DA API
-    const loginResult = await this.client.authenticate(authCode);
+    const loginResult = await this.client.authenticate(authCode, redirectUri);
     if (!loginResult || loginResult.status !== "success") {
       throw new AuthenticationFailureException();
     }
