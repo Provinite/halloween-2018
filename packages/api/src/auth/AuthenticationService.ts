@@ -25,7 +25,6 @@ export class AuthenticationService {
    * if they are not already registered. Updates a user's associated DeviantArt
    * information if necessary.
    * @param authCode - The DeviantArt oAuth2 auth code
-   * @param redirectUri - The redirect URI the client is using.
    * @return A bearer token.
    */
   async authenticate(authCode: string): Promise<string> {
