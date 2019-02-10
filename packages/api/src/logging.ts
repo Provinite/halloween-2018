@@ -7,5 +7,5 @@ export const logger = winston.createLogger({
   transports: [new winston.transports.Console()]
 });
 if (process.env.JEST_WORKER_ID !== undefined) {
-  logger.level = "error";
+  logger.level = "emerg";
 }
