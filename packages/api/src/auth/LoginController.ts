@@ -22,16 +22,13 @@ export class LoginController {
     method: HttpMethod.POST,
     roles: ["public"]
   })
-  async handleLogin(requestBody: { authCode?: string; redirectUri?: string }) {
-    if (!requestBody.authCode || !requestBody.redirectUri) {
+  async handleLogin(requestBody: { authCode?: string }) {
+    if (!requestBody.authCode) {
       // todo: return a bad request http response
       return;
     }
     return {
-      token: await this.authService.authenticate(
-        requestBody.authCode,
-        requestBody.redirectUri
-      )
+      token: await this.authService.authenticate(requestBody.authCode)
     };
   }
 

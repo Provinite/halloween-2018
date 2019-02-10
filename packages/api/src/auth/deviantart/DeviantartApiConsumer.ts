@@ -18,10 +18,7 @@ export class DeviantartApiConsumer {
    * @param redirectUri - The redirect URI the client is using.
    * @return The login result.
    */
-  async authenticate(
-    authCode: string,
-    redirectUri: string
-  ): Promise<IDeviantartAuthResult> {
+  async authenticate(authCode: string): Promise<IDeviantartAuthResult> {
     const { oauthEndpoint, clientId, clientSecret } = this.config;
     const loginRequest = await Axios.post(
       oauthEndpoint,
@@ -30,7 +27,7 @@ export class DeviantartApiConsumer {
         client_secret: clientSecret,
         grant_type: "authorization_code",
         code: authCode,
-        redirect_uri: redirectUri
+        redirect_uri: this.config.redirectUri
       })
     );
 

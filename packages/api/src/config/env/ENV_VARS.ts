@@ -49,4 +49,6 @@ export interface ENV_VARS {
   cch2018_da_oauth_endpoint: string;
   /** The deviantart api base route (with trailing slash) */
   cch2018_da_baseroute: string;
+  /** The redirect URI for authorization requests. */
+  cch2018_da_redirect_uri: string;
 }

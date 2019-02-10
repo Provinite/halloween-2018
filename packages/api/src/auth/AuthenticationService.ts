@@ -28,10 +28,9 @@ export class AuthenticationService {
    * @param redirectUri - The redirect URI the client is using.
    * @return A bearer token.
    */
-  async authenticate(authCode: string, redirectUri: string): Promise<string> {
-    // TODO: Verify redirectUri
+  async authenticate(authCode: string): Promise<string> {
     // authenticate against the DA API
-    const loginResult = await this.client.authenticate(authCode, redirectUri);
+    const loginResult = await this.client.authenticate(authCode);
     if (!loginResult || loginResult.status !== "success") {
       throw new AuthenticationFailureException();
     }

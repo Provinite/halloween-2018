@@ -70,6 +70,10 @@ The Deviantart oauth api is used to authenticate users.
   - The `client_id` of the deviantart oauth application.
 - `cch2018_da_client_secret: string`
   - The `client_secret` of the deviantart oauth application.
+- `cch2018_da_redirect_uri`
+  - The redirect URI for the oauth flow.
+  - Example `http://localhost:8080/login`
+
 
 ### Optional Environment Variables
 - `cch2018_da_oauth_endpoint: string`

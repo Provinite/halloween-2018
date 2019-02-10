@@ -22,7 +22,8 @@ describe("service:DeviantartApiConsumer", () => {
         oauthEndpoint: "http://example.com/oauth/authenticate",
         clientId: 1234,
         clientSecret: "halloweenclientsecret",
-        baseRoute: "http://api.example.com"
+        baseRoute: "http://api.example.com",
+        redirectUri: "http://localhost:8080/login"
       };
 
       mocks.envService = {
@@ -38,7 +39,7 @@ describe("service:DeviantartApiConsumer", () => {
       svc = new DeviantartApiConsumer(mocks.envService);
     });
     it("makes a POST request to the oauth endpoint", async () => {
-      await svc.authenticate("boop", "beep");
+      await svc.authenticate("boop");
       expect(Axios.post).toHaveBeenCalledWith(
         mocks.config.oauthEndpoint,
         expect.anything()

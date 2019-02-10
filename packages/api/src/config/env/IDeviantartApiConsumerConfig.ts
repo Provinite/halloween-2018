@@ -7,4 +7,6 @@ export interface IDeviantartApiConsumerConfiguration {
   clientSecret: string;
   /** Deviantart client id */
   clientId: number;
+  /** Redirect URI */
+  redirectUri: string;
 }
