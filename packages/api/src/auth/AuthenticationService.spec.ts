@@ -1,10 +1,10 @@
 import { Repository } from "typeorm";
 import { Role, User } from "../models";
-import { mockRoles } from "./__mocks__/Roles";
 import { AuthenticationService } from "./AuthenticationService";
 import { DeviantartApiConsumer } from "./deviantart/DeviantartApiConsumer";
 import { IDeviantartAuthResult } from "./deviantart/IDeviantartAuthResult";
 import { IDeviantartUser } from "./deviantart/IDeviantartUser";
+import { mockRoles } from "./mocks/Roles";
 import { TokenService } from "./TokenService";
 
 describe("service:AuthenticationService", () => {

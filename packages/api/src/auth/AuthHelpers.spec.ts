@@ -1,6 +1,6 @@
-import { ROLES } from "@clovercoin/constants";
 import { User } from "../models";
 import { hasRole } from "./AuthHelpers";
+import { mockRoles } from "./mocks/Roles";
 import { RoleLiteral } from "./RoleLiteral";
 
 describe("AuthHelpers", () => {
@@ -48,7 +48,7 @@ describe("AuthHelpers", () => {
 function makeMockUser(roles: RoleLiteral[]) {
   return ({
     roles: roles
-      .map(r => (r === "public" ? undefined : { name: ROLES[r] }))
+      .map(r => (r === "public" ? undefined : mockRoles[r]))
       .filter(_ => _)
   } as unknown) as User;
 }

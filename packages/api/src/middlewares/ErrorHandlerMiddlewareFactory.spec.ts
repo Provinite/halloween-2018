@@ -8,6 +8,10 @@ import { UnknownRouteError } from "../web/UnknownRouteError";
 import { ErrorHandlerMiddlewareFactory } from "./ErrorHandlerMiddlewareFactory";
 
 describe("ErrorHandlerMiddlewareFactory", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.resetAllMocks();
+  });
   describe("create() middleware", () => {
     let middleware: Middleware;
     let mockContext: jest.Mocked<Context>;
