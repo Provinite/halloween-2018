@@ -11,6 +11,9 @@ export function hasRole(user: User, role: RoleLiteral) {
   if (role === "public") {
     return true;
   }
+  if (user === null || user === undefined) {
+    return false;
+  }
   const roleName = ROLES[role];
   return user.roles.some(userRole => userRole.name === roleName);
 }
