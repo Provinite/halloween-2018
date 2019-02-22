@@ -32,10 +32,11 @@ export function isAxiosError(e: any): e is AxiosError {
   if (!e || !e.hasOwnProperty) {
     return false;
   }
-  const hasRequestResponse = Boolean(e.request || e.response);
-  const hasErroneousStatusCode =
-    e.hasOwnProperty("code") && (e.code < 200 || e.code >= 300);
-  return hasRequestResponse && hasErroneousStatusCode;
+  const hasResponse = Boolean(e.response);
+  if (hasResponse) {
+    return e.response.status < 200 || e.response.status >= 300;
+  }
+  return false;
 }
 
 /**
