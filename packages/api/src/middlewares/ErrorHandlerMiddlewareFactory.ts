@@ -1,10 +1,13 @@
 import { Context } from "koa";
+import { QueryFailedError } from "typeorm";
 import { AuthenticationFailureException } from "../auth/AuthenticationFailureException";
 import { AuthenticationTokenExpiredError } from "../auth/AuthenticationTokenExpiredError";
 import { PermissionDeniedError } from "../auth/PermissionDeniedError";
+import { isDuplicateKeyError } from "../db/OrmErrors";
 import { getMethod, HttpMethod } from "../HttpMethod";
 import { logger } from "../logging";
 import { DrawRateLimitExceededError } from "../models/DrawEvent/DrawRateLimitExceededError";
+import { BadRequestError } from "../web/BadRequestError";
 import { MethodNotSupportedError } from "../web/MethodNotSupportedError";
 import { ResourceNotFoundError } from "../web/ResourceNotFoundError";
 import { UnknownMethodError } from "../web/UnknownMethodError";
@@ -17,8 +20,11 @@ export class ErrorHandlerMiddlewareFactory implements IMiddlewareFactory {
     try {
       await next();
     } catch (e) {
-      let errorName = e instanceof Error ? e.constructor.name : "";
-      const errorResult: any = { error: errorName };
+      const errorName = e instanceof Error ? e.constructor.name : "";
+      /** The response body object for the error response. */
+      const errorResult: { error: string; [key: string]: any } = {
+        error: errorName
+      };
       const setErrorResponse = () => {
         ctx.state.result = {
           ...errorResult,
@@ -38,20 +44,41 @@ export class ErrorHandlerMiddlewareFactory implements IMiddlewareFactory {
       } else if (e instanceof UnknownMethodError) {
         ctx.status = 501;
         setErrorResponse();
+      } else if (e instanceof BadRequestError) {
+        // generic bad request error
+        ctx.status = 400;
+        errorResult.message = e.message;
+        setErrorResponse();
       } else if (
         e instanceof PermissionDeniedError ||
         e instanceof UnknownRouteError ||
         e instanceof ResourceNotFoundError
       ) {
-        errorName = "ResourceNotFoundError";
+        errorResult.error = "ResourceNotFoundError";
         ctx.status = 404;
         setErrorResponse();
       } else if (e instanceof AuthenticationTokenExpiredError) {
+        // User's auth token expired.
         ctx.status = 401;
         setErrorResponse();
       } else if (e instanceof DrawRateLimitExceededError) {
+        // Too many draws, attach try again at date to response.
         ctx.status = 401;
         errorResult.tryAgainAt = e.tryAgainAt;
+        setErrorResponse();
+      } else if (e instanceof QueryFailedError && isDuplicateKeyError(e)) {
+        // Duplicate key error, attempt to extract the key and make the message
+        // more useful.
+        const knownDetailPattern = /Key \((.*?)\)=\(.*?\) already exists/i;
+        const match = knownDetailPattern.exec(e.detail);
+        errorResult.error = "DuplicateKeyError";
+        if (match === null) {
+          errorResult.message = e.detail || "Unacceptable duplicate value.";
+        } else {
+          errorResult.message = `Duplicate value for "${match[1]}".`;
+          errorResult.column = match[1];
+        }
+        ctx.status = 400;
         setErrorResponse();
       } else if (e instanceof MethodNotSupportedError) {
         /* Method not supported errors must present an ALLOW header. */
