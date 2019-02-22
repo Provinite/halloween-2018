@@ -16,7 +16,7 @@ export function makeGetterObject<T extends Record<keyof T, () => any>>(
   const result: any = {};
   for (const [key, value] of Object.entries<() => any>(map)) {
     Object.defineProperty(result, key, {
-      get: () => value(),
+      get: value,
       enumerable: true
     });
   }
