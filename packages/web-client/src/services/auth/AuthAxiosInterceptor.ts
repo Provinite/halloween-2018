@@ -1,5 +1,5 @@
 import { InterceptorDefinition, noOnFulFilled } from "../../types/Axios";
-import { isAxiosError } from "../../utils/Utils";
+import { isAxiosError, isTokenExpiredResponse } from "../../utils/Utils";
 import { AuthenticationService } from "./AuthenticationService";
 
 /**
@@ -16,7 +16,10 @@ export const makeAuthAxiosInterceptor: (
     noOnFulFilled,
     err => {
       if (isAxiosError(err)) {
-        if (err.response.status === 401) {
+        if (
+          err.response.status === 401 &&
+          isTokenExpiredResponse(err.response)
+        ) {
           authenticationService.logout();
           afterLogout();
         }

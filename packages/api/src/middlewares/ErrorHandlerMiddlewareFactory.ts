@@ -4,6 +4,7 @@ import { AuthenticationTokenExpiredError } from "../auth/AuthenticationTokenExpi
 import { PermissionDeniedError } from "../auth/PermissionDeniedError";
 import { getMethod, HttpMethod } from "../HttpMethod";
 import { logger } from "../logging";
+import { DrawRateLimitExceededError } from "../models/DrawEvent/DrawRateLimitExceededError";
 import { MethodNotSupportedError } from "../web/MethodNotSupportedError";
 import { ResourceNotFoundError } from "../web/ResourceNotFoundError";
 import { UnknownMethodError } from "../web/UnknownMethodError";
@@ -17,9 +18,10 @@ export class ErrorHandlerMiddlewareFactory implements IMiddlewareFactory {
       await next();
     } catch (e) {
       let errorName = e instanceof Error ? e.constructor.name : "";
+      const errorResult: any = { error: errorName };
       const setErrorResponse = () => {
         ctx.state.result = {
-          error: errorName,
+          ...errorResult,
           status: ctx.status
         };
         logger.error(
@@ -46,6 +48,10 @@ export class ErrorHandlerMiddlewareFactory implements IMiddlewareFactory {
         setErrorResponse();
       } else if (e instanceof AuthenticationTokenExpiredError) {
         ctx.status = 401;
+        setErrorResponse();
+      } else if (e instanceof DrawRateLimitExceededError) {
+        ctx.status = 401;
+        errorResult.tryAgainAt = e.tryAgainAt;
         setErrorResponse();
       } else if (e instanceof MethodNotSupportedError) {
         /* Method not supported errors must present an ALLOW header. */

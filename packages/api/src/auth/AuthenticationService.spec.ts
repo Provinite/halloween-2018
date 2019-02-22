@@ -4,7 +4,7 @@ import { AuthenticationService } from "./AuthenticationService";
 import { DeviantartApiConsumer } from "./deviantart/DeviantartApiConsumer";
 import { IDeviantartAuthResult } from "./deviantart/IDeviantartAuthResult";
 import { IDeviantartUser } from "./deviantart/IDeviantartUser";
-import { mockRoles } from "./mocks/Roles";
+import { mockRoles } from "./mocks/mockRoles";
 import { TokenService } from "./TokenService";
 
 describe("service:AuthenticationService", () => {

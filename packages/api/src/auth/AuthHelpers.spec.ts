@@ -1,6 +1,6 @@
-import { User } from "../models";
+import { Role, User } from "../models";
 import { hasRole } from "./AuthHelpers";
-import { mockRoles } from "./mocks/Roles";
+import { mockRoles } from "./mocks/mockRoles";
 import { RoleLiteral } from "./RoleLiteral";
 
 describe("AuthHelpers", () => {
@@ -25,16 +25,17 @@ describe("AuthHelpers", () => {
       [mockModerator, false, true, true, true],
       [mockSuperUser, true, true, true, true]
     ])("hasRole", (user, isAdmin, isMod, isUser, isPublic) => {
-      it(`${user.roles} is admin: ${isAdmin}`, () => {
+      const roleStr = JSON.stringify(user.roles.map((r: Role) => r.name));
+      it(`${roleStr} is admin: ${isAdmin}`, () => {
         expect(hasRole(user, "admin")).toBe(isAdmin);
       });
-      it(`${user.roles} is moderator: ${isMod}`, () => {
+      it(`${roleStr} is moderator: ${isMod}`, () => {
         expect(hasRole(user, "moderator")).toBe(isMod);
       });
-      it(`${user.roles} is user: ${isUser}`, () => {
+      it(`${roleStr} is user: ${isUser}`, () => {
         expect(hasRole(user, "user")).toBe(isUser);
       });
-      it(`${user.roles} is public: ${isPublic}`, () => {
+      it(`${roleStr} is public: ${isPublic}`, () => {
         expect(hasRole(user, "public")).toBe(isPublic);
       });
     });

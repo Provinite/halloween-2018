@@ -13,7 +13,8 @@ const paths = {
       all: [
         "./src/**/*.ts",
         "!./**/*.spec.ts",
-        "!./src/test/**/*"
+        "!./src/test/**/*",
+        "!./src/**/mocks/**"
       ]
     }
   },
