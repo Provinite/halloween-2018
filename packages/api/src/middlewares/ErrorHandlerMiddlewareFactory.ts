@@ -9,6 +9,7 @@ import { logger } from "../logging";
 import { DrawRateLimitExceededError } from "../models/DrawEvent/DrawRateLimitExceededError";
 import { BadRequestError } from "../web/BadRequestError";
 import { MethodNotSupportedError } from "../web/MethodNotSupportedError";
+import { RequestValidationError } from "../web/RequestValidationUtils";
 import { ResourceNotFoundError } from "../web/ResourceNotFoundError";
 import { UnknownMethodError } from "../web/UnknownMethodError";
 import { UnknownRouteError } from "../web/UnknownRouteError";
@@ -65,6 +66,12 @@ export class ErrorHandlerMiddlewareFactory implements IMiddlewareFactory {
         // Too many draws, attach try again at date to response.
         ctx.status = 401;
         errorResult.tryAgainAt = e.tryAgainAt;
+        setErrorResponse();
+      } else if (e instanceof RequestValidationError) {
+        // Request validation failed, attach validation error results
+        // to the response.
+        ctx.status = 400;
+        errorResult.errrors = e.erroredResults;
         setErrorResponse();
       } else if (e instanceof QueryFailedError && isDuplicateKeyError(e)) {
         // Duplicate key error, attempt to extract the key and make the message
