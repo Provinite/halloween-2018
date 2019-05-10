@@ -27,6 +27,7 @@ export class RouteRegistry {
     route: string,
     methods: HttpMethod | HttpMethod[],
     resolver: Resolver<any> | ((...args: any[]) => any),
+    router: any,
     allowedRoles: RoleLiteral[]
   ): this {
     logger.info(
@@ -40,6 +41,7 @@ export class RouteRegistry {
     }
     methods.forEach(method => {
       this.map[route][method] = {
+        router,
         resolver,
         allowedRoles
       };
@@ -55,6 +57,10 @@ export class RouteRegistry {
     requestPath: string,
     method: HttpMethod
   ): {
+    /**
+     * The router instance for the handler, if any.
+     */
+    router: any;
     /**
      * An awilix resolver for the actual route handler. If lookup fails,
      * undefined.
@@ -76,6 +82,7 @@ export class RouteRegistry {
       if (this.map[requestPath]) {
         if (this.map[requestPath][method]) {
           return {
+            router: this.map[requestPath][method].router,
             resolver: this.map[requestPath][method].resolver,
             allowedRoles: this.map[requestPath][method].allowedRoles
           };
@@ -103,6 +110,7 @@ export class RouteRegistry {
         // route matched, check method support
         if (this.map[route][method]) {
           return {
+            router: this.map[route][method].router,
             resolver: this.map[route][method].resolver,
             allowedRoles: this.map[route][method].allowedRoles,
             pathVariables
@@ -125,6 +133,7 @@ export class RouteRegistry {
  */
 type IRouteHandler = {
   [method in HttpMethod]?: {
+    router: any;
     resolver: Resolver<any> | ((...args: any[]) => any);
     allowedRoles: RoleLiteral[];
   }

@@ -96,6 +96,7 @@ export abstract class RestRepositoryController<T> {
               route,
               method,
               resolver,
+              this,
               methodMap[method].roles
             );
           } else {
