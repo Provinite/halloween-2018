@@ -84,7 +84,7 @@ export class RouteTransformationService {
       if (!isPathParam) {
         pattern += parts[i].replace(/\//g, "\\/");
       } else {
-        pattern += "(.*?)";
+        pattern += "([^/]*?)";
       }
     }
     return new RegExp(`^${pattern}$`);
