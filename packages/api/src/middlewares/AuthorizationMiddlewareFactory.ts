@@ -61,7 +61,10 @@ export class AuthorizationMiddlewareFactory implements IMiddlewareFactory {
       }
       requestContainer.register("user", asValue(user));
       if (!allow) {
-        const userRoles = user ? user.roles.join(", ") : "public";
+        const userRoles = user
+          ? user.roles.map(r => r.name).join(", ")
+          : "public";
+
         const message = `Allowed roles: [${allowedRoles.join(
           ", "
         )}], User Roles: [${userRoles}]`;
