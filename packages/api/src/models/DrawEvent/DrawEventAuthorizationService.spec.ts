@@ -3,6 +3,7 @@ import { Connection } from "typeorm";
 import { PermissionDeniedError } from "../../auth/PermissionDeniedError";
 import { roleLiteralSpec } from "../../test/testUtils";
 import { DrawEvent } from "../DrawEvent";
+import { mockGames } from "../game/mocks/mockGames";
 import { mockUsers } from "../user/mocks/mockUsers";
 import { DrawEventAuthorizationService } from "./DrawEventAuthorizationService";
 import { DrawEventRepository } from "./DrawEventRepository";
@@ -74,7 +75,7 @@ describe("DrawEventAuthorizationService", () => {
       await expect(
         service.canCreate(
           mockUsers.public,
-          { user: mockUsers.public },
+          { user: mockUsers.public, game: mockGames.sample },
           mocks.orm
         )
       ).rejects.toBeInstanceOf(PermissionDeniedError);

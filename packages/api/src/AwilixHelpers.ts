@@ -1,3 +1,6 @@
+import { AwilixContainer } from "awilix";
+import { AnyFunction } from "./reflection/AnyFunction";
+
 /**
  * An unpleasant bit of hackery to make Awilix play nice with bound functions.
  * Relies on some pretty specific implementation details in Awilix, so probably
@@ -60,4 +63,40 @@ function makeProxyAwilixFriendly(
     }
     return prefix + " " + result;
   };
+}
+
+/**
+ * Apply the ContainerAware mixin to this class. You must provide this.container
+ * @provides buildMethod
+ * @example
+ * ```
+ * @MakeContainerAware()
+ * export class SomeClass {
+ *
+ * }
+ * export interface SomeClass extends ContainerAware {}
+ * ```
+ */
+export const MakeContainerAware: () => ClassDecorator = () => (
+  target: Function
+) => {
+  target.prototype.buildMethod = ContainerAware.prototype.buildMethod;
+};
+
+/**
+ * Container aware class. Available as a base class, or mixin via
+ * @MakeContainerAware()
+ */
+export abstract class ContainerAware {
+  protected container: AwilixContainer;
+  constructor(container: AwilixContainer) {
+    this.container = container;
+  }
+  /**
+   * Construct the provided method using this instance's container.
+   * @param fn - A method on this object to build.
+   */
+  buildMethod<T extends AnyFunction>(fn: T): ReturnType<T> {
+    return this.container.build(asClassMethod(this, fn));
+  }
 }
