@@ -31,13 +31,14 @@ export class ErrorHandlerMiddlewareFactory implements IMiddlewareFactory {
           ...errorResult,
           status: ctx.status
         };
-        logger.error(
+        // TODO: logger.error for other unknown errors
+        logger.info(
           "ErrorHandler: Caught error - " +
             (e instanceof Object ? e.constructor.name : "UnknownError")
         );
-        logger.error(`[${ctx.method}]: ${ctx.path}`);
-        logger.error("message: " + e.message);
-        logger.error(e.stack);
+        logger.info(`[${ctx.method}]: ${ctx.path}`);
+        logger.info("message: " + e.message);
+        logger.info(e.stack);
       };
       if (e instanceof AuthenticationFailureException) {
         ctx.status = 400;
