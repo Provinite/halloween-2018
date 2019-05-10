@@ -10,10 +10,10 @@
  *    Awilix's notion of a "function".
  * @example container.build(asClassMethod(someService, someService.someMethod))
  */
-export function asClassMethod(
+export function asClassMethod<T>(
   instance: any,
-  method: (...args: any[]) => any
-): (...args: any[]) => any {
+  method: (...args: any[]) => T
+): (...args: any[]) => T {
   // Bind the function to the instance, so that `this` is correctly set.
   const injectable = method.bind(instance);
   // Function.name is read-only, so modify its property descriptor directly.
