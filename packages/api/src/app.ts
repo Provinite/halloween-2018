@@ -3,4 +3,5 @@ import { install } from "source-map-support";
 import { HalloweenAppDevRunner } from "./HalloweenAppDevRunner";
 install();
 const runner: HalloweenAppDevRunner = new HalloweenAppDevRunner();
+// tslint:disable-next-line: no-floating-promises
 runner.run();
