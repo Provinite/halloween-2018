@@ -1,27 +1,38 @@
+import { PartialExcept } from "@clovercoin/constants";
 import { AppBar, Tab, Tabs } from "@material-ui/core";
 import { Location, UnregisterCallback } from "history";
 import * as React from "react";
 import { RouteComponentProps } from "react-router";
+import { IGame } from "../../models/IGame";
 import { IPrize } from "../../models/IPrize";
 import { IRole } from "../../models/IRole";
 import { IUser } from "../../models/IUser";
 import { AppContext, IAppContext } from "../AppContext";
 import { AppHeader } from "../AppHeader";
-import { TabContainer } from "../ui/TabContainer";
+import { GameDropDownLight } from "../ui/GameDropDown";
+import { PageCard } from "../ui/PageCard";
 import { WithSpinner } from "../ui/WithSpinner";
+import { AdminGameTab } from "./AdminGameTab";
 import { AdminPrizeTab } from "./AdminPrizeTab";
 import { AdminUsersTab } from "./AdminUsersTab";
 
-const paths = ["/admin/prizes", "/admin/accounts", "/admin/winners"];
+const paths = ["/admin/prizes", "/admin/accounts", "/admin/games"];
 /**
  * Props for the admin page component.
  */
-type IAdminPageProps = RouteComponentProps;
+type IAdminPageProps = RouteComponentProps; // & StyledComponentProps<ClassNames>;
 
 /**
  * State for the admin page component.
  */
 interface IAdminPageState {
+  /** The currently selected game. */
+  selectedGame: IGame | null;
+  /** Stateful data regarding games */
+  games: {
+    list: IGame[];
+    loading: boolean;
+  };
   /** Stateful data regarding prizes */
   prizes: {
     /** The list of prizes from the API. */
@@ -53,11 +64,16 @@ export class AdminPage extends React.Component<
   static contextType = AppContext;
   context: IAppContext;
 
-  private historyUnregisterCallback: UnregisterCallback;
+  private historyUnregisterCallback: UnregisterCallback | null;
 
   constructor(props: IAdminPageProps) {
     super(props);
     this.state = {
+      selectedGame: null,
+      games: {
+        list: [],
+        loading: false
+      },
       prizes: {
         list: [],
         loading: false
@@ -81,6 +97,15 @@ export class AdminPage extends React.Component<
   };
 
   /**
+   * Update selected game in the state.
+   */
+  handleGameSelect = (selectedGame: IGame) => {
+    this.setState({ selectedGame }, () => {
+      this.loadPrizes();
+    });
+  };
+
+  /**
    * Switch to the new tab after transitions are complete.
    */
   handleTabExited = () => {
@@ -100,6 +125,63 @@ export class AdminPage extends React.Component<
         }
       }
     );
+  };
+
+  /** Fetch games and update the state */
+  loadGames = async () => {
+    this.setState(prevState => ({
+      games: {
+        ...prevState.games,
+        loading: true
+      }
+    }));
+    const { gameService } = this.context.services;
+    try {
+      const games = await gameService.getAll();
+      this.setState(prevState => ({
+        games: {
+          ...prevState.games,
+          list: games,
+          loading: false
+        }
+      }));
+    } catch (err) {
+      this.context.onApiError(err);
+      this.setState(prevState => ({
+        games: {
+          ...prevState.games,
+          list: [],
+          loading: false
+        }
+      }));
+    }
+  };
+
+  /**
+   * Save a new Game.
+   */
+  handleGameSave = async (game: Partial<IGame>) => {
+    const { gameService } = this.context.services;
+    try {
+      const savedGame = await gameService.create(game);
+      this.setState(({ games }) => ({
+        games: {
+          ...games,
+          list: [savedGame, ...games.list]
+        }
+      }));
+      this.context.onSuccess(`Added game ${savedGame.name}`);
+    } catch (e) {
+      this.context.onApiError(e);
+      throw e;
+    }
+  };
+
+  /**
+   * Navigate to a specific game.
+   */
+  handleGameListItemClick = async (game: IGame) => {
+    this.props.history.push(`/admin/games/${game.id}`);
   };
 
   /**
@@ -162,8 +244,8 @@ export class AdminPage extends React.Component<
     this.syncTabWithUrl();
     this.registerHistoryListener();
 
-    this.loadPrizes();
     this.loadUsers();
+    this.loadGames();
   }
 
   /**
@@ -177,9 +259,13 @@ export class AdminPage extends React.Component<
    * Create a new prize
    * @param prize - The prize to create.
    */
-  handlePrizeSave = async (prize: IPrize) => {
+  handlePrizeSave = async (prize: Partial<IPrize>) => {
+    delete prize.currentStock;
     try {
-      const result = await this.context.services.prizeService.create(prize);
+      const result = await this.context.services.prizeService.create(
+        this.state.selectedGame!,
+        prize
+      );
       this.setState(prevState => {
         const prizes = { ...prevState.prizes };
         prizes.list = [...prizes.list];
@@ -204,8 +290,9 @@ export class AdminPage extends React.Component<
    * Patch the given prize.
    * @param prize - The prize to modify.
    */
-  handlePrizeEdit = async (prize: Partial<IPrize> & { id: IPrize["id"] }) => {
+  handlePrizeEdit = async (prize: PartialExcept<IPrize, "id" | "gameId">) => {
     try {
+      delete prize.initialStock;
       const result = await this.context.services.prizeService.update(prize);
       this.setState(prevState => {
         const prizes = { ...prevState.prizes };
@@ -228,7 +315,10 @@ export class AdminPage extends React.Component<
    */
   handlePrizeDelete = async (prize: IPrize) => {
     try {
-      await this.context.services.prizeService.delete(prize.id);
+      await this.context.services.prizeService.delete(
+        this.state.selectedGame!,
+        prize.id
+      );
       this.setState(
         prevState => {
           const { prizes } = prevState;
@@ -305,7 +395,14 @@ export class AdminPage extends React.Component<
     };
     return (
       <div className="cc-admin-page">
-        <AppHeader />
+        <AppHeader>
+          <div className="cc-admin-page__game-select">
+            <GameDropDownLight
+              onChange={this.handleGameSelect}
+              value={this.state.selectedGame || undefined}
+            />
+          </div>
+        </AppHeader>
         <AppBar position="relative" color="secondary">
           <Tabs
             value={selectedTab}
@@ -316,10 +413,10 @@ export class AdminPage extends React.Component<
           >
             <Tab label="Prizes" classes={{ label: "cc-tab" }} />
             <Tab label="Accounts" classes={{ label: "cc-tab" }} />
-            <Tab label="Winners" classes={{ label: "cc-tab" }} />
+            <Tab label="Games" classes={{ label: "cc-tab" }} />
           </Tabs>
         </AppBar>
-        <TabContainer
+        <PageCard
           direction={getDirection(0)}
           open={selectedTab === 0 && nextTab === null}
           hidden={selectedTab !== 0}
@@ -340,8 +437,8 @@ export class AdminPage extends React.Component<
               onUpdate={this.handlePrizeEdit}
             />
           </WithSpinner>
-        </TabContainer>
-        <TabContainer
+        </PageCard>
+        <PageCard
           direction={getDirection(1)}
           open={selectedTab === 1 && nextTab === null}
           onExited={this.handleTabExited}
@@ -352,15 +449,28 @@ export class AdminPage extends React.Component<
             onAddRole={this.handleUserAddRole}
             onDeleteRole={this.handleUserDeleteRole}
           />
-        </TabContainer>
-        <TabContainer
+        </PageCard>
+        <PageCard
           direction={getDirection(2)}
           open={selectedTab === 2 && nextTab === null}
           onExited={this.handleTabExited}
           hidden={selectedTab !== 2}
         >
-          Tab Three
-        </TabContainer>
+          <WithSpinner
+            style={{
+              margin: "40px auto",
+              display: "block"
+            }}
+            loading={this.state.games.loading}
+            color="inherit"
+          >
+            <AdminGameTab
+              games={this.state.games.list}
+              onCreate={this.handleGameSave}
+              onListItemClick={this.handleGameListItemClick}
+            />
+          </WithSpinner>
+        </PageCard>
       </div>
     );
   }
