@@ -1,5 +1,6 @@
 import { asValue, AwilixContainer } from "awilix";
 import { Context, Middleware } from "koa";
+import { asClassMethod } from "../AwilixHelpers";
 import { getMethod, HttpMethod } from "../HttpMethod";
 import { RouteRegistry } from "../web/RouteRegistry";
 import { UnknownMethodError } from "../web/UnknownMethodError";
@@ -34,11 +35,18 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
       }
       const requestContainer: AwilixContainer = ctx.state.requestContainer;
 
-      const { resolver, pathVariables } = this.routeRegistry.lookupRoute(
-        path,
-        method
-      );
+      const {
+        router,
+        resolver,
+        pathVariables
+      } = this.routeRegistry.lookupRoute(path, method);
       registerPathVariables(pathVariables, requestContainer);
+      // TODO: this could be a typeguard
+      if (router && typeof router.configureRequestContainer === "function") {
+        await requestContainer.build(
+          asClassMethod(router, router.configureRequestContainer)
+        );
+      }
       // Invoke this route's handler, and store its response on the context
       // for later rendering.
       ctx.state.result = await requestContainer.build(resolver);
