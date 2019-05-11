@@ -15,6 +15,9 @@ function renderApp(props: RouteComponentProps) {
 }
 
 function main(): void {
+  if (!process.env.cch2018_wc_base) {
+    throw new Error("env: cch2018_wc_base not defined!");
+  }
   ReactDOM.render(
     <BrowserRouter
       basename={ensureNoTrailingSlash(process.env.cch2018_wc_base)}
