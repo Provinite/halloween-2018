@@ -53,15 +53,19 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
 }
 
 /**
- * Register each path variable on the DI container.
+ * Register each path variable on the DI container. Additionally register the
+ * pathVariables map as "pathVariables"
  * @param pathVariables - A map of path variable keys to values
  * @param requestContainer - The request-scoped DI container to inject the values
  *    into.
+ * @configures pathVariables - The pathVariables map.
+ * @configures * - One entry for each path variable received. (DEPRECATED)
  */
 function registerPathVariables(
   pathVariables: { [key: string]: string },
   requestContainer: AwilixContainer
 ) {
+  requestContainer.register("pathVariables", asValue(pathVariables || {}));
   if (!pathVariables) {
     return;
   }
