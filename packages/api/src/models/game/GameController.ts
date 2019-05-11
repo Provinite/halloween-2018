@@ -1,5 +1,5 @@
+import { asValue, AwilixContainer } from "awilix";
 import { Repository } from "typeorm";
-import { RoleLiteral } from "../../auth/RoleLiteral";
 import { HttpMethod } from "../../HttpMethod";
 import { Component } from "../../reflection/Component";
 import { Route } from "../../reflection/Route";
@@ -9,15 +9,31 @@ import {
   validateValue,
   validators
 } from "../../web/RequestValidationUtils";
+import { ResourceNotFoundError } from "../../web/ResourceNotFoundError";
 import { Game } from "../Game";
 import { User } from "../User";
 import { GameAuthorizationService } from "./GameAuthorizationService";
 
 @Component()
 export class GameController {
-  defaultRoles: RoleLiteral[] = ["admin"];
-
   constructor(public gameAuthorizationService: GameAuthorizationService) {}
+
+  /**
+   * Preload the request container with the game out of the request string. Also
+   * performs validation.
+   */
+  async configureRequestContainer(
+    container: AwilixContainer,
+    gameRepository: Repository<Game>
+  ) {
+    const gameId = container.resolve("gameId", { allowUnregistered: true });
+    validateValue(gameId, "gameId", validators.optional.digitString);
+    if (gameId === undefined) {
+      container.register("game", undefined);
+    } else {
+      container.register("game", asValue(await gameRepository.findOne(gameId)));
+    }
+  }
 
   /**
    * Create a new game.
@@ -43,7 +59,7 @@ export class GameController {
   @Route({
     route: "/games",
     method: HttpMethod.GET,
-    roles: ["admin"]
+    roles: ["public"]
   })
   async getGames(user: User, gameRepository: Repository<Game>) {
     await this.gameAuthorizationService.canReadMultiple(user);
@@ -52,9 +68,6 @@ export class GameController {
 
   /**
    * Update a single game.
-   * @param gameId - URL parameter, the id of the game to update.
-   * @param requestBody - The incoming request body.
-   * @param gameRepository - The game repository to use.
    */
   @Route({
     route: "/games/{gameId}",
@@ -146,8 +159,8 @@ function gameFromRequestBody(
   if (!requestBody) {
     throw new BadRequestError("A request body is required.");
   }
-  const body = gamePartsFromRequestBody(requestBody);
+  const body = parseBodyForCreate(requestBody);
   const game = gameRepository.create();
-  Object.assign(game, body);
+  gameRepository.merge(game, body);
   return game;
 }
