@@ -14,37 +14,40 @@ import {
   TableRow,
   TextField
 } from "@material-ui/core";
-import { TextFieldProps } from "@material-ui/core/TextField";
+import { StandardTextFieldProps } from "@material-ui/core/TextField";
 import CancelIcon from "@material-ui/icons/Cancel";
 import CardGiftCardIcon from "@material-ui/icons/CardGiftcard";
 import DeleteIcon from "@material-ui/icons/Delete";
 import SaveIcon from "@material-ui/icons/Save";
 
+import { Omit, PartialExcept } from "@clovercoin/constants";
 import * as React from "react";
 import { IPrize } from "../../models/IPrize";
 import { memoize } from "../../utils/Utils";
+import { NumericTextField } from "../ui/form/NumericTextField";
 import { WithCssShake } from "../ui/motion/WithCssShake";
-import { NumericTextField } from "../ui/NumericTextField";
 import { SaveButton } from "../ui/SaveButton";
 import { WithSpinner } from "../ui/WithSpinner";
-type formKey = Exclude<keyof IPrize, "id">;
+type formKey = Exclude<keyof IPrize, "id" | "gameId">;
 
 interface IPrizeListProps {
   prizes: IPrize[];
   onDelete: (prize: IPrize) => any;
   onSave: (prize: Partial<IPrize>) => any;
-  onUpdate: (prize: Partial<IPrize>) => any;
+  onUpdate: (prize: PartialExcept<IPrize, "gameId" | "id">) => any;
 }
+
+type FormState<State> = { [key in keyof State]: State[key] | "" };
 
 interface IPrizeListState {
   /** The prize to delete, if any. */
-  prizeToDelete: IPrize;
+  prizeToDelete: IPrize | null;
   /** If set, the confirmation dialog will be shown to delete the prize */
   dialogOpen: boolean;
   /** The id of the prize currently being edited */
-  editingPrizeId: number;
+  editingPrizeId: number | null;
   /** Model for the prize form. */
-  prizeForm: { [key in formKey]: IPrize[formKey] | "" };
+  prizeForm: Pick<FormState<IPrize>, formKey>;
   /** Flag indicating whether the form is currently saving. */
   saving: boolean;
   /** Flag indicating whether the form should shake. */
@@ -55,7 +58,7 @@ export class PrizeList extends React.Component<
   IPrizeListProps,
   IPrizeListState
 > {
-  private static defaultPrizeForm = {
+  private static defaultPrizeForm: IPrizeListState["prizeForm"] = {
     currentStock: "",
     description: "",
     initialStock: "",
@@ -80,22 +83,10 @@ export class PrizeList extends React.Component<
       shakeForm: false
     };
 
-    /** Bound functions */
-    this.createPrizeRow = this.createPrizeRow.bind(this);
-    this.handleDeleteClick = this.handleDeleteClick.bind(this);
-    this.handleConfirmClick = this.handleConfirmClick.bind(this);
-    this.handleCancelClick = this.handleCancelClick.bind(this);
-    this.handleDialogExited = this.handleDialogExited.bind(this);
-    this.makeHandleRowClick = memoize(this.makeHandleRowClick.bind(this));
-    this.makeHandleFieldChange = memoize(this.makeHandleFieldChange.bind(this));
-    this.handleAddFormSave = this.handleAddFormSave.bind(this);
-    this.handleEditFormSave = this.handleEditFormSave.bind(this);
-    this.makeHandleDeleteClick = memoize(this.makeHandleDeleteClick.bind(this));
-    this.submitForm = this.submitForm.bind(this);
-    this.stopEditing = this.stopEditing.bind(this);
-    this.createPrizeFieldInput = this.createPrizeFieldInput.bind(this);
-    this.shakeForm = this.shakeForm.bind(this);
-    this.stopShakingForm = this.stopShakingForm.bind(this);
+    /** Memoized functions */
+    this.makeHandleRowClick = memoize(this.makeHandleRowClick);
+    this.makeHandleFieldChange = memoize(this.makeHandleFieldChange);
+    this.makeHandleDeleteClick = memoize(this.makeHandleDeleteClick);
   }
 
   /**
@@ -108,7 +99,7 @@ export class PrizeList extends React.Component<
   /**
    * Stop editing any prizes.
    */
-  stopEditing(e?: any) {
+  stopEditing = (e?: any) => {
     // todo: refactor into handleEditCancelClick / stopEditing private
     // also rename handleCancelClick to handleDeleteCancelClick or
     // handleDialogCancelClick.
@@ -127,33 +118,33 @@ export class PrizeList extends React.Component<
         return prevState;
       }
     });
-  }
+  };
 
   /**
    * Waggle the prize form.
    */
-  shakeForm() {
+  shakeForm = () => {
     this.setState(prevState => ({
       ...prevState,
       shakeForm: true
     }));
-  }
+  };
 
   /**
    * Stop waggling the prize form.
    */
-  stopShakingForm() {
+  stopShakingForm = () => {
     this.setState(prevState => ({
       ...prevState,
       shakeForm: false
     }));
-  }
+  };
 
   /**
    * Create an event handler to delete the provided prize. Memoized.
    * @param prize - The prize to delete.
    */
-  makeHandleDeleteClick(prize: IPrize) {
+  makeHandleDeleteClick = (prize: IPrize) => {
     return (event: React.MouseEvent<HTMLElement>) => {
       if (event.button !== 0) {
         return;
@@ -162,14 +153,14 @@ export class PrizeList extends React.Component<
       this.handleDeleteClick(prize);
       // this.props.onDelete(prize);
     };
-  }
+  };
 
   /**
    * Create a field change handler for the given key. Memoized.
    */
-  makeHandleFieldChange(field: formKey) {
-    return (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { value } = e.target;
+  makeHandleFieldChange = (field: formKey) => {
+    return (e: React.ChangeEvent<HTMLInputElement>, val?: any) => {
+      const value = val === undefined ? e.target.value : val;
       this.setState(({ prizeForm }) => {
         return {
           prizeForm: {
@@ -179,20 +170,19 @@ export class PrizeList extends React.Component<
         };
       });
     };
-  }
+  };
   /**
    * Handle patching. Invokes parent's onUpdate callback.
    * @param event
    */
-  async handleEditFormSave(event?: React.FormEvent) {
+  handleEditFormSave = async (event: React.FormEvent) => {
     event.preventDefault();
     this.setState({ saving: true });
     const { prizeForm } = this.state;
-    const prize: Partial<IPrize> = {};
-    for (const key of Object.keys(prizeForm)) {
-      prize[key] = prizeForm[key] === "" ? null : prizeForm[key];
-    }
-    prize.id = this.state.editingPrizeId;
+    const prize: PartialExcept<IPrize, "gameId" | "id"> = {
+      ...(prizeForm as any)
+    };
+    prize.id = this.state.editingPrizeId!;
     try {
       await this.props.onUpdate(prize);
       this.setState(prevState => ({
@@ -206,19 +196,16 @@ export class PrizeList extends React.Component<
     } finally {
       this.setState({ saving: false });
     }
-  }
+  };
 
   /**
    * Handle saving. Invokes parent's onSave callback.
    */
-  async handleAddFormSave(event?: React.FormEvent) {
+  handleAddFormSave = async (event: React.FormEvent) => {
     event.preventDefault();
     this.setState({ saving: true });
-    const prize: Partial<IPrize> = {};
     const { prizeForm } = this.state;
-    for (const key of Object.keys(prizeForm)) {
-      prize[key] = prizeForm[key] === "" ? null : prizeForm[key];
-    }
+    const prize: Partial<IPrize> = { ...(prizeForm as any) };
     try {
       await this.props.onSave(prize);
       this.setState(prevState => ({
@@ -232,49 +219,49 @@ export class PrizeList extends React.Component<
     } finally {
       this.setState({ saving: false });
     }
-  }
+  };
 
   /**
    * Notify the parent of deletion after confirmation from the user.
    */
-  async handleConfirmClick() {
-    await this.props.onDelete(this.state.prizeToDelete);
+  handleConfirmClick = async () => {
+    await this.props.onDelete(this.state.prizeToDelete!);
     this.setState({
       dialogOpen: false
     });
-  }
+  };
 
   /**
    * Close the dialog.
    */
-  handleCancelClick() {
+  handleCancelClick = () => {
     this.setState({ dialogOpen: false });
-  }
+  };
 
   /**
    * Clear the prize to delete after the dialog has closed.
    */
-  handleDialogExited() {
+  handleDialogExited = () => {
     this.setState({
       prizeToDelete: null
     });
-  }
+  };
 
   /**
    * Prompt the user for confirmation of deletion.
    * @param prize - The prize to delete.
    */
-  handleDeleteClick(prize: IPrize) {
+  handleDeleteClick = (prize: IPrize) => {
     this.setState({
       prizeToDelete: prize,
       dialogOpen: true
     });
-  }
+  };
 
   /**
    * Create an onClick handler for the given prize row. Memoized.
    */
-  makeHandleRowClick(prize: IPrize) {
+  makeHandleRowClick = (prize: IPrize) => {
     return () => {
       this.setState(prevState => {
         if (prevState.editingPrizeId === prize.id) {
@@ -290,19 +277,19 @@ export class PrizeList extends React.Component<
         };
       });
     };
-  }
+  };
 
   /**
    * Create a form element for the given key.
    * @param field - The name of the field this input represents.
    */
-  createPrizeFieldInput(
+  createPrizeFieldInput = (
     field: formKey,
     purpose: "add" | "edit" = "add",
     onRest: () => void = () => {
       // noop
     }
-  ) {
+  ) => {
     const { prizeForm, saving } = this.state;
     const labels: Partial<Record<formKey, string>> = {
       initialStock: "Total",
@@ -316,7 +303,8 @@ export class PrizeList extends React.Component<
       currentStock: NumericTextField
     };
 
-    const FieldComponent = components[field] || TextField;
+    const FieldComponent: typeof TextField | typeof NumericTextField =
+      components[field] || TextField;
     const labelProp = purpose === "add" ? "label" : "helperText";
 
     const label =
@@ -343,13 +331,13 @@ export class PrizeList extends React.Component<
         <FieldComponent {...fieldProps} />
       </WithCssShake>
     );
-  }
+  };
 
   /**
    * Create a display row for the given prize.
    * @param prize - The prize to display
    */
-  createPrizeRow(prize: IPrize) {
+  createPrizeRow = (prize: IPrize) => {
     const editing = this.state.editingPrizeId === prize.id;
     const { saving } = this.state;
     return (
@@ -371,17 +359,17 @@ export class PrizeList extends React.Component<
             ? this.createPrizeFieldInput("description", "edit")
             : prize.description}
         </TableCell>
-        <TableCell numeric={true}>
+        <TableCell align="right">
           {editing
             ? this.createPrizeFieldInput("initialStock", "edit")
             : prize.initialStock}
         </TableCell>
-        <TableCell numeric={true}>
+        <TableCell align="right">
           {editing
             ? this.createPrizeFieldInput("weight", "edit")
             : prize.weight}
         </TableCell>
-        <TableCell numeric={true}>
+        <TableCell align="right">
           {editing
             ? this.createPrizeFieldInput("currentStock", "edit")
             : prize.currentStock}
@@ -416,7 +404,7 @@ export class PrizeList extends React.Component<
         </TableCell>
       </TableRow>
     );
-  }
+  };
   render() {
     const { prizeToDelete, dialogOpen, saving, editingPrizeId } = this.state;
     const editing = !!editingPrizeId;
@@ -438,13 +426,13 @@ export class PrizeList extends React.Component<
                 <TableRow>
                   <TableCell style={{ width: "20%" }}>Prize</TableCell>
                   <TableCell style={{ width: "34%" }}>Description</TableCell>
-                  <TableCell numeric={true} style={{ width: "12%" }}>
+                  <TableCell align="right" style={{ width: "12%" }}>
                     Total
                   </TableCell>
-                  <TableCell numeric={true} style={{ width: "12%" }}>
+                  <TableCell align="right" style={{ width: "12%" }}>
                     Weight
                   </TableCell>
-                  <TableCell numeric={true} style={{ width: "12%" }}>
+                  <TableCell align="right" style={{ width: "12%" }}>
                     Remaining
                   </TableCell>
                   <TableCell style={{ width: "10%", paddingLeft: "34px" }}>
