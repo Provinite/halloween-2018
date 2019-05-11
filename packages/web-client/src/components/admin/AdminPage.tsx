@@ -192,7 +192,7 @@ export class AdminPage extends React.Component<
       return;
     } catch (error) {
       if (error.response && error.response.status === 400) {
-        this.context.onApiError("Invalid prize.");
+        this.context.onApiError(error);
       } else {
         this.context.onApiError("Failed to save.");
       }
@@ -215,7 +215,7 @@ export class AdminPage extends React.Component<
       });
     } catch (error) {
       if (error.response && error.response.status === 400) {
-        this.context.onApiError("Invalid prize.");
+        this.context.onApiError(error);
       } else {
         this.context.onApiError("Failed to save.");
       }

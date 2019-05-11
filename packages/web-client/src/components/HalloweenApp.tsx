@@ -208,14 +208,30 @@ export default class HalloweenApp extends React.Component<
    * @param error - The error.
    */
   handleApiError(error: any): void {
+    let errorMessage: string | null = "" + (error && error.toString());
+    if (error && error.response && error.response.data) {
+      const response = error.response.data;
+      if (response.message) {
+        errorMessage = response.message;
+      }
+      if (response.error === "RequestValidationError") {
+        if (response.errors) {
+          Object.keys(response.errors).forEach(key =>
+            this.errorQueue.push(response.errors[key].message)
+          );
+          errorMessage = null;
+        }
+      }
+    }
     // tslint:disable
-    /*
     console.log("*************************");
     console.log("*        API Error      *");
     console.log("*************************");
-    */
+    console.log(error);
     // tslint:enable
-    this.errorQueue.push(error);
+    if (errorMessage) {
+      this.errorQueue.push(errorMessage);
+    }
     this.setState(prevState => ({
       error: {
         open: prevState.error.open ? false : true,
