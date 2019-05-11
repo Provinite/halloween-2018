@@ -5,18 +5,17 @@ import {
 
 interface ILocalStorageServiceImplMocks {
   // Mock storage provider
-  provider?: Storage;
-  key?: string;
-  values?: {
-    string?: string;
-    object?: object;
+  provider: Storage;
+  key: string;
+  values: {
+    string: string;
+    object: object;
   };
-  originalStorage?: Storage;
 }
 
 interface ILocalStorageServiceImplSuite {
   // Store used by mock storage provider
-  store?: {
+  store: {
     [key: string]: string;
   };
 }
@@ -47,16 +46,16 @@ describe("service:LocalStorageService", function() {
             foo: "bar"
           },
           string: "some value"
-        }
+        },
+        provider: {} as Storage
       };
       // Mock storage provider
-      mocks.provider = {} as Storage;
       mocks.provider.prototype = Storage.prototype;
 
       // Stubs
       mocks.provider.setItem = jest.fn((k, v) => (suite.store[k] = v));
-      mocks.provider.getItem = jest.fn(
-        k => (suite.store.hasOwnProperty(k) ? suite.store[k] : null)
+      mocks.provider.getItem = jest.fn(k =>
+        suite.store.hasOwnProperty(k) ? suite.store[k] : null
       );
 
       // Default service
@@ -64,9 +63,9 @@ describe("service:LocalStorageService", function() {
     });
 
     afterEach(() => {
-      svc = null;
-      mocks = null;
-      suite = null;
+      svc = null!;
+      mocks = null!;
+      suite = null!;
     });
     it("stores values as json in local storage", () => {
       const key = mocks.key;

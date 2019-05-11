@@ -13,7 +13,7 @@ const styles: StyleRulesCallback = theme => ({
   }
 });
 interface ISaveButtonProps extends ButtonProps {
-  classes: ButtonProps["classes"] & { icon: any; iconSmall: any };
+  classes: ButtonProps["classes"] & { icon?: string; iconSmall?: string };
   /** If true, a spinner will be displayed and the button will be disabled */
   saving?: boolean;
 }
@@ -33,6 +33,8 @@ const buttonWidthMap = {
 
 function FSaveButton(props: ISaveButtonProps) {
   const { classes, children, saving, size, ...other } = props;
+  const buttonWidth = size ? buttonWidthMap[size] : undefined;
+  const spinnerSize = size ? spinnerSizeMap[size] : undefined;
   return (
     <Button
       type="submit"

@@ -101,9 +101,9 @@ export class PrizeList extends React.Component<
   /**
    * Submit the form (committing an edit or create).
    */
-  submitForm() {
-    this.formRef.current.submit();
-  }
+  submitForm = () => {
+    this!.formRef.current!.submit();
+  };
 
   /**
    * Stop editing any prizes.
@@ -326,7 +326,10 @@ export class PrizeList extends React.Component<
       fullWidth: true
     };
 
-    const fieldProps: TextFieldProps = {
+    const fieldProps: Omit<StandardTextFieldProps, "value" | "onChange"> & {
+      value: string | number;
+      onChange: NonNullable<StandardTextFieldProps["onChange"]>;
+    } = {
       ...sharedFieldProps,
       multiline: field === "description",
       [labelProp]: label,

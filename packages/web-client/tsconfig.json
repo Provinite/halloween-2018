@@ -1,20 +1,21 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "none",
+    "module": "CommonJS",
     "jsx": "react",
     "moduleResolution": "node",
     "sourceMap": true,
     "allowJs": true,
-    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true
   },
   "parserOptions": {
 
   },
   "include": [
-    "src/**/*"
+    "./src/**/*"
   ],
   "exclude": [
     "./node_modules/**/*"

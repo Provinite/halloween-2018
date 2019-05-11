@@ -38,10 +38,11 @@ interface IAdminPageState {
   /** The currently selected tab */
   selectedTab: number;
   /** The next tab to switch to when transitions are done */
-  nextTab: number;
+  nextTab: number | null;
   /** The last tab we were on */
-  lastTab: number;
+  lastTab: number | null;
 }
+// type ClassNames = "tabs";
 /**
  * Component that presents a page for common administrative actions.
  */
@@ -86,7 +87,7 @@ export class AdminPage extends React.Component<
     this.setState(
       prevState => {
         return {
-          selectedTab: prevState.nextTab,
+          selectedTab: prevState.nextTab!,
           nextTab: null,
           lastTab: prevState.selectedTab
         };
@@ -113,7 +114,7 @@ export class AdminPage extends React.Component<
     });
     this.setState(loadingPrizes);
     const prizes = await this.context.services.prizeService
-      .getAll()
+      .getAll(this.state.selectedGame!)
       .catch(err => {
         this.context.onApiError(err);
         return [];
@@ -390,7 +391,7 @@ export class AdminPage extends React.Component<
     if (!path) {
       path = this.props.history.location.pathname;
     }
-    let desiredTab = paths.findIndex(p => path.startsWith(p));
+    let desiredTab: number | null = paths.findIndex(p => path!.startsWith(p));
     if (desiredTab === -1) {
       desiredTab = null;
     }
@@ -400,10 +401,10 @@ export class AdminPage extends React.Component<
   /**
    * Start a transition to the specified tab.
    */
-  private switchToTab(nextTab: number) {
+  private switchToTab(nextTab: number | null) {
     this.setState(prevState => {
       if (prevState.selectedTab === nextTab) {
-        return;
+        return null;
       }
       return { nextTab };
     });

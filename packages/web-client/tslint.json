@@ -4,6 +4,11 @@
     "prettier": true,
     "member-access": [true, "no-public"],
     "object-literal-sort-keys": false,
-    "only-arrow-functions": false
+    "only-arrow-functions": false,
+    "no-empty-interface": false,
+    "jsx-boolean-value": false,
+    "jsx-no-lambda": false,
+    "no-unused-variable": true,
+    "interface-name": false
   }
 }

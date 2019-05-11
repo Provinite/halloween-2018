@@ -22,13 +22,13 @@ import { AppContext, IAppContext } from "../AppContext";
 import { WithMuiTheme } from "../ui/mui/WithMuiTheme";
 export interface IAdminUsersTabProps {
   users: IUser[];
-  onAddRole?: (user: IUser, role: IRole) => any;
-  onDeleteRole?: (user: IUser, role: IRole) => any;
+  onAddRole: (user: IUser, role: IRole) => any;
+  onDeleteRole: (user: IUser, role: IRole) => any;
 }
 
 export interface IAdminUsersTabState {
-  userToPromote: IUser;
-  roleToAdd: IRole;
+  userToPromote: IUser | null;
+  roleToAdd: IRole | null;
   dialogOpen: boolean;
 }
 
@@ -80,7 +80,10 @@ export class AdminUsersTab extends React.Component<
    * Event handler for dialog confirmation.
    */
   handleDialogConfirmClick = async () => {
-    await this.props.onAddRole(this.state.userToPromote, this.state.roleToAdd);
+    await this.props.onAddRole(
+      this.state.userToPromote!,
+      this.state.roleToAdd!
+    );
     this.setState({
       dialogOpen: false
     });
@@ -109,8 +112,8 @@ export class AdminUsersTab extends React.Component<
           {theme => (
             <div
               style={{
-                paddingLeft: theme.spacing.unit,
-                paddingRight: theme.spacing.unit
+                paddingLeft: theme!.spacing.unit,
+                paddingRight: theme!.spacing.unit
               }}
             >
               <Typography variant="h3" color="secondary">
@@ -119,7 +122,7 @@ export class AdminUsersTab extends React.Component<
               <Typography
                 variant="body2"
                 color="inherit"
-                style={{ marginTop: theme.spacing.unit }}
+                style={{ marginTop: theme!.spacing.unit }}
               >
                 Danger Zone - Manage user permissions here.
               </Typography>

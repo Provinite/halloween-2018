@@ -82,14 +82,15 @@ export default class HalloweenApp extends React.Component<
         authenticationService,
         prizeService,
         userService,
-        roleService
+        roleService,
+        gameService
       },
       onApiError: this.handleApiError,
       onSuccess: this.handleSuccess,
       roles: {
-        admin: null,
-        moderator: null,
-        user: null
+        admin: null!,
+        moderator: null!,
+        user: null!
       }
     };
 
@@ -135,9 +136,9 @@ export default class HalloweenApp extends React.Component<
         context: {
           ...prevState.context,
           roles: {
-            admin: roles.find(role => role.name === ROLES.admin),
-            moderator: roles.find(role => role.name === ROLES.moderator),
-            user: roles.find(role => role.name === ROLES.user)
+            admin: roles.find(role => role.name === ROLES.admin)!,
+            moderator: roles.find(role => role.name === ROLES.moderator)!,
+            user: roles.find(role => role.name === ROLES.user)!
           }
         }
       };
