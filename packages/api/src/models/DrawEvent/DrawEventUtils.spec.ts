@@ -1,4 +1,5 @@
 import * as _RandomUtils from "../../RandomUtils";
+import { mockGames } from "../game/mocks/mockGames";
 import { rollWin } from "./DrawEventUtils";
 const RandomUtils = _RandomUtils as jest.Mocked<typeof _RandomUtils>;
 describe("DrawEventUtils", () => {
@@ -6,13 +7,12 @@ describe("DrawEventUtils", () => {
     jest.spyOn(RandomUtils, "getRandomFloat");
   });
   describe("rollWin", () => {
-    // TODO: environmentally configurable
-    const odds = 0.5;
     it("returns true if a random float is less than the configured odds", () => {
+      const odds = mockGames.sample.winRate;
       RandomUtils.getRandomFloat.mockReturnValue(odds - 0.0001);
-      expect(rollWin()).toBe(true);
+      expect(rollWin(mockGames.sample)).toBe(true);
       RandomUtils.getRandomFloat.mockReturnValue(odds + 0.0001);
-      expect(rollWin()).toBe(false);
+      expect(rollWin(mockGames.sample)).toBe(false);
     });
   });
 });
