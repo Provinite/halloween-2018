@@ -4,13 +4,26 @@ export type ValidationResult = {
   pass: boolean;
   message: string;
 };
-export type ValidatorFunction<Keys extends string, K extends Keys> = (
+export type ValidatorFunction<Keys extends string> = (
   val: any,
-  key: K,
-  obj?: Partial<Record<K, string>>
+  key: string,
+  obj?: Partial<Record<Keys, string>>
 ) => ValidationResult;
+export type TypedValidatorFunction<Keys extends string, R> = ValidatorFunction<
+  Keys
+> & {
+  __returntype: R;
+};
 export type ValidationFor<Keys extends string> = {
-  [key in Keys]: ValidatorFunction<Keys, key> | undefined
+  [key in Keys]:
+    | ValidatorFunction<Keys>
+    | undefined
+    | TypedValidatorFunction<Keys, any>
+};
+export type ValidatedRequestBody<V extends ValidationFor<any>> = {
+  [key in keyof V]: V[key] extends TypedValidatorFunction<any, infer U>
+    ? U
+    : any
 };
 /**
  * Validate an incoming request body.
@@ -19,10 +32,10 @@ export type ValidationFor<Keys extends string> = {
  *  be picked off of requestBody.
  * @throws RequestValidationError if any validators fail.
  */
-export function validateRequest<Keys extends string>(
-  requestBody: any,
-  validators: ValidationFor<Keys>
-) {
+export function validateRequest<
+  Keys extends string,
+  T extends ValidationFor<Keys>
+>(requestBody: any, validators: T): ValidatedRequestBody<T> {
   const alwaysPass = () => validationResult(true, "No validation rules.");
   const keys = Object.keys(validators) as Keys[];
   const body = pickRequestKeys(requestBody, ...keys);
@@ -40,7 +53,7 @@ export function validateRequest<Keys extends string>(
   if (failed === true) {
     throw new RequestValidationError(errorResults);
   }
-  return body;
+  return body as any;
 }
 
 export function validateValue(
@@ -89,6 +102,28 @@ export function validationResult(
   };
 }
 
+export type CreateValidatorOptions<T> = {
+  optional: boolean;
+  nullable: boolean;
+  validator: TypedValidatorFunction<string, T>;
+};
+export function createValidator<R = any>(
+  options: CreateValidatorOptions<R>
+): TypedValidatorFunction<string, R> {
+  return ((val: any, key: string, obj: any) => {
+    if (val === undefined) {
+      return validationResult(
+        options.optional,
+        `Missing required field: "${key}".`
+      );
+    }
+    if (val === null) {
+      return validationResult(options.nullable, `"${key}" cannot be empty.`);
+    }
+    return options.validator(val, key, obj);
+  }) as any;
+}
+
 /**
  * Determine if the value is a string of only or more digits.
  * @param val - The value to test.
@@ -113,19 +148,23 @@ export function isValidInt(val: any) {
 }
 
 export function isValidFloat(val: any) {
-  return typeof val === "number";
+  return typeof val === "number" && !Number.isNaN(val);
 }
 
-export function isPresent<T>(val: T): val is NonNullable<T> {
-  return val !== undefined && val !== null;
+export function isPresent<T>(val: T): val is Exclude<T, undefined> {
+  return val !== undefined;
 }
 
 export function isString(val: any): val is string {
   return typeof val === "string";
 }
 
+export function isNonEmptyString(val: any): boolean {
+  return typeof val === "string" && val.length > 0;
+}
+
 export function isValidDateString(val: any): val is string {
-  if (typeof val !== "string") {
+  if (typeof val !== "string" || !val) {
     return false;
   }
   return moment(val, "YYYY-MM-DD", true).isValid();
@@ -163,35 +202,107 @@ const requiredString = (val: any, key: string) => {
     `${key} is required and must be a string.`
   );
 };
-const optionalString = (val: any, key: string) => {
-  const result = !isPresent(val) || isString(val);
-  return validationResult(result, `${key} must be a string.`);
-};
-const optionalDateString = (val: any, key: string) => {
-  const result = !isPresent(val) || isValidDateString(val);
+const requiredNonEmptyString = (val: any, key: string) =>
+  validationResult(isNonEmptyString(val), `${key} must be a non empty string`);
+const requiredDateString = (val: any, key: string) => {
+  const result = isValidDateString(val);
   return validationResult(result, `${key} must be a valid date (YYYY-MM-DD).`);
 };
-const optionalInt = (val: any, key: string) => {
-  const result = !isPresent(val) || isValidInt(val);
-  return validationResult(result, `${key} must be a whole number`);
-};
-const optionalFloat = (val: any, key: string) => {
-  const result = !isPresent(val) || isValidFloat(val);
-  return validationResult(result, `${key} must be a valid decimal number.`);
+
+const requiredFloat = (val: any, key: string) => {
+  const result = isValidFloat(val);
+  return validationResult(result, `"${key}" must be a valid decimal number.`);
 };
 const requiredDigitString = (val: any, key: string) => {
-  const result = isPresent(val) && isDigitString(val);
-  return validationResult(result, `${key} must be a string of only digits.`);
+  return validationResult(
+    isDigitString(val),
+    `${key} must be a string of only digits.`
+  );
+};
+const requiredInt = (val: any, key: string) => {
+  return validationResult(
+    isValidInt(val),
+    `"${key}" must be a valid whole number.`
+  );
+};
+const requiredUndefined = (val: any, key: string) => {
+  return validationResult(val === undefined, `Field not allowed: "${key}"`);
+};
+const rootValidators = {
+  integer: requiredInt as TypedValidatorFunction<string, number>,
+  digitString: requiredDigitString as TypedValidatorFunction<string, string>,
+  string: requiredString as TypedValidatorFunction<string, string>,
+  nonEmptyString: requiredNonEmptyString as TypedValidatorFunction<
+    string,
+    string
+  >,
+  notAllowed: requiredUndefined as TypedValidatorFunction<string, never>,
+  float: requiredFloat as TypedValidatorFunction<string, number>,
+  dateString: requiredDateString as TypedValidatorFunction<string, string>
 };
 
-/**
- * Canned generic validators.
- */
-export const validators = {
-  requiredString,
-  optionalString,
-  optionalDateString,
-  optionalInt,
-  optionalFloat,
-  requiredDigitString
+type RootValidators = typeof rootValidators;
+type OptionalValidators = {
+  [key in keyof RootValidators]: RootValidators[key] extends TypedValidatorFunction<
+    string,
+    infer U
+  >
+    ? TypedValidatorFunction<string, U | undefined>
+    : never
+} & {
+  nullable: OptionalAndNullableValidators;
+};
+type NullableValidators = {
+  [key in keyof RootValidators]: RootValidators[key] extends TypedValidatorFunction<
+    string,
+    infer U
+  >
+    ? TypedValidatorFunction<string, U | null>
+    : never
+} & {
+  optional: OptionalAndNullableValidators;
+};
+type OptionalAndNullableValidators = {
+  [key in keyof RootValidators]: RootValidators[key] extends TypedValidatorFunction<
+    string,
+    infer U
+  >
+    ? TypedValidatorFunction<string, U | null | undefined>
+    : never
+};
+type OptionalNullableValidators = RootValidators & {
+  optional: OptionalValidators;
+  nullable: NullableValidators;
+};
+
+const optionalValidators = {} as any;
+const nullableValidators = {} as any;
+const optionalNullableValidators = {} as any;
+for (const [key, validator] of Object.entries(rootValidators)) {
+  optionalValidators[key] = createValidator({
+    optional: true,
+    nullable: false,
+    validator: validator as any
+  });
+  nullableValidators[key] = createValidator({
+    optional: false,
+    nullable: true,
+    validator: validator as any
+  });
+  optionalNullableValidators[key] = createValidator({
+    optional: true,
+    nullable: true,
+    validator: validator as any
+  });
+}
+export const validators: OptionalNullableValidators = {
+  ...rootValidators,
+  optional: {
+    ...optionalValidators,
+    nullable: optionalNullableValidators
+  },
+  nullable: {
+    ...nullableValidators,
+    optional: optionalNullableValidators
+  }
 };

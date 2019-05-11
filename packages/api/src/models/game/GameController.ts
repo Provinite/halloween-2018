@@ -67,34 +67,69 @@ export class GameController {
     user: User,
     gameRepository: Repository<Game>
   ) {
-    validateValue(gameId, "gameId", validators.requiredDigitString);
-    const gameParts = gamePartsFromRequestBody(requestBody);
+    validateValue(gameId, "gameId", validators.digitString);
+    const gameParts = parseBodyForUpdate(requestBody);
     const game = await gameRepository.findOne(gameId);
     await this.gameAuthorizationService.canUpdate(user);
-    Object.assign(game, gameParts);
+    gameRepository.merge(game, gameParts);
     return await gameRepository.save(game);
+  }
+
+  /**
+   * Fetch a single game.
+   */
+  @Route({ route: "/games/{gameId}", roles: ["user"], method: HttpMethod.GET })
+  async getGame(
+    game: Game,
+    gameAuthorizationService: GameAuthorizationService
+  ) {
+    if (game === undefined) {
+      throw new ResourceNotFoundError();
+    }
+    await gameAuthorizationService.canRead(game);
+    return game;
   }
 }
 
 /**
- * Extract valid keys for POST and PATCH operations from the request body.
+ * Validate and extract keys from a request body for PATCHing a game.
+ * @param requestBody - The request body to parse.
+ * @returns The validated, picked keys off of requestBody.
+ * @throws If validation fails.
+ */
+function parseBodyForUpdate(requestBody: any) {
+  return validateRequest(requestBody, {
+    name: validators.optional.string,
+    description: validators.optional.string,
+    contact: validators.optional.string,
+    startDate: validators.optional.dateString,
+    endDate: validators.optional.dateString,
+    drawResetSchedule: validators.optional.string,
+    drawsPerReset: validators.optional.integer,
+    vipDrawsPerReset: validators.optional.integer,
+    winRate: validators.optional.float
+  });
+}
+
+/**
+ * Extract valid keys for POST operations from the request body.
  * @param requestBody - The incoming request body.
  * @return Those keys from requestBody that are valid update and create keys for
  *  a Game.
- * @throws RequestValidationError if the request body does not have the required
+ * @throws if the request body does not have the required
  *  keys, or they are of the wrong data type.
  */
-function gamePartsFromRequestBody(requestBody: any) {
+function parseBodyForCreate(requestBody: any) {
   return validateRequest(requestBody, {
-    name: validators.requiredString,
-    description: validators.requiredString,
-    contact: validators.requiredString,
-    startDate: validators.optionalDateString,
-    endDate: validators.optionalDateString,
-    drawResetSchedule: validators.optionalString,
-    drawsPerReset: validators.optionalInt,
-    vipDrawsPerReset: validators.optionalInt,
-    winRate: validators.optionalFloat
+    name: validators.string,
+    description: validators.string,
+    contact: validators.string,
+    startDate: validators.optional.dateString,
+    endDate: validators.optional.dateString,
+    drawResetSchedule: validators.optional.string,
+    drawsPerReset: validators.optional.integer,
+    vipDrawsPerReset: validators.optional.integer,
+    winRate: validators.optional.float
   });
 }
 

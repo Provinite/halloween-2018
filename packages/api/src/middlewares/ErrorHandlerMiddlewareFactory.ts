@@ -72,7 +72,8 @@ export class ErrorHandlerMiddlewareFactory implements IMiddlewareFactory {
         // Request validation failed, attach validation error results
         // to the response.
         ctx.status = 400;
-        errorResult.errrors = e.erroredResults;
+        errorResult.errors = e.erroredResults;
+        errorResult.message = e.message;
         setErrorResponse();
       } else if (e instanceof QueryFailedError && isDuplicateKeyError(e)) {
         // Duplicate key error, attempt to extract the key and make the message
