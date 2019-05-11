@@ -42,12 +42,12 @@ function FSaveButton(props: ISaveButtonProps) {
       size={size}
       disabled={saving}
       {...other}
-      style={{ width: buttonWidthMap[size] }}
+      style={{ width: buttonWidth }}
     >
       <WithSpinner
         color="secondary"
-        size={spinnerSizeMap[size]}
-        loading={saving}
+        size={spinnerSize}
+        loading={saving || false}
       >
         <SaveIcon
           className={
