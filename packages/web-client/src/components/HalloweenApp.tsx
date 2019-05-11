@@ -5,6 +5,7 @@ import { ApiClient } from "../services/ApiClient";
 import { makeAuthAxiosInterceptor } from "../services/auth/AuthAxiosInterceptor";
 import { AuthenticationError } from "../services/auth/AuthenticationError";
 import { AuthenticationService } from "../services/auth/AuthenticationService";
+import { GameService } from "../services/GameService";
 import { LocalStorageService } from "../services/LocalStorageService";
 import { PrizeService } from "../services/PrizeService";
 import { RoleService } from "../services/RoleService";
@@ -52,7 +53,7 @@ export default class HalloweenApp extends React.Component<
   IHalloweenAppState
 > {
   /* Error queue */
-  errorQueue = [];
+  errorQueue: string[] = [];
 
   /** Lifecycle */
   constructor(props) {
@@ -64,11 +65,12 @@ export default class HalloweenApp extends React.Component<
     this.handleErrorExited = this.handleErrorExited.bind(this);
     this.handleSuccess = this.handleSuccess.bind(this);
 
-    const apiClient = new ApiClient(apiBase);
+    const apiClient = new ApiClient(apiBase!);
     const authenticationService = new AuthenticationService(apiClient);
     const prizeService = new PrizeService(apiClient);
     const userService = new UserService(apiClient);
     const roleService = new RoleService(apiClient);
+    const gameService = new GameService(apiClient);
 
     apiClient.useResponseInterceptor(
       makeAuthAxiosInterceptor(authenticationService, this.handleAuthLogout)
