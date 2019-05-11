@@ -1,4 +1,5 @@
 import { ROLES } from "@clovercoin/constants";
+import { asValue, createContainer, InjectionMode } from "awilix";
 import { RoleLiteral } from "../auth/RoleLiteral";
 
 /**
@@ -55,4 +56,15 @@ export function createDeferred<T = any>() {
     reject = rej;
   });
   return { resolve, reject, promise };
+}
+
+/**
+ * Register each entry of the map to the provided Awilix container.
+ */
+export function createTestContainer(map: { [key: string]: any }) {
+  const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
+  for (const [key, value] of Object.entries(map)) {
+    container.register(key, asValue(value));
+  }
+  return container;
 }
