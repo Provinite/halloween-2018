@@ -106,13 +106,12 @@ describe("RequestValidationUtils", () => {
     });
   });
   describe("isPresent", () => {
-    it("identifies null and undefined values as not present", () => {
-      const data = { foo: undefined, bar: null } as any;
+    it("identifies undefined values as not present", () => {
+      const data = { foo: undefined } as any;
       expect(isPresent(data.foo)).toBe(false);
       expect(isPresent(data.bar)).toBe(false);
-      expect(isPresent(data.baz)).toBe(false);
     });
-    it.each(["", 0, false, 1, 100, new Date(), "zoop", {}, true])(
+    it.each(["", 0, false, 1, 100, new Date(), "zoop", {}, true, null])(
       "treats %p as present",
       value => {
         const data = { value };
