@@ -27,18 +27,20 @@ export class ErrorHandlerMiddlewareFactory implements IMiddlewareFactory {
         error: errorName
       };
       const setErrorResponse = () => {
+        // log 500s as errors, everything else as info
+        const logFn = ctx.status === 500 ? "error" : "info";
         ctx.state.result = {
           ...errorResult,
           status: ctx.status
         };
-        // TODO: logger.error for other unknown errors
-        logger.info(
+        // TODO: Needs tests
+        logger[logFn](
           "ErrorHandler: Caught error - " +
             (e instanceof Object ? e.constructor.name : "UnknownError")
         );
-        logger.info(`[${ctx.method}]: ${ctx.path}`);
-        logger.info("message: " + e.message);
-        logger.info(e.stack);
+        logger[logFn](`[${ctx.method}]: ${ctx.path}`);
+        logger[logFn]("message: " + e.message);
+        logger[logFn](e.stack);
       };
       if (e instanceof AuthenticationFailureException) {
         ctx.status = 400;
