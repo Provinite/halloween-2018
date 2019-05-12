@@ -15,7 +15,7 @@ export const makeAuthAxiosInterceptor: (
   return [
     noOnFulFilled,
     err => {
-      if (isAxiosError(err)) {
+      if (isAxiosError(err) && err.response) {
         if (
           err.response.status === 401 &&
           isTokenExpiredResponse(err.response)

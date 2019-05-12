@@ -1,5 +1,6 @@
 import { asValue, AwilixContainer } from "awilix";
 import { Context, Middleware } from "koa";
+import { asClassMethod } from "../AwilixHelpers";
 import { getMethod, HttpMethod } from "../HttpMethod";
 import { RouteRegistry } from "../web/RouteRegistry";
 import { UnknownMethodError } from "../web/UnknownMethodError";
@@ -34,11 +35,18 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
       }
       const requestContainer: AwilixContainer = ctx.state.requestContainer;
 
-      const { resolver, pathVariables } = this.routeRegistry.lookupRoute(
-        path,
-        method
-      );
+      const {
+        router,
+        resolver,
+        pathVariables
+      } = this.routeRegistry.lookupRoute(path, method);
       registerPathVariables(pathVariables, requestContainer);
+      // TODO: this could be a typeguard
+      if (router && typeof router.configureRequestContainer === "function") {
+        await requestContainer.build(
+          asClassMethod(router, router.configureRequestContainer)
+        );
+      }
       // Invoke this route's handler, and store its response on the context
       // for later rendering.
       ctx.state.result = await requestContainer.build(resolver);
@@ -53,15 +61,19 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
 }
 
 /**
- * Register each path variable on the DI container.
+ * Register each path variable on the DI container. Additionally register the
+ * pathVariables map as "pathVariables"
  * @param pathVariables - A map of path variable keys to values
  * @param requestContainer - The request-scoped DI container to inject the values
  *    into.
+ * @configures pathVariables - The pathVariables map.
+ * @configures * - One entry for each path variable received. (DEPRECATED)
  */
 function registerPathVariables(
   pathVariables: { [key: string]: string },
   requestContainer: AwilixContainer
 ) {
+  requestContainer.register("pathVariables", asValue(pathVariables || {}));
   if (!pathVariables) {
     return;
   }

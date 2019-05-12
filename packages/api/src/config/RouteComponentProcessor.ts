@@ -75,6 +75,7 @@ export class RouteComponentProcessor {
             route,
             methods,
             asClassMethod(router, routableMethod),
+            router,
             roles
           );
         });

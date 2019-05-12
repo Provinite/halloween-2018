@@ -6,8 +6,8 @@ import { LoginLink } from "./LoginLink";
 interface ILoginPageState {
   isLoading: boolean;
   hasAuthCode: boolean;
-  username: string;
-  iconUrl: string;
+  username: string | undefined;
+  iconUrl: string | undefined;
 }
 
 type ILoginPageProps = RouteComponentProps;

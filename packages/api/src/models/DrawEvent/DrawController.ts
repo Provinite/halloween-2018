@@ -1,10 +1,13 @@
-import { Connection, Repository } from "typeorm";
+import { Repository } from "typeorm";
+import { TransactionService } from "../../db/TransactionService";
 import { HttpMethod } from "../../HttpMethod";
 import { selectRandomItemFromPool } from "../../RandomUtils";
 import { Component } from "../../reflection/Component";
 import { Route } from "../../reflection/Route";
+import { validateValue, validators } from "../../web/RequestValidationUtils";
 import { DrawEvent } from "../DrawEvent";
-import { getRepositoryFor } from "../modelUtils";
+import { Game } from "../Game";
+import { GameAuthorizationService } from "../game/GameAuthorizationService";
 import { NoPrizesInStockError } from "../prize/NoPrizesInStockError";
 import { PrizeRepository } from "../prize/PrizeRepository";
 import { User } from "../User";
@@ -13,10 +16,21 @@ import { DrawEventRepository } from "./DrawEventRepository";
 import { rollWin } from "./DrawEventUtils";
 @Component()
 export class DrawController {
-  constructor(
-    private orm: Connection,
-    private drawEventAuthorizationService: DrawEventAuthorizationService
-  ) {}
+  @Route({
+    route: "/games/{gameId}/draws",
+    method: HttpMethod.GET,
+    roles: ["public"]
+  })
+  async getDrawsByGame(
+    gameId: string,
+    drawEventRepository: DrawEventRepository
+  ) {
+    const result = await drawEventRepository.find({
+      where: { game: gameId },
+      loadEagerRelations: true
+    });
+    return result;
+  }
 
   /**
    * Attempt to draw a prize for the user. Uses the configured win chance to
@@ -28,79 +42,74 @@ export class DrawController {
    * @return The newly created draw event.
    */
   @Route({
-    route: "/draws",
+    route: "/games/{gameId}/draws",
     method: HttpMethod.POST,
     roles: ["user"]
   })
   async drawPrize(
+    gameId: string,
     user: User,
     drawEventRepository: DrawEventRepository,
-    prizeRepository: PrizeRepository
+    prizeRepository: PrizeRepository,
+    drawEventAuthorizationService: DrawEventAuthorizationService,
+    gameAuthorizationService: GameAuthorizationService,
+    gameRepository: Repository<Game>,
+    transactionService: TransactionService
   ): Promise<DrawEvent> {
-    const count = await prizeRepository.getInStockPrizeCount();
+    validateValue(gameId, "gameId", validators.digitString);
+    const game = await gameRepository.findOneOrFail(gameId);
+    await gameAuthorizationService.canRead(game);
+    const count = await prizeRepository.getInStockPrizeCount(game);
     if (count === 0) {
       throw new NoPrizesInStockError();
     }
     // roll the dice!
-    if (!rollWin()) {
+    if (!rollWin(game)) {
       const loseDrawEvent: DrawEvent = await drawEventRepository.create();
       loseDrawEvent.user = user;
       loseDrawEvent.prize = null;
-      await this.drawEventAuthorizationService.canCreate(
-        user,
-        loseDrawEvent,
-        this.orm
-      );
+      loseDrawEvent.game = game;
+      await drawEventAuthorizationService.canCreate(loseDrawEvent);
       return await drawEventRepository.save(loseDrawEvent);
     }
     let drawEvent: DrawEvent;
     // run all of this in a transaction so it's all nice and atomic
-    await this.orm.transaction(async manager => {
-      // TODO: This could be done better. Basically to prevent wasting a DB lock
-      // this check is duplicated here.
-      await this.drawEventAuthorizationService.canCreate(
-        user,
-        { user },
-        manager
-      );
-      // get transactional repositories
-      const tPrizeRepository = manager.getCustomRepository(PrizeRepository);
-      const tDrawEventRepository = getRepositoryFor(manager, DrawEvent);
+    return await transactionService.runTransaction(
+      async (
+        prizeRepository: PrizeRepository,
+        drawEventRepository: DrawEventRepository
+      ) => {
+        // TODO: This could be done better. Basically to prevent wasting a DB lock
+        // this check is duplicated here.
+        await drawEventAuthorizationService.canCreate({ user, game });
+        // fetch the prize list and lock the table
+        const prizes = await prizeRepository.getInStockPrizesForUpdate(game);
+        if (prizes.length === 0) {
+          throw new NoPrizesInStockError();
+        }
 
-      // fetch the prize list and lock the table
-      const prizes = await tPrizeRepository.getInStockPrizesForUpdate();
-      if (prizes.length === 0) {
-        throw new NoPrizesInStockError();
+        const selectedPrize = selectRandomItemFromPool(prizes, prize => {
+          return Math.floor(prize.weight * 100) * prize.currentStock;
+        });
+
+        drawEvent = drawEventRepository.create();
+        drawEvent.user = user;
+        drawEvent.prize = selectedPrize;
+        drawEvent.game = game;
+        // authorize the model creation
+        await drawEventAuthorizationService.canCreate(drawEvent);
+
+        // TODO: this prize update should probably have an auth check
+        selectedPrize.currentStock--;
+        const [savedDrawEvent, savedPrize] = await Promise.all([
+          drawEventRepository.save(drawEvent),
+          prizeRepository.save(selectedPrize)
+        ]);
+        drawEvent = savedDrawEvent;
+        drawEvent.prize = savedPrize;
+        return drawEvent;
       }
-
-      const selectedPrize = selectRandomItemFromPool(prizes, prize => {
-        return Math.floor(prize.weight * 100) * prize.currentStock;
-      });
-
-      drawEvent = tDrawEventRepository.create();
-      drawEvent.user = user;
-      drawEvent.prize = selectedPrize;
-      // authorize the model creation
-      await this.drawEventAuthorizationService.canCreate(
-        user,
-        drawEvent,
-        manager
-      );
-
-      // TODO: this prize update should probably have an auth check
-      selectedPrize.currentStock--;
-      const [savedDrawEvent, savedPrize] = await Promise.all([
-        tDrawEventRepository.save(drawEvent),
-        tPrizeRepository.save(selectedPrize)
-      ]);
-      // update drawEvent in the outer scope.
-      // this is weird.
-      // TODO: can we just return a value from this promise via
-      // manager.transaction?
-      drawEvent = savedDrawEvent;
-      drawEvent.prize = savedPrize;
-    });
-    return drawEvent;
+    );
   }
 
   /**
@@ -115,10 +124,11 @@ export class DrawController {
   async getDraws(
     user: User,
     userId: string,
-    drawEventRepository: Repository<DrawEvent>
+    drawEventRepository: Repository<DrawEvent>,
+    drawEventAuthorizationService: DrawEventAuthorizationService
   ): Promise<DrawEvent[]> {
     const filter = { where: { user: userId } };
-    await this.drawEventAuthorizationService.canReadMultiple(user, filter);
+    await drawEventAuthorizationService.canReadMultiple(filter);
     return await drawEventRepository.find(filter);
   }
 }

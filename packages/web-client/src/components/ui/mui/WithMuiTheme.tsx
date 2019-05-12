@@ -1,7 +1,11 @@
-import { Theme, withTheme, WithTheme } from "@material-ui/core";
+import { Theme, withTheme } from "@material-ui/core";
+import { ThemedComponentProps } from "@material-ui/core/styles/withTheme";
 import * as React from "react";
-interface IWithMuiThemeProps extends WithTheme {
-  children: (theme: Theme, innerRef: React.Ref<any>) => React.ReactNode;
+interface IWithMuiThemeProps extends ThemedComponentProps {
+  children: (
+    theme: Theme | undefined,
+    innerRef: React.Ref<any> | undefined
+  ) => React.ReactNode;
 }
 function FWithMuiTheme(props: IWithMuiThemeProps) {
   const { theme, innerRef, children } = props;

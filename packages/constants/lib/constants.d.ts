@@ -13,6 +13,7 @@ declare module "@clovercoin/constants" {
   */
   export type PartialExcept<T, K extends keyof T> = Omit<Partial<T>, K> &
     Pick<T, K>;
+  export type PartialKeys<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>
 
   /**
    * The argument types of the functional type T

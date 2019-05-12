@@ -1,15 +1,23 @@
 import { Card, Slide } from "@material-ui/core";
 import { CardProps } from "@material-ui/core/Card";
 import * as React from "react";
-interface ITabContainerProps extends CardProps {
+interface IPageCardProps extends CardProps {
+  /** Page content */
   children: React.ReactNode;
+  /** Controls transition state. */
   open: boolean;
+  /** Transition direction (in) */
   direction?: "left" | "right" | "up" | "down";
+  /** Callback invoked when transition has finished. */
   onExited?: () => void;
 }
-export function TabContainer(props: ITabContainerProps) {
+/**
+ * UI Component for displaying a full page card. Supports slide transitions.
+ */
+export function PageCard(props: IPageCardProps) {
   const { children, hidden, onExited, open, direction, ...other } = props;
   return (
+    // TODO: refactor these styles into `withStyles`
     <Slide
       timeout={400}
       direction={direction || "right"}

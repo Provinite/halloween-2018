@@ -14,6 +14,7 @@ describe.skip("HalloweenAppDevRunner", function() {
     process.env.PORT = "3000";
     webserver = new Koa();
     runner = new HalloweenAppDevRunner();
+    // tslint:disable-next-line: no-floating-promises
     runner.run();
   });
 

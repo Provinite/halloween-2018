@@ -1,5 +1,6 @@
 import { asClass, asValue, AwilixContainer } from "awilix";
 import { IScannableClass } from "../../reflection/ScannableClass";
+import { lifeTime } from "../../reflection/Symbols";
 /**
  * @class ComponentRegistrar
  * Container configurator that registers @Component-annotated classes.
@@ -21,7 +22,7 @@ export class ComponentRegistrar {
     components.forEach((componentClass: IScannableClass) => {
       container.register(
         ComponentRegistrar.getRegistrationName(componentClass),
-        asClass(componentClass).singleton()
+        asClass(componentClass, { lifetime: componentClass[lifeTime] })
       );
     });
     container.register("ComponentList", asValue(components.map(_ => _)));

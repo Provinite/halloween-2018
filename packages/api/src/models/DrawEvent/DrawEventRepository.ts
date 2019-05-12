@@ -1,5 +1,6 @@
 import { EntityRepository, Repository } from "typeorm";
 import { DrawEvent } from "../DrawEvent";
+import { Game } from "../Game";
 import { User } from "../User";
 
 /**
@@ -12,12 +13,18 @@ export class DrawEventRepository extends Repository<DrawEvent> {
    * @param user - The user to look up draw events for.
    * @return The user's most recent draw event, or undefined if they have none.
    */
-  async getLastDrawEvent(user: User): Promise<DrawEvent | undefined> {
+  async getLastDrawEvent(
+    user: User,
+    game: Game | number
+  ): Promise<DrawEvent | undefined> {
     if (!user) {
       throw new Error("Cannot get last draw event without user.");
     }
+    if (!game && game !== 0) {
+      throw new Error("Cannot get last draw event without game or game id.");
+    }
     const result = await this.manager.find(DrawEvent, {
-      where: { user },
+      where: { user, game },
       take: 1,
       order: {
         createDate: "DESC"

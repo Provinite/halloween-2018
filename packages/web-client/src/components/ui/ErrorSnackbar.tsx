@@ -1,12 +1,13 @@
 import { StyleRulesCallback, Typography, withStyles } from "@material-ui/core";
-import Slide, { SlideProps } from "@material-ui/core/Slide";
+import Slide from "@material-ui/core/Slide";
 import Snackbar, { SnackbarProps } from "@material-ui/core/Snackbar";
+import { TransitionProps } from "@material-ui/core/transitions/transition";
 import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
 import * as React from "react";
 
 type ErrorSnackbarProps = SnackbarProps;
 
-function SnackbarTransition(props: SlideProps) {
+function SnackbarTransition(props: TransitionProps) {
   return <Slide {...props} direction="right" />;
 }
 

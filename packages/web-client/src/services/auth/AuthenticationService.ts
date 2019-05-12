@@ -20,10 +20,10 @@ export class AuthenticationService {
    * Forget the current user's credentials
    */
   logout() {
-    LocalStorageService.put("username", null);
-    LocalStorageService.put("token", null);
-    LocalStorageService.put("iconUrl", null);
-    LocalStorageService.put("uuid", null);
+    LocalStorageService.remove("username");
+    LocalStorageService.remove("token");
+    LocalStorageService.remove("iconUrl");
+    LocalStorageService.remove("uuid");
     this.apiClient.unsetToken();
   }
   /**

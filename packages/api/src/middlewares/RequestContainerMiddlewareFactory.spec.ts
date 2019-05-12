@@ -20,7 +20,10 @@ describe("RequestContainerMiddlewareFactory", () => {
         createScope: jest.fn().mockReturnValue(mockRequestContainer)
       } as unknown) as jest.Mocked<AwilixContainer>;
       const mockContext = {
-        state: {}
+        state: {},
+        request: {
+          query: {}
+        }
       } as Context;
       const next = jest.fn();
       const factory = new RequestContainerMiddlewareFactory(

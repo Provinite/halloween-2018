@@ -6,6 +6,7 @@ export const allowedRoles: unique symbol = Symbol("allowedRoles");
 export const decoratedType: unique symbol = Symbol("decoratedType");
 export const routableMethods: unique symbol = Symbol("routableMethods");
 export const httpMethods: unique symbol = Symbol("httpMethods");
+export const lifeTime: unique symbol = Symbol("lifetime");
 export enum DecoratedTypes {
   CLASS,
   METHOD

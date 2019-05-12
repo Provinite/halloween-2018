@@ -61,7 +61,7 @@ class WithCssShakeImpl extends React.Component<IWithCssShakeProps> {
     return (
       <div
         onAnimationIteration={this.handleAnimationIteration}
-        className={this.props.shake ? this.props.classes.shaker : null}
+        className={this.props.shake ? this.props.classes.shaker : undefined}
       >
         {this.props.children}
       </div>

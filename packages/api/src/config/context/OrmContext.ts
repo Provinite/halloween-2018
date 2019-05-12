@@ -1,5 +1,5 @@
-import { asFunction, asValue, AwilixContainer } from "awilix";
-import { Connection, createConnection } from "typeorm";
+import { asFunction, asValue, AwilixContainer, Lifetime } from "awilix";
+import { Connection, createConnection, EntityManager } from "typeorm";
 import { asStaticMethod } from "../../AwilixHelpers";
 import { MODELS } from "../../models";
 import { getRepositoryFor } from "../../models/modelUtils";
@@ -39,11 +39,20 @@ export class OrmContext {
 
     // Register the ORM connection.
     container.register("orm", asValue(connection));
+    // make a proxy to always grab the "manager" off of the current container's
+    // ORM
+    container.register(
+      "manager",
+      asFunction((orm: Connection) => orm.manager, {
+        lifetime: Lifetime.TRANSIENT
+      })
+    );
 
     MODELS.forEach(model => {
-      // Register a repository for each model.
+      // Register a scoped repository for each model.
       const name = createRepositoryName(model);
-      const proxy = (orm: Connection) => getRepositoryFor(orm, model);
+      const proxy = (manager: EntityManager) =>
+        getRepositoryFor(manager, model);
       const resolver = asFunction(proxy);
       container.register(name, resolver);
     });

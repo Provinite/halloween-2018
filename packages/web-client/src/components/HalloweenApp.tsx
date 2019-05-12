@@ -5,6 +5,7 @@ import { ApiClient } from "../services/ApiClient";
 import { makeAuthAxiosInterceptor } from "../services/auth/AuthAxiosInterceptor";
 import { AuthenticationError } from "../services/auth/AuthenticationError";
 import { AuthenticationService } from "../services/auth/AuthenticationService";
+import { GameService } from "../services/GameService";
 import { LocalStorageService } from "../services/LocalStorageService";
 import { PrizeService } from "../services/PrizeService";
 import { RoleService } from "../services/RoleService";
@@ -52,7 +53,7 @@ export default class HalloweenApp extends React.Component<
   IHalloweenAppState
 > {
   /* Error queue */
-  errorQueue = [];
+  errorQueue: string[] = [];
 
   /** Lifecycle */
   constructor(props) {
@@ -64,11 +65,12 @@ export default class HalloweenApp extends React.Component<
     this.handleErrorExited = this.handleErrorExited.bind(this);
     this.handleSuccess = this.handleSuccess.bind(this);
 
-    const apiClient = new ApiClient(apiBase);
+    const apiClient = new ApiClient(apiBase!);
     const authenticationService = new AuthenticationService(apiClient);
     const prizeService = new PrizeService(apiClient);
     const userService = new UserService(apiClient);
     const roleService = new RoleService(apiClient);
+    const gameService = new GameService(apiClient);
 
     apiClient.useResponseInterceptor(
       makeAuthAxiosInterceptor(authenticationService, this.handleAuthLogout)
@@ -80,14 +82,15 @@ export default class HalloweenApp extends React.Component<
         authenticationService,
         prizeService,
         userService,
-        roleService
+        roleService,
+        gameService
       },
       onApiError: this.handleApiError,
       onSuccess: this.handleSuccess,
       roles: {
-        admin: null,
-        moderator: null,
-        user: null
+        admin: null!,
+        moderator: null!,
+        user: null!
       }
     };
 
@@ -133,9 +136,9 @@ export default class HalloweenApp extends React.Component<
         context: {
           ...prevState.context,
           roles: {
-            admin: roles.find(role => role.name === ROLES.admin),
-            moderator: roles.find(role => role.name === ROLES.moderator),
-            user: roles.find(role => role.name === ROLES.user)
+            admin: roles.find(role => role.name === ROLES.admin)!,
+            moderator: roles.find(role => role.name === ROLES.moderator)!,
+            user: roles.find(role => role.name === ROLES.user)!
           }
         }
       };
@@ -205,14 +208,30 @@ export default class HalloweenApp extends React.Component<
    * @param error - The error.
    */
   handleApiError(error: any): void {
+    let errorMessage: string | null = "" + (error && error.toString());
+    if (error && error.response && error.response.data) {
+      const response = error.response.data;
+      if (response.message) {
+        errorMessage = response.message;
+      }
+      if (response.error === "RequestValidationError") {
+        if (response.errors) {
+          Object.keys(response.errors).forEach(key =>
+            this.errorQueue.push(response.errors[key].message)
+          );
+          errorMessage = null;
+        }
+      }
+    }
     // tslint:disable
-    /*
     console.log("*************************");
     console.log("*        API Error      *");
     console.log("*************************");
-    */
+    console.log(error);
     // tslint:enable
-    this.errorQueue.push(error);
+    if (errorMessage) {
+      this.errorQueue.push(errorMessage);
+    }
     this.setState(prevState => ({
       error: {
         open: prevState.error.open ? false : true,

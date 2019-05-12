@@ -1,3 +1,5 @@
+import { Concrete } from "../types/Concrete";
+
 /**
  * @class LocalStorageServiceImpl
  * @description
@@ -29,8 +31,16 @@ export class LocalStorageServiceImpl {
    *    in between fetches, and so certain information will be lost including
    *    any functions, its identity, and its prototype.
    */
-  put(key: string, val: any) {
+  put(key: string, val: Concrete) {
     return this.localStorage.setItem(key, this.serialize(val));
+  }
+
+  /**
+   * Remove a local storage key.
+   * @param key
+   */
+  remove(key: string) {
+    return this.localStorage.removeItem(key);
   }
 
   /**
@@ -38,7 +48,9 @@ export class LocalStorageServiceImpl {
    * @param {any} val - The value to serialize.
    * @return {String} The serialized value.
    */
-  private serialize(val: any): string {
+  private serialize(val: null): null;
+  private serialize(val: Concrete): string;
+  private serialize(val: any): string | null {
     if (val === null) {
       return null;
     }
@@ -49,7 +61,7 @@ export class LocalStorageServiceImpl {
    * @param {String} val - The serialized value.
    * @return {any} The deserialized value.
    */
-  private deserialize(val: string): any {
+  private deserialize(val: string | null): any | null {
     if (val === null) {
       return null;
     }

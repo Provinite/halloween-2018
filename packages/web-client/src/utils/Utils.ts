@@ -100,8 +100,10 @@ export function handlerFactory<F extends (...args: any[]) => any>(
 ): EventHandlerFactory<F> {
   const factoryWrapper = (...args: ArgumentTypes<F>) => (...eventArgs: any[]) =>
     handler(...args, ...eventArgs);
-  const memoizedFactory = memoize(factoryWrapper, {
+  const memoizedFactory = memoize(factoryWrapper as any, {
     strategy: memoize.strategies.variadic
   });
-  return memoizedFactory;
+  return memoizedFactory as (
+    ...args: ArgumentTypes<F>
+  ) => (...eventArgs: any[]) => ReturnType<F>;
 }

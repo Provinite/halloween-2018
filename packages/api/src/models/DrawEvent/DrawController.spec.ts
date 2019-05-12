@@ -1,8 +1,15 @@
+import { asFunction, asValue, AwilixContainer } from "awilix";
 import { Connection, EntityManager, Repository } from "typeorm";
+import { asClassMethod } from "../../AwilixHelpers";
+import { TransactionService } from "../../db/TransactionService";
 import * as _ModelUtils from "../../models/modelUtils";
 import * as _RandomUtils from "../../RandomUtils";
+import { createTestContainer } from "../../test/testUtils";
 import { DrawEvent } from "../DrawEvent";
 import * as DrawEventUtils from "../DrawEvent/DrawEventUtils";
+import { Game } from "../Game";
+import { GameAuthorizationService } from "../game/GameAuthorizationService";
+import { mockGames } from "../game/mocks/mockGames";
 import { Prize } from "../Prize";
 import { mockPrizes } from "../prize/mocks/mockPrize";
 import { NoPrizesInStockError } from "../prize/NoPrizesInStockError";
@@ -15,19 +22,24 @@ const ModelUtils = _ModelUtils as jest.Mocked<typeof _ModelUtils>;
 const RandomUtils = _RandomUtils as jest.Mocked<typeof _RandomUtils>;
 describe("DrawController", () => {
   let mocks: {
-    authService: jest.Mocked<DrawEventAuthorizationService>;
+    drawEventAuthorizationService: jest.Mocked<DrawEventAuthorizationService>;
+    gameAuthorizationService: jest.Mocked<GameAuthorizationService>;
     drawEventRepository: jest.Mocked<DrawEventRepository>;
+    gameRepository: jest.Mocked<Repository<Game>>;
     prizeRepository: jest.Mocked<PrizeRepository>;
     orm: jest.Mocked<Connection>;
-    transactionalManager: jest.Mocked<EntityManager>;
+    transactionService: jest.Mocked<TransactionService>;
+    manager: jest.Mocked<EntityManager>;
   };
   let controller: DrawController;
+  let container: AwilixContainer;
 
   beforeEach(() => {
     jest.spyOn(ModelUtils, "getRepositoryFor").mockImplementation();
     jest.spyOn(RandomUtils, "selectRandomItemFromPool");
+    /** Dependencies */
     mocks = {
-      authService: {
+      drawEventAuthorizationService: {
         canCreate: jest.fn(),
         canReadMultiple: jest.fn()
       } as any,
@@ -42,15 +54,27 @@ describe("DrawController", () => {
         getInStockPrizesForUpdate: jest.fn()
       } as any,
       orm: {
-        mock: "mocks.orm",
-        transaction: jest.fn()
+        // gives this a unique look so that we can safely use .toEqual and
+        // methods like calledWith that use it.
+        mock: "mocks.orm"
       } as any,
-      transactionalManager: {
-        getCustomRepository: jest.fn(),
-        getRepository: jest.fn()
+      gameAuthorizationService: {
+        canRead: jest.fn()
+      } as any,
+      gameRepository: {
+        findOneOrFail: jest.fn()
+      } as any,
+      transactionService: {
+        runTransaction: jest.fn()
+      } as any,
+      manager: {
+        mock: "mocks.manager"
       } as any
     };
-    controller = new DrawController(mocks.orm, mocks.authService);
+
+    /** Default Controller */
+    controller = new DrawController();
+    container = createTestContainer(mocks);
   });
 
   afterEach(() => {
@@ -58,17 +82,25 @@ describe("DrawController", () => {
     jest.resetAllMocks();
   });
   describe("drawPrize", () => {
+    beforeEach(() => {
+      container.register("gameId", asValue(String(mockGames.sample.id)));
+      container.register("user", asValue(mockUsers.user));
+
+      /** Stubs */
+      const resolveIdentity = (arg: any) => Promise.resolve(arg);
+      mocks.drawEventRepository.create.mockImplementation(
+        () => new DrawEvent()
+      );
+      mocks.drawEventRepository.save.mockImplementation(resolveIdentity);
+      mocks.prizeRepository.save.mockImplementation(resolveIdentity);
+    });
     describe("without any prizes left", () => {
       beforeEach(() => {
         mocks.prizeRepository.getInStockPrizeCount.mockResolvedValue(0);
       });
       it("throws a NoPrizesInStockError", async () => {
         await expect(
-          controller.drawPrize(
-            mockUsers.user,
-            mocks.drawEventRepository,
-            mocks.prizeRepository
-          )
+          container.build(asClassMethod(controller, controller.drawPrize))
         ).rejects.toBeInstanceOf(NoPrizesInStockError);
       });
     });
@@ -81,10 +113,9 @@ describe("DrawController", () => {
       });
       it("saves and returns a losing draw event", async () => {
         const mockUser = mockUsers.user;
-        const result = await controller.drawPrize(
-          mockUser,
-          mocks.drawEventRepository,
-          mocks.prizeRepository
+
+        const result = await container.build(
+          asClassMethod(controller, controller.drawPrize)
         );
         expect(mocks.drawEventRepository.create).toHaveBeenCalled();
         expect(mocks.drawEventRepository.save).toHaveBeenCalledWith(
@@ -92,129 +123,86 @@ describe("DrawController", () => {
         );
         expect(result.isWin).toBe(false);
         expect(result.prize).toBe(null);
-        expect(result.user).toBe(mockUser);
+        expect(result.user).toEqual(mockUser);
       });
       it("runs the appropriate permission check", async () => {
         const mockError = { id: "some mock error" };
-        mocks.authService.canCreate.mockImplementation(async () => {
-          throw mockError;
-        });
+        mocks.drawEventAuthorizationService.canCreate.mockImplementation(
+          async () => {
+            throw mockError;
+          }
+        );
         await expect(
-          controller.drawPrize(
-            mockUsers.user,
-            mocks.drawEventRepository,
-            mocks.prizeRepository
-          )
+          container.build(asClassMethod(controller, controller.drawPrize))
         ).rejects.toBe(mockError);
         const losingDrawEvent = expect.objectContaining({
           user: mockUsers.user
         });
-        expect(mocks.authService.canCreate).toHaveBeenCalledWith(
-          mockUsers.user,
-          losingDrawEvent,
-          mocks.orm
-        );
+        expect(
+          mocks.drawEventAuthorizationService.canCreate
+        ).toHaveBeenCalledWith(mockUsers.user, losingDrawEvent, mocks.orm);
         expect(mocks.drawEventRepository.save).not.toHaveBeenCalled();
       });
     });
     describe("rollWin: true", () => {
       beforeEach(() => {
         jest.spyOn(DrawEventUtils, "rollWin").mockReturnValue(true);
-        jest.spyOn(mocks.orm, "transaction").mockImplementation(async fn => {
-          await Promise.resolve();
-          return fn(mocks.transactionalManager);
-        });
       });
       it("does almost all of its work in a transaction", async () => {
-        mocks.orm.transaction.mockResolvedValue(undefined);
-        await controller.drawPrize(
-          mockUsers.user,
-          mocks.drawEventRepository,
-          mocks.prizeRepository
-        );
+        await container.build(asClassMethod(controller, controller.drawPrize));
         expect(mocks.prizeRepository.getInStockPrizeCount).toHaveBeenCalled();
         expect(mocks.drawEventRepository.create).not.toHaveBeenCalled();
         expect(mocks.drawEventRepository.save).not.toHaveBeenCalled();
         expect(mocks.prizeRepository.save).not.toHaveBeenCalled();
-        expect(mocks.authService.canCreate).not.toHaveBeenCalled();
+        expect(
+          mocks.drawEventAuthorizationService.canCreate
+        ).not.toHaveBeenCalled();
       });
       describe("Transactional behavior", () => {
-        let txMocks: {
-          prizeRepository: jest.Mocked<PrizeRepository>;
-          drawEventRepository: jest.Mocked<Repository<DrawEvent>>;
-          manager: jest.Mocked<EntityManager>;
-          prizes: Prize[];
-        };
+        let prizes: Prize[];
         beforeEach(() => {
-          // transactional mocks
-          txMocks = {
-            prizeRepository: {
-              save: jest.fn(),
-              getInStockPrizesForUpdate: jest.fn()
-            } as any,
-            drawEventRepository: {
-              save: jest.fn(),
-              create: jest.fn(() => new DrawEvent())
-            } as any,
-            manager: {
-              getCustomRepository: jest.fn()
-            } as any,
-            prizes: [mockPrizes.fullStock]
-          };
-          // stubs
-          mocks.orm.transaction.mockImplementation(async fn => {
-            await Promise.resolve();
-            return fn(txMocks.manager);
-          });
-          // prize repository stubs
-          txMocks.prizeRepository.save.mockImplementation(async p => p);
-          txMocks.prizeRepository.getInStockPrizesForUpdate.mockImplementation(
-            async () => txMocks.prizes
+          prizes = [mockPrizes.fullStock];
+          mocks.prizeRepository.getInStockPrizesForUpdate.mockResolvedValue(
+            prizes
           );
-          // draw event repository stubs
-          txMocks.drawEventRepository.save.mockImplementation(async de => de);
-          // repository acquisition hookup stubs
-          txMocks.manager.getCustomRepository.mockReturnValue(
-            txMocks.prizeRepository
-          );
-          ModelUtils.getRepositoryFor.mockReturnValue(
-            txMocks.drawEventRepository
+          mocks.transactionService.runTransaction.mockImplementation(
+            async fn => {
+              return container.build(asFunction(fn));
+            }
           );
         });
         it("fetches in stock prizes for update", async () => {
-          await controller.drawPrize(
-            mockUsers.user,
-            mocks.drawEventRepository,
-            mocks.prizeRepository
+          await container.build(
+            asClassMethod(controller, controller.drawPrize)
           );
+
           expect(
-            txMocks.prizeRepository.getInStockPrizesForUpdate
+            mocks.prizeRepository.getInStockPrizesForUpdate
           ).toHaveBeenCalledTimes(1);
         });
         it("updates a random prize and saves a draw event targeting that prize", async () => {
-          const mockSelection = txMocks.prizes[0];
+          const mockSelection = mockPrizes.fullStock;
           RandomUtils.selectRandomItemFromPool.mockReturnValue(mockSelection);
 
-          const result = await controller.drawPrize(
-            mockUsers.user,
-            mocks.drawEventRepository,
-            mocks.prizeRepository
+          const result = await container.build(
+            asClassMethod(controller, controller.drawPrize)
           );
+
           // it uses the pool selection helper
           expect(RandomUtils.selectRandomItemFromPool).toHaveBeenCalledWith(
-            txMocks.prizes,
-            expect.anything()
+            prizes,
+            expect.any(Function)
           );
           expect(RandomUtils.selectRandomItemFromPool).toHaveBeenCalledTimes(1);
           // it saves the draw event with the resulting prize
-          expect(txMocks.drawEventRepository.save).toHaveBeenCalledWith(
+          expect(mocks.drawEventRepository.save).toHaveBeenCalledWith(
             expect.objectContaining({
               user: mockUsers.user,
               prize: mockSelection
             })
           );
           // it reduces the stock of the selected prize by 1
-          expect(txMocks.prizeRepository.save).toHaveBeenCalledWith({
+          expect(mocks.prizeRepository.save).toHaveBeenCalledWith({
             ...mockPrizes.fullStock,
             currentStock: mockPrizes.fullStock.currentStock - 1
           });
@@ -231,41 +219,39 @@ describe("DrawController", () => {
         });
         it("bubbles auth errors", async () => {
           const mockErr = { message: "some error message" };
-          mocks.authService.canCreate.mockRejectedValue(mockErr);
+          mocks.drawEventAuthorizationService.canCreate.mockRejectedValue(
+            mockErr
+          );
           await expect(
-            controller.drawPrize(
-              mockUsers.user,
-              mocks.drawEventRepository,
-              mocks.prizeRepository
-            )
+            container.build(asClassMethod(controller, controller.drawPrize))
           ).rejects.toBe(mockErr);
-          expect(mocks.authService.canCreate).toHaveBeenCalledTimes(1);
+          expect(
+            mocks.drawEventAuthorizationService.canCreate
+          ).toHaveBeenCalledTimes(1);
         });
       });
     });
   });
   describe("getDraws", () => {
+    beforeEach(() => {
+      container.register("user", asValue(mockUsers.user));
+      container.register("userId", asValue(mockUsers.user.deviantartUuid));
+    });
     it("fetches prizes for the current user", async () => {
-      await controller.getDraws(
-        mockUsers.user,
-        mockUsers.user.deviantartUuid,
-        mocks.drawEventRepository
-      );
+      await container.build(asClassMethod(controller, controller.getDraws));
       expect(mocks.drawEventRepository.find).toHaveBeenCalledWith({
         where: { user: mockUsers.user.deviantartUuid }
       });
     });
-    it("bubbles errors from authService.canReadMultiple", async () => {
+    it("bubbles errors from drawEventAuthorizationService.canReadMultiple", async () => {
       const mockError = { message: "some message" };
-      mocks.authService.canReadMultiple.mockImplementation(async () => {
-        throw mockError;
-      });
+      mocks.drawEventAuthorizationService.canReadMultiple.mockImplementation(
+        async () => {
+          throw mockError;
+        }
+      );
       await expect(
-        controller.getDraws(
-          mockUsers.user,
-          mockUsers.user.deviantartUuid,
-          mocks.drawEventRepository
-        )
+        container.build(asClassMethod(controller, controller.getDraws))
       ).rejects.toBe(mockError);
     });
   });
