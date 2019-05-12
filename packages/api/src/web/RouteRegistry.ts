@@ -1,5 +1,6 @@
 import { Resolver } from "awilix";
 import { RoleLiteral } from "../auth/RoleLiteral";
+import { ApplicationContext } from "../config/context/ApplicationContext";
 import { RouteTransformationService } from "../config/RouteTransformationService";
 import { HttpMethod } from "../HttpMethod";
 import { logger } from "../logging";
@@ -14,7 +15,8 @@ export class RouteRegistry {
   /** Data structure mapping route -> method -> resolver */
   private map: IRouteMap;
   private transformationService: RouteTransformationService;
-  constructor(routeTransformationService: RouteTransformationService) {
+  /** @inject */
+  constructor({ routeTransformationService }: ApplicationContext) {
     this.map = {};
     this.transformationService = routeTransformationService;
   }
