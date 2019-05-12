@@ -1,12 +1,13 @@
-import { asFunction, AwilixContainer } from "awilix";
+import { asFunction } from "awilix";
 import * as Koa from "koa";
 export class WebserverContext {
   /**
    * @static @method configureContainer
    * Provide a webserver to the DI container.
    * @param container - The DI container
+   * @inject
    */
-  static configureContainer(container: AwilixContainer) {
+  static configureContainer({ container }: ApplicationContextMembers) {
     container.register(
       "webserver",
       asFunction(() => {
