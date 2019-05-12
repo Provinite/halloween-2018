@@ -1,5 +1,5 @@
-import { AwilixContainer } from "awilix";
-import { AnyFunction } from "./reflection/AnyFunction";
+import { ContextContainer } from "./config/context/ApplicationContext";
+import { RequestContext } from "./config/context/RequestContext";
 
 /**
  * An unpleasant bit of hackery to make Awilix play nice with bound functions.
@@ -88,15 +88,17 @@ export const MakeContainerAware: () => ClassDecorator = () => (
  * @MakeContainerAware()
  */
 export abstract class ContainerAware {
-  protected container: AwilixContainer;
-  constructor(container: AwilixContainer) {
+  protected container: ContextContainer<any>;
+  constructor(container: ContextContainer<any>) {
     this.container = container;
   }
   /**
    * Construct the provided method using this instance's container.
    * @param fn - A method on this object to build.
    */
-  buildMethod<T extends AnyFunction>(fn: T): ReturnType<T> {
+  buildMethod<T extends (context: RequestContext) => any>(
+    fn: T
+  ): ReturnType<T> {
     return this.container.build(asClassMethod(this, fn));
   }
 }
