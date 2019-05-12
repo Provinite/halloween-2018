@@ -1,6 +1,5 @@
 import { hasRole } from "../../auth/AuthHelpers";
 import { PermissionDeniedError } from "../../auth/PermissionDeniedError";
-import { asClassMethod } from "../../AwilixHelpers";
 import {
   AnyContext,
   ApplicationContainer
@@ -34,7 +33,8 @@ export class GameAuthorizationService {
     }
   }
   get canRead() {
-    return this.container.build(asClassMethod(this, this.authCanRead));
+    const authCanRead = this.authCanRead;
+    return this.container.build(authCanRead.bind(this) as typeof authCanRead);
   }
   /** @inject */
   private authCanRead({ user }: RequestContext) {

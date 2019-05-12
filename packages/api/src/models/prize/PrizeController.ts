@@ -2,7 +2,6 @@ import { PartialKeys } from "@clovercoin/constants";
 import { asValue } from "awilix";
 import { FindManyOptions, FindOneOptions } from "typeorm";
 import { hasRole } from "../../auth/AuthHelpers";
-import { asClassMethod } from "../../AwilixHelpers";
 import { EnhancedRequestContext } from "../../config/context/RequestContext";
 import {
   validateRequest,
@@ -47,7 +46,7 @@ export abstract class PrizeController {
    */
   async configureRequestContainer({ container }: PrizeRequestContext) {
     const build = (fn: (...args: any[]) => any) =>
-      container.build(asClassMethod(this, fn));
+      container.build(fn.bind(this));
     await build(this.validatePrizeId);
     return await Promise.all([
       build(this.registerGame),
