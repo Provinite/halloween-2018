@@ -1,5 +1,7 @@
-import { Connection, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { RoleLiteral } from "../../auth/RoleLiteral";
+import { ApplicationContext } from "../../config/context/ApplicationContext";
+import { RequestContext } from "../../config/context/RequestContext";
 import {
   IFallbackHandlerMap,
   RestRepositoryController
@@ -13,23 +15,25 @@ import { User } from "../User";
 @Controller()
 export class UserController extends RestRepositoryController<User> {
   protected defaultRoles: RoleLiteral[] = ["user"];
-  constructor(
-    orm: Connection,
-    private userRepository: Repository<User>,
-    private roleRepository: Repository<Role>
-  ) {
+  private userRepository: Repository<User>;
+  private roleRepository: Repository<Role>;
+  /** @inject */
+  constructor({ orm, userRepository, roleRepository }: ApplicationContext) {
     super(orm, User);
+    this.userRepository = userRepository;
+    this.roleRepository = roleRepository;
   }
 
   /**
    * Add a role to a user.
+   * @inject
    */
   @Route({
     route: "/users/{userId}/roles/{roleId}",
     method: HttpMethod.PUT,
     roles: ["admin"]
   })
-  async addRole(userId: string, roleId: string) {
+  async addRole({ pathVariables: { userId, roleId } }: RequestContext) {
     const [user, role] = await Promise.all([
       this.userRepository.findOneOrFail(userId),
       this.roleRepository.findOneOrFail(roleId)
@@ -47,7 +51,7 @@ export class UserController extends RestRepositoryController<User> {
     method: HttpMethod.DELETE,
     roles: ["admin"]
   })
-  async removeRole(userId: string, roleId: string) {
+  async removeRole({ pathVariables: { userId, roleId } }: RequestContext) {
     const user = await this.userRepository.findOneOrFail(userId);
     user.roles = user.roles.filter(role => {
       return role.id !== Number(roleId);
