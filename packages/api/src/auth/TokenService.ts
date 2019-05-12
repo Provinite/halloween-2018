@@ -15,6 +15,7 @@ export class TokenService {
    * EnvService.
    * @param envService - The environment service from which to fetch token
    * configuration info
+   * @inject
    */
   constructor({ envService }: ApplicationContext) {
     this.config = envService.getTokenConfiguration();

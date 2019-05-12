@@ -205,6 +205,7 @@ export abstract class RestRepositoryController<T> {
    * @Route PATCH /entityPlural/{id}
    * @param id - Pathvariable, the ID of the entity to fetch.
    * @param requestBody
+   * @inject
    */
   async modifyOne({
     pathVariables: { id },

@@ -8,6 +8,7 @@ import { IDeviantartUser } from "./IDeviantartUser";
 @Component()
 export class DeviantartApiConsumer {
   private config: IDeviantartApiConsumerConfiguration;
+  /** @inject */
   constructor({ envService }: ApplicationContext) {
     this.config = envService.getDeviantartApiConsumerConfig();
   }

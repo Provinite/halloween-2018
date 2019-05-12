@@ -43,6 +43,7 @@ export abstract class PrizeController {
    * @configures {FindOptions<Prize> & FindManyOptions<Prize>} prizeOptions -
    *  the find options for the prize specified in the request.
    * @configures {Game} game - The game specified in the request.
+   * @inject
    */
   async configureRequestContainer({ container }: PrizeRequestContext) {
     const build = (fn: (...args: any[]) => any) =>

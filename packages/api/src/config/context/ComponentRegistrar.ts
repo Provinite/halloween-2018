@@ -37,6 +37,16 @@ export class ComponentRegistrar {
     return container;
   }
 
+  /**
+   * Get the registration name for a class in the application context. If a
+   * container is provided, this function will throw an error if it is not
+   * registered in that container.
+   * @param componentClass - The class to get a name for
+   * @param container - The container to check for
+   * @template T - The return type will be keyof T for convenience with strict
+   *  container types. Defaults to `any`, resulting in a return type of `string`
+   * @return The registration name for the class
+   */
   static getRegistrationName<T = any>(
     componentClass: IScannableClass,
     container?: ContextContainer<T>

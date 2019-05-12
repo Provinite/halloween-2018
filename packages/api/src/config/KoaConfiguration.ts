@@ -17,13 +17,14 @@ import {
 export class KoaConfiguration {
   /**
    * Configure the webserver with necessary middlewares and start it listening.
+   * @inject
    */
   configure({
     routeComponentProcessor,
     container,
     webserver,
     envService
-  }: ApplicationContextMembers) {
+  }: ApplicationContext) {
     const webserverConfig = envService.getWebserverConfig();
     routeComponentProcessor.populateRouteRegistry();
     const configContainer = container.createScope();

@@ -8,6 +8,7 @@ import { PrizeController, PrizeRequestContext } from "./PrizeController";
 export class PrizeListController extends PrizeController {
   /**
    * Create a new prize.
+   * @inject
    */
   @Route({
     route: PrizeController.listRoute,
@@ -31,6 +32,7 @@ export class PrizeListController extends PrizeController {
 
   /**
    * Fetch all prizes for a game.
+   * @inject
    */
   @Route({
     route: PrizeController.listRoute,

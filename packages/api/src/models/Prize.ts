@@ -45,4 +45,8 @@ export class Prize {
   drawEvents: DrawEvent[];
 }
 
+/** These fields are excluded from most requests and must be explicitly added.
+ * Intended for internal/admin use only, as sensitive information is contained
+ * here
+ */
 export const prizeAdminFields = ["weight", "currentStock", "initialStock"];

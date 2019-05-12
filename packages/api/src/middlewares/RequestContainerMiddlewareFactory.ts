@@ -42,8 +42,11 @@ export class RequestContainerMiddlewareFactory implements IMiddlewareFactory {
 
 declare global {
   interface RequestContextMembers {
+    /** Request-scoped DI container */
     container: RequestContainer;
+    /** The Koa context for this request */
     ctx: Context;
+    /** The parsed querystring (key-value pair hash) */
     query: any;
   }
 }

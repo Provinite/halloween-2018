@@ -45,6 +45,7 @@ export class UserController extends RestRepositoryController<User> {
 
   /**
    * Remove a role from a user.
+   * @inject
    */
   @Route({
     route: "/users/{userId}/roles/{roleId}",

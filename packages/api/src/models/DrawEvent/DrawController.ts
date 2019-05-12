@@ -1,6 +1,5 @@
 import { RequestContext } from "../../config/context/RequestContext";
 import { HttpMethod } from "../../HttpMethod";
-import { logger } from "../../logging";
 import { selectRandomItemFromPool } from "../../RandomUtils";
 import { Component } from "../../reflection/Component";
 import { Route } from "../../reflection/Route";
@@ -71,6 +70,7 @@ export class DrawController {
     let drawEvent: DrawEvent;
     // run all of this in a transaction so it's all nice and atomic
     return await transactionService.runTransaction(
+      /** @inject */
       async ({ prizeRepository, drawEventRepository }: RequestContext) => {
         // TODO: This could be done better. Basically to prevent wasting a DB lock
         // this check is duplicated here.

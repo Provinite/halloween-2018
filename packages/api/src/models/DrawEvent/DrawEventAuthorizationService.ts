@@ -14,6 +14,7 @@ import { DrawRateLimitExceededError } from "./DrawRateLimitExceededError";
 @Component()
 @MakeContainerAware()
 export class DrawEventAuthorizationService {
+  /** @inject */
   constructor({ container }: RequestContext) {
     this.container = container;
   }

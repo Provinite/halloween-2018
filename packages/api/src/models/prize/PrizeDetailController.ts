@@ -10,6 +10,7 @@ import { PrizeController, PrizeRequestContext } from "./PrizeController";
 export class PrizeDetailController extends PrizeController {
   /**
    * GET a specific prize.
+   * @inject
    */
   @Route({
     route: PrizeController.detailRoute,
@@ -28,6 +29,7 @@ export class PrizeDetailController extends PrizeController {
 
   /**
    * PATCH a prize with the request body.
+   * @inject
    */
   @Route({
     route: PrizeController.detailRoute,
@@ -50,6 +52,7 @@ export class PrizeDetailController extends PrizeController {
 
   /**
    * DELETE a prize.
+   * @inject
    */
   @Route({
     route: PrizeController.detailRoute,
