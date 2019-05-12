@@ -1,5 +1,6 @@
 import { Connection, Repository } from "typeorm";
 import { RoleLiteral } from "../auth/RoleLiteral";
+import { bind } from "../AwilixHelpers";
 import { ApplicationContext } from "../config/context/ApplicationContext";
 import { RequestContext } from "../config/context/RequestContext";
 import { HttpMethod } from "../HttpMethod";
@@ -91,11 +92,10 @@ export abstract class RestRepositoryController<T> {
             e instanceof MethodNotSupportedError
           ) {
             // handler isn't covered, register it
-            const resolver = methodMap[method].fn.bind(this);
             routeRegistry.registerRoute(
               route,
               method,
-              resolver,
+              bind(methodMap[method].fn, this),
               this,
               methodMap[method].roles
             );

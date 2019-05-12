@@ -1,6 +1,5 @@
 import { asFunction, asValue, Lifetime } from "awilix";
 import { Connection, createConnection, EntityManager } from "typeorm";
-import { asStaticMethod } from "../../AwilixHelpers";
 import { MODELS } from "../../models";
 import { getRepositoryFor } from "../../models/modelUtils";
 import { AnyContext, ApplicationContext } from "./ApplicationContext";
@@ -63,7 +62,7 @@ export class OrmContext {
     await Promise.all(
       MODELS.map(model =>
         model.createInitialEntities
-          ? container.build(asStaticMethod(model.createInitialEntities))
+          ? container.build(model.createInitialEntities)
           : Promise.resolve()
       )
     );

@@ -35,7 +35,18 @@ export abstract class ContainerAware {
   buildMethod<T extends (context: RequestContext) => any>(
     fn: T
   ): ReturnType<T> {
-    const func = fn.bind(this) as T;
-    return this.container.build(func);
+    return this.container.build(bind(fn, this));
   }
+}
+
+/**
+ * Type-safe `function#bind`
+ * @param fn - The function to bind
+ * @param thisArg - The `this` value for the bound function
+ */
+export function bind<T extends (this: U, ...args: any) => any, U>(
+  fn: T,
+  thisArg: any
+) {
+  return fn.bind(thisArg) as T;
 }

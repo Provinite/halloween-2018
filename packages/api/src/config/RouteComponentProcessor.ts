@@ -1,3 +1,4 @@
+import { bind } from "../AwilixHelpers";
 import { Component } from "../reflection/Component";
 import {
   IRouter,
@@ -75,7 +76,7 @@ export class RouteComponentProcessor {
           this.routeRegistry.registerRoute(
             route,
             methods,
-            routableMethod.bind(router),
+            bind(routableMethod, router),
             router,
             roles
           );
@@ -91,7 +92,7 @@ export class RouteComponentProcessor {
      */
     const registerCustomRoutes = (router: IRouter) => {
       if (router.registerRoutes) {
-        this.container.build(router.registerRoutes.bind(router));
+        this.container.build(bind(router.registerRoutes, router));
       }
     };
 

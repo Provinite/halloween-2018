@@ -1,5 +1,6 @@
 import { asValue } from "awilix";
 import { Context, Middleware } from "koa";
+import { bind } from "../AwilixHelpers";
 import { ApplicationContext } from "../config/context/ApplicationContext";
 import {
   RequestContainer,
@@ -52,7 +53,7 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
       // TODO: this could be a typeguard
       if (router && typeof router.configureRequestContainer === "function") {
         await requestContainer.build(
-          router.configureRequestContainer.bind(router)
+          bind(router.configureRequestContainer, router)
         );
       }
       // Invoke this route's handler, and store its response on the context

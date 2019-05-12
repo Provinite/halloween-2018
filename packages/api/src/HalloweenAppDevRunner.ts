@@ -1,5 +1,4 @@
 import { asClass, asValue, createContainer } from "awilix";
-import { asStaticMethod } from "./AwilixHelpers";
 import {
   ApplicationContainer,
   ApplicationContext,
@@ -34,10 +33,10 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
     // Wire up our persistence layer. This is asynchronous and so needs
     // to have its own flow outside of the normal awilix instantiation
     // process.
-    await container.build(asStaticMethod(OrmContext.configureContainer));
+    await container.build(OrmContext.configureContainer);
 
     // Wire up our web layer
-    await container.build(asStaticMethod(WebserverContext.configureContainer));
+    await container.build(WebserverContext.configureContainer);
 
     // Register all @components with our DI container
     await ComponentRegistrar.configureContainer(container, components);
