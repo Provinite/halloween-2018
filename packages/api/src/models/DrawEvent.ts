@@ -11,6 +11,7 @@ import { User } from "./User";
 
 @Entity()
 export class DrawEvent {
+  // see constructor
   readonly isWin: boolean;
 
   @PrimaryGeneratedColumn()
@@ -31,6 +32,8 @@ export class DrawEvent {
   @ManyToOne(type => Prize, { nullable: true, eager: true })
   prize: Prize;
   constructor() {
+    // Define isWin on the instance directly so that it appears as an instance
+    // field for things like JSON generation
     Object.defineProperty(this, "isWin", {
       get: () => this.prize !== null,
       enumerable: true
