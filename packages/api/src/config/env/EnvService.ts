@@ -48,7 +48,7 @@ export class EnvService {
    * Creates an EnvService with data poulated from the specified environment.
    * @param NODE_ENV - The runtime environment to use.
    */
-  constructor(NODE_ENV: Partial<ENV_VARS>) {
+  constructor({ NODE_ENV }: ApplicationContextMembers) {
     this.ormConfig = this.createOrmConfig(NODE_ENV);
     this.tokenConfig = this.createTokenConfig(NODE_ENV);
     this.webserverConfig = this.createWebserverConfig(NODE_ENV);
