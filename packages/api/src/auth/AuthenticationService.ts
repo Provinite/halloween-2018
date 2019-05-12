@@ -1,7 +1,7 @@
 import { ROLES } from "@clovercoin/constants";
 import { TokenExpiredError } from "jsonwebtoken";
 import { Repository } from "typeorm";
-import { RequestContext } from "../config/context/RequestContext";
+import { ApplicationContext } from "../config/context/ApplicationContext";
 import { Role, User } from "../models";
 import { Component } from "../reflection/Component";
 import { AuthenticationFailureException } from "./AuthenticationFailureException";
@@ -21,7 +21,7 @@ export class AuthenticationService {
     roleRepository,
     userRepository,
     tokenService
-  }: RequestContext) {
+  }: ApplicationContext) {
     this.client = deviantartApiConsumer;
     this.roleRepository = roleRepository;
     this.userRepository = userRepository;
