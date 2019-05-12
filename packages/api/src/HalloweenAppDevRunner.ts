@@ -1,16 +1,15 @@
-import {
-  asClass,
-  asValue,
-  AwilixContainer,
-  createContainer,
-  InjectionMode
-} from "awilix";
+import { asClass, asValue, createContainer } from "awilix";
 import { asStaticMethod } from "./AwilixHelpers";
+import {
+  ApplicationContainer,
+  ApplicationContext,
+  ContextContainer
+} from "./config/context/ApplicationContext";
 import { ComponentRegistrar } from "./config/context/ComponentRegistrar";
 import { OrmContext } from "./config/context/OrmContext";
 import { WebserverContext } from "./config/context/WebserverContext";
+import { ENV_VARS } from "./config/env/ENV_VARS";
 import { EnvService } from "./config/env/EnvService";
-import { KoaConfiguration } from "./config/KoaConfiguration";
 import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
 import { ExportPathScanner } from "./reflection/ExportPathScanner";
 
@@ -19,9 +18,7 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
     // Proof of concept: classpath scanning
     const components = await ExportPathScanner.scan("./dist/**/*.js");
     // Container configuration step
-    const container = createContainer({
-      injectionMode: InjectionMode.CLASSIC
-    });
+    const container = createContainer() as ApplicationContainer;
 
     // Register the node environment for injection
     container.register("NODE_ENV", asValue(process.env));
@@ -46,9 +43,8 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
     await ComponentRegistrar.configureContainer(container, components);
 
     // Hook up middlewares and start the webserver listening
-    const koaConfiguration: KoaConfiguration =
-      container.cradle.koaConfiguration;
-    koaConfiguration.configure();
+    const koaConfiguration = container.resolve("koaConfiguration");
+    container.build(koaConfiguration.configure);
   }
 }
 
