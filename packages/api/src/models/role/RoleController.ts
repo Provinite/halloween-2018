@@ -1,5 +1,5 @@
-import { Connection } from "typeorm";
 import { RoleLiteral } from "../../auth/RoleLiteral";
+import { ApplicationContext } from "../../config/context/ApplicationContext";
 import {
   IFallbackHandlerMap,
   RestRepositoryController
@@ -11,7 +11,8 @@ import { Role } from "../Role";
 @Controller()
 export class RoleController extends RestRepositoryController<Role> {
   protected defaultRoles: RoleLiteral[] = ["public"];
-  constructor(orm: Connection) {
+  /** @inject */
+  constructor({ orm }: ApplicationContext) {
     super(orm, Role);
   }
 
