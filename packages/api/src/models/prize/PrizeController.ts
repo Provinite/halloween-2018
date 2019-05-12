@@ -1,19 +1,32 @@
 import { PartialKeys } from "@clovercoin/constants";
-import { asValue, AwilixContainer } from "awilix";
-import { FindManyOptions, FindOneOptions, Repository } from "typeorm";
+import { asValue } from "awilix";
+import { FindManyOptions, FindOneOptions } from "typeorm";
 import { hasRole } from "../../auth/AuthHelpers";
 import { asClassMethod } from "../../AwilixHelpers";
-import { DbMetadataService } from "../../db/DbMetadataService";
+import { EnhancedRequestContext } from "../../config/context/RequestContext";
 import {
   validateRequest,
   validateValue,
   validators
 } from "../../web/RequestValidationUtils";
 import { Game } from "../Game";
-import { Prize } from "../Prize";
-import { User } from "../User";
+import { Prize, prizeAdminFields } from "../Prize";
 
 type Options = FindOneOptions<Prize> | FindManyOptions<Prize>;
+
+/**
+ * Interface for augmented
+ */
+export interface PrizeRequestAugment {
+  prizeOptions: Options;
+  game: Game;
+}
+
+/**
+ * Type for the request context after augmentation by this controller.
+ */
+export interface PrizeRequestContext
+  extends EnhancedRequestContext<PrizeRequestAugment> {}
 
 /**
  * Base controller class for managing prizes. Contains logic for parsing
@@ -31,7 +44,7 @@ export abstract class PrizeController {
    *  the find options for the prize specified in the request.
    * @configures {Game} game - The game specified in the request.
    */
-  async configureRequestContainer(container: AwilixContainer) {
+  async configureRequestContainer({ container }: PrizeRequestContext) {
     const build = (fn: (...args: any[]) => any) =>
       container.build(asClassMethod(this, fn));
     await build(this.validatePrizeId);
@@ -46,15 +59,15 @@ export abstract class PrizeController {
    * include_config request variable for administrative users. Expects prizeId
    * to have already been validated.
    * @configures prizeOptions
+   * @inject
    */
-  registerFindPrizeOptions(
-    container: AwilixContainer,
-    query: any,
-    user: User,
-    gameId: string,
-    dbMetadataService: DbMetadataService
-  ) {
-    const prizeId = container.resolve("prizeId", { allowUnregistered: true });
+  registerFindPrizeOptions({
+    container,
+    query,
+    user,
+    pathVariables: { gameId, prizeId },
+    dbMetadataService
+  }: PrizeRequestContext) {
     const options: Options = {
       where: {
         game: gameId
@@ -80,10 +93,7 @@ export abstract class PrizeController {
   /**
    * Validate incoming {prizeId} from the request.
    */
-  validatePrizeId(container: AwilixContainer) {
-    const prizeId: string = container.resolve("prizeId", {
-      allowUnregistered: true
-    });
+  validatePrizeId({ pathVariables: { prizeId } }: PrizeRequestContext) {
     validateValue(prizeId, "prizeId", validators.optional.digitString);
   }
 
@@ -91,12 +101,13 @@ export abstract class PrizeController {
    * Validate {gameId} from the url, fetch the associated Game, and register
    * it as "game".
    * @configures game
+   * @inject
    */
-  async registerGame(
-    container: AwilixContainer,
-    gameRepository: Repository<Game>
-  ) {
-    const gameId = container.resolve("gameId", { allowUnregistered: true });
+  async registerGame({
+    container,
+    gameRepository,
+    pathVariables: { gameId }
+  }: PrizeRequestContext) {
     validateValue(gameId, "gameId", validators.digitString);
     const game = await gameRepository.findOneOrFail(gameId, {
       loadRelationIds: true

@@ -1,12 +1,8 @@
-import { FindManyOptions } from "typeorm";
 import { HttpMethod } from "../../HttpMethod";
 import { Controller } from "../../reflection/Controller";
 import { Route } from "../../reflection/Route";
-import { Game } from "../Game";
 import { Prize } from "../Prize";
-import { PrizeAuthorizationService } from "./PrizeAuthorizationService";
-import { PrizeController } from "./PrizeController";
-import { PrizeRepository } from "./PrizeRepository";
+import { PrizeController, PrizeRequestContext } from "./PrizeController";
 
 @Controller()
 export class PrizeListController extends PrizeController {
@@ -18,12 +14,12 @@ export class PrizeListController extends PrizeController {
     method: HttpMethod.POST,
     roles: ["admin"]
   })
-  async createPrize(
-    requestBody: any,
-    prizeRepository: PrizeRepository,
-    prizeAuthorizationService: PrizeAuthorizationService,
-    game: Game
-  ): Promise<Prize> {
+  async createPrize({
+    requestBody,
+    prizeRepository,
+    prizeAuthorizationService,
+    game
+  }: PrizeRequestContext): Promise<Prize> {
     const body = this.parseBodyForCreate(requestBody);
     const prize = prizeRepository.create();
     prizeRepository.merge(prize, body);
@@ -41,10 +37,7 @@ export class PrizeListController extends PrizeController {
     method: HttpMethod.GET,
     roles: ["public"]
   })
-  async getPrizes(
-    prizeOptions: FindManyOptions<Prize>,
-    prizeRepository: PrizeRepository
-  ) {
+  async getPrizes({ prizeOptions, prizeRepository }: PrizeRequestContext) {
     return await prizeRepository.find(prizeOptions);
   }
 }

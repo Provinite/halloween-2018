@@ -2,6 +2,10 @@ import { FindManyOptions } from "typeorm";
 import { hasRole } from "../../auth/AuthHelpers";
 import { PermissionDeniedError } from "../../auth/PermissionDeniedError";
 import { ContainerAware, MakeContainerAware } from "../../AwilixHelpers";
+import {
+  RequestContainer,
+  RequestContext
+} from "../../config/context/RequestContext";
 import { Component } from "../../reflection/Component";
 import { Prize } from "../Prize";
 import { User } from "../User";
@@ -9,6 +13,10 @@ import { User } from "../User";
 @Component("TRANSIENT")
 @MakeContainerAware()
 export class PrizeAuthorizationService {
+  container: RequestContainer;
+  constructor({ container }: RequestContext) {
+    this.container = container;
+  }
   /**
    * Determine if the user may read multiple prizes.
    * @param query - The find options that will be used to query for multiple
@@ -21,7 +29,8 @@ export class PrizeAuthorizationService {
   get canReadMultiple() {
     return this.buildMethod(this.buildCanReadMultiple);
   }
-  private buildCanReadMultiple(user: User) {
+  /** @inject */
+  private buildCanReadMultiple({ user }: RequestContext) {
     const containerUser = user;
     return async (query: FindManyOptions<Prize>, user = containerUser) => {
       if (
@@ -50,7 +59,8 @@ export class PrizeAuthorizationService {
   get canCreate() {
     return this.buildMethod(this.buildCanCreate);
   }
-  private buildCanCreate(user: User) {
+  /** @inject */
+  private buildCanCreate({ user }: RequestContext) {
     const containerUser = user;
     return async (prize: Prize, user: User = containerUser) => {
       if (!hasRole(user, "admin")) {
@@ -69,7 +79,8 @@ export class PrizeAuthorizationService {
   get canRead() {
     return this.buildMethod(this.buildCanRead);
   }
-  private buildCanRead(user: User) {
+  /** @inject */
+  private buildCanRead({ user }: RequestContext) {
     // TODO: This should be limiting users down by game and prize history.
     const containerUser = user;
     return (user: User = containerUser) => {
@@ -89,7 +100,8 @@ export class PrizeAuthorizationService {
   get canUpdate() {
     return this.buildMethod(this.buildCanUpdate);
   }
-  private buildCanUpdate(user: User) {
+  /** @inject */
+  private buildCanUpdate({ user }: RequestContext) {
     const containerUser = user;
     return (
       prize: Prize,
@@ -117,7 +129,8 @@ export class PrizeAuthorizationService {
   get canDelete() {
     return this.buildMethod(this.buildCanDelete);
   }
-  private buildCanDelete(user: User) {
+  /** @inject */
+  private buildCanDelete({ user }: RequestContext) {
     // TODO: Needs to recognize roles-per-game once that's a thing. . .
     const containerUser = user;
     return async (prize: Prize, user = containerUser) => {
