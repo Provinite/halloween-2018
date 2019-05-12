@@ -1,5 +1,6 @@
-import { asValue, AwilixContainer } from "awilix";
+import { asValue } from "awilix";
 import { Repository } from "typeorm";
+import { EnhancedRequestContext } from "../../config/context/RequestContext";
 import { HttpMethod } from "../../HttpMethod";
 import { Component } from "../../reflection/Component";
 import { Route } from "../../reflection/Route";
@@ -11,22 +12,22 @@ import {
 } from "../../web/RequestValidationUtils";
 import { ResourceNotFoundError } from "../../web/ResourceNotFoundError";
 import { Game } from "../Game";
-import { User } from "../User";
-import { GameAuthorizationService } from "./GameAuthorizationService";
+
+interface GameControllerRequestContext
+  extends EnhancedRequestContext<{ game: Game | undefined }> {}
 
 @Component()
 export class GameController {
-  constructor(public gameAuthorizationService: GameAuthorizationService) {}
-
   /**
    * Preload the request container with the game out of the request string. Also
    * performs validation.
+   * @inject
    */
-  async configureRequestContainer(
-    container: AwilixContainer,
-    gameRepository: Repository<Game>
-  ) {
-    const gameId = container.resolve("gameId", { allowUnregistered: true });
+  async configureRequestContainer({
+    container,
+    gameRepository,
+    pathVariables: { gameId }
+  }: GameControllerRequestContext) {
     validateValue(gameId, "gameId", validators.optional.digitString);
     if (gameId === undefined) {
       container.register("game", undefined);
@@ -37,65 +38,75 @@ export class GameController {
 
   /**
    * Create a new game.
+   * @inject
    */
   @Route({
     route: "/games",
     method: HttpMethod.POST,
     roles: ["admin"]
   })
-  async createGame(
-    requestBody: any,
-    user: User,
-    gameRepository: Repository<Game>
-  ) {
+  async createGame({
+    requestBody,
+    user,
+    gameRepository,
+    gameAuthorizationService
+  }: GameControllerRequestContext) {
     const game = gameFromRequestBody(requestBody, gameRepository);
-    await this.gameAuthorizationService.canCreate(user);
+    await gameAuthorizationService.canCreate(user);
     return await gameRepository.save(game);
   }
 
   /**
    * Fetch all games.
+   * @inject
    */
   @Route({
     route: "/games",
     method: HttpMethod.GET,
     roles: ["public"]
   })
-  async getGames(user: User, gameRepository: Repository<Game>) {
-    await this.gameAuthorizationService.canReadMultiple(user);
+  async getGames({
+    user,
+    gameRepository,
+    gameAuthorizationService
+  }: GameControllerRequestContext) {
+    await gameAuthorizationService.canReadMultiple(user);
     return await gameRepository.find();
   }
 
   /**
    * Update a single game.
+   * @inject
    */
   @Route({
     route: "/games/{gameId}",
     method: HttpMethod.PATCH,
     roles: ["admin"]
   })
-  async updateGame(
-    gameId: string,
-    requestBody: any,
-    user: User,
-    gameRepository: Repository<Game>
-  ) {
+  async updateGame({
+    pathVariables: { gameId },
+    requestBody,
+    user,
+    gameRepository,
+    gameAuthorizationService
+  }: GameControllerRequestContext) {
     validateValue(gameId, "gameId", validators.digitString);
     const gameParts = parseBodyForUpdate(requestBody);
     const game = await gameRepository.findOne(gameId);
-    await this.gameAuthorizationService.canUpdate(user);
+    await gameAuthorizationService.canUpdate(user);
     gameRepository.merge(game, gameParts);
     return await gameRepository.save(game);
   }
 
   /**
    * Fetch a single game.
+   * @inject
    */
   @Route({ route: "/games/{gameId}", roles: ["user"], method: HttpMethod.GET })
-  async getGame(
-    game: Game,
-    gameAuthorizationService: GameAuthorizationService
-  ) {
+  async getGame({
+    game,
+    gameAuthorizationService
+  }: GameControllerRequestContext) {
     if (game === undefined) {
       throw new ResourceNotFoundError();
     }
