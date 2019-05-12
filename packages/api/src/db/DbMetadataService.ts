@@ -25,7 +25,7 @@ export class DbMetadataService {
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** Service for interacting with typeorm database metadata. */
     dbMetadataService: DbMetadataService;
   }

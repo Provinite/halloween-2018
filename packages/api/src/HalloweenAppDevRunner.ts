@@ -53,11 +53,11 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** The environment hash for this process */
-    NODE_ENV: typeof process.env;
+    NODE_ENV: Partial<ENV_VARS>;
     /** The awilix container that holds this context */
-    container: AwilixContainer;
+    container: ContextContainer<ApplicationContext>;
     /** Service for interacting with the process env */
     envService: EnvService;
   }

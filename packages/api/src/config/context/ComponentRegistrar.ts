@@ -35,7 +35,7 @@ export class ComponentRegistrar {
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     ComponentList: IScannableClass[];
   }
 }

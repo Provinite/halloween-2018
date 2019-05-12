@@ -146,7 +146,7 @@ interface IRouteMap {
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** The registry of all routes that this application covers */
     routeRegistry: RouteRegistry;
   }

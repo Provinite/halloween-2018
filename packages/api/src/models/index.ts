@@ -19,7 +19,7 @@ export interface IModelClass<T = any> {
 export const MODELS: IModelClass[] = [User, Prize, Role, DrawEvent, Game];
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     // see OrmContext for creation of these default repositories
     // if a custom repository is created for any model in this list,
     // remove it from here and declare its more specific type in the

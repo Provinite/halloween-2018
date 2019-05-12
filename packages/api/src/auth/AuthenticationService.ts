@@ -87,3 +87,9 @@ export class AuthenticationService {
     }
   }
 }
+
+declare global {
+  interface ApplicationContextMembers {
+    authenticationService: AuthenticationService;
+  }
+}

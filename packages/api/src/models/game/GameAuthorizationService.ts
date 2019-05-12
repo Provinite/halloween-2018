@@ -40,7 +40,7 @@ export class GameAuthorizationService {
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** Service for authenticating actions on Game models */
     gameAuthorizationService: GameAuthorizationService;
   }

@@ -69,7 +69,7 @@ interface ITokenData {
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** Service for managing JWTs */
     tokenService: TokenService;
   }

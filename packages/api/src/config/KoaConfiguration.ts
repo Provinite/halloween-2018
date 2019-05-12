@@ -106,7 +106,8 @@ function createMiddleware(
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
+    /** Configuration class that starts the webserver listening */
     koaConfiguration: KoaConfiguration;
   }
 }

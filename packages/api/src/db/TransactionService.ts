@@ -21,7 +21,7 @@ export class TransactionService {
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** Service for running units of work in typeorm transactions. */
     transactionService: TransactionService;
   }

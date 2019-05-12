@@ -71,7 +71,7 @@ export class OrmContext {
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** The typeorm connection for the application */
     orm: Connection;
     /** The entity manager for this container */

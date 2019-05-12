@@ -35,15 +35,16 @@ export class PrizeRepository extends Repository<Prize> {
    * Fetch all in stock prizes, and acquire a pessimistic lock.
    */
   async getInStockPrizesForUpdate(game: Game | number): Promise<Prize[]> {
-    return await this.createQueryBuilder()
+    return this.createQueryBuilder("prize")
       .setLock("pessimistic_write")
+      .addSelect(prizeAdminFields.map(f => `prize.${f}`))
       .where(PrizeRepository.inStock(game).where)
       .getMany();
   }
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     prizeRepository: PrizeRepository;
   }
 }

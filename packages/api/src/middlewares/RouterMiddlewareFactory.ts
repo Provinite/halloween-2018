@@ -71,19 +71,22 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
  */
 function registerPathVariables(
   pathVariables: { [key: string]: string },
-  requestContainer: AwilixContainer
+  requestContainer: RequestContainer
 ) {
   requestContainer.register("pathVariables", asValue(pathVariables || {}));
   if (!pathVariables) {
     return;
   }
   for (const variable of Object.keys(pathVariables)) {
-    requestContainer.register(variable, asValue(pathVariables[variable]));
+    requestContainer.register(
+      variable as keyof RequestContext,
+      asValue(pathVariables[variable])
+    );
   }
 }
 
 declare global {
-  interface RequestContext {
+  interface RequestContextMembers {
     pathVariables: { [pathVariable: string]: string | undefined };
   }
 }

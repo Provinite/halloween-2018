@@ -80,8 +80,8 @@ export class DeviantartApiConsumer {
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** API client for interacting with the DeviantArt REST API */
-    deviantArtApiConsumer: DeviantartApiConsumer;
+    deviantartApiConsumer: DeviantartApiConsumer;
   }
 }

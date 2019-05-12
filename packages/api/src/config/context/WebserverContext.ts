@@ -19,7 +19,7 @@ export class WebserverContext {
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** The Koa instance for the application */
     webserver: Koa;
   }

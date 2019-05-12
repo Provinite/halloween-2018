@@ -130,7 +130,7 @@ export class DrawEventAuthorizationService {
 export interface DrawEventAuthorizationService extends ContainerAware {}
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** Service for authenticating actions on DrawEvent models */
     drawEventAuthorizationService: DrawEventAuthorizationService;
   }

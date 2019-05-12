@@ -38,7 +38,7 @@ export class DrawEventRepository extends Repository<DrawEvent> {
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** Repository for managing draw events */
     drawEventRepository: DrawEventRepository;
   }

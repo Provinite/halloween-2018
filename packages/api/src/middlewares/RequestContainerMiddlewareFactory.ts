@@ -33,7 +33,8 @@ export class RequestContainerMiddlewareFactory implements IMiddlewareFactory {
 }
 
 declare global {
-  interface RequestContext {
+  interface RequestContextMembers {
+    container: RequestContainer;
     ctx: Context;
     query: any;
   }

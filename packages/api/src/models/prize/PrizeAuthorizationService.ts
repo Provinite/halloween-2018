@@ -131,7 +131,7 @@ export class PrizeAuthorizationService {
 export interface PrizeAuthorizationService extends ContainerAware {}
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /** Service for authenticating actions on Prize models */
     prizeAuthorizationService: PrizeAuthorizationService;
   }

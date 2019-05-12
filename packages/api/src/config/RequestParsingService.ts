@@ -15,20 +15,23 @@ export class RequestParsingService {
    * @param ctx - The Koa context.
    * @param container - The container to register request data to.
    */
-  parse(ctx: Context, container: AwilixContainer) {
+  parse<T extends { [key: string]: any }>(
+    ctx: Context,
+    container: ContextContainer<T>
+  ) {
     container.register("requestBody", asValue(ctx.request.body));
   }
 }
 
 declare global {
-  interface ApplicationContext {
+  interface ApplicationContextMembers {
     /**
      * Service responsible for populating request data into the application
      * context.
      */
     requestParsingService: RequestParsingService;
   }
-  interface RequestContext {
+  interface RequestContextMembers {
     /** Parsed body for this request */
     requestBody: { [key: string]: any };
   }
