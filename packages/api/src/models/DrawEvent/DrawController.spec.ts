@@ -73,7 +73,7 @@ describe("DrawController", () => {
     };
 
     /** Default Controller */
-    controller = new DrawController(mocks.orm);
+    controller = new DrawController();
     container = createTestContainer(mocks);
   });
 

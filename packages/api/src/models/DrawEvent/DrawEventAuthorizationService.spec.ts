@@ -1,3 +1,4 @@
+import { AwilixContainer } from "awilix";
 import * as _dateFns from "date-fns";
 import { Connection } from "typeorm";
 import { PermissionDeniedError } from "../../auth/PermissionDeniedError";
@@ -13,6 +14,7 @@ jest.mock("date-fns");
 interface IMocks {
   drawEventRepository: jest.Mocked<DrawEventRepository>;
   orm: jest.Mocked<Connection>;
+  container: jest.Mocked<AwilixContainer>;
 }
 describe("DrawEventAuthorizationService", () => {
   let service: DrawEventAuthorizationService;
@@ -25,9 +27,10 @@ describe("DrawEventAuthorizationService", () => {
       } as any,
       orm: {
         getCustomRepository: jest.fn()
-      } as any
+      } as any,
+      container: {} as any
     };
-    service = new DrawEventAuthorizationService();
+    service = new DrawEventAuthorizationService(mocks.container);
   });
   afterEach(() => {
     jest.restoreAllMocks();
@@ -40,12 +43,15 @@ describe("DrawEventAuthorizationService", () => {
       mocks.orm.getCustomRepository.mockReturnValue(mocks.drawEventRepository);
     });
     it("does not allow users to create draw events for others", async () => {
-      const mockUser = mockUsers.user;
+      // const mockUser = mockUsers.user;
       const mockDrawEvent = new DrawEvent();
       mockDrawEvent.user = mockUsers.user;
       mockDrawEvent.user.deviantartUuid = "a-different-uuid";
       await expect(
-        service.canCreate(mockUser, mockDrawEvent, mocks.orm)
+        service.canCreate(
+          // mockUser,
+          mockDrawEvent // , mocks.orm
+        )
       ).rejects.toBeInstanceOf(PermissionDeniedError);
     });
     it("allows users to create draw events for themselves once per 30 seconds", async () => {
@@ -54,7 +60,10 @@ describe("DrawEventAuthorizationService", () => {
       const mockDrawEvent = new DrawEvent();
       mockDrawEvent.user = mockUser;
       await expect(
-        service.canCreate(mockUser, mockDrawEvent, mocks.orm)
+        service.canCreate(
+          // mockUser,
+          mockDrawEvent // , mocks.orm
+        )
       ).resolves.toBe(true);
     });
     it("does not allow users to create a draw event within 30 seconds", async () => {
@@ -68,15 +77,18 @@ describe("DrawEventAuthorizationService", () => {
       const mockDrawEvent = new DrawEvent();
       mockDrawEvent.user = mockUser;
       await expect(
-        service.canCreate(mockUser, mockDrawEvent, mocks.orm)
+        service.canCreate(
+          // mockUser,
+          mockDrawEvent // , mocks.orm
+        )
       ).rejects.toBeInstanceOf(DrawRateLimitExceededError);
     });
     it("does not allow public to create draw events", async () => {
       await expect(
         service.canCreate(
-          mockUsers.public,
-          { user: mockUsers.public, game: mockGames.sample },
-          mocks.orm
+          // mockUsers.public,
+          { user: mockUsers.public, game: mockGames.sample }
+          // mocks.orm
         )
       ).rejects.toBeInstanceOf(PermissionDeniedError);
     });
@@ -151,7 +163,12 @@ describe("DrawEventAuthorizationService", () => {
       async roleName => {
         const mockUser = mockUsers[roleName];
         const filter = { where: { user: mockUser.deviantartUuid } };
-        expect(await service.canReadMultiple(mockUser, filter)).toBe(true);
+        expect(
+          await service.canReadMultiple(
+            // mockUser,
+            filter
+          )
+        ).toBe(true);
       },
       ["public"]
     );
@@ -161,14 +178,20 @@ describe("DrawEventAuthorizationService", () => {
         const mockUser = mockUsers[roleName];
         const filter = { where: { user: mockUser.deviantartUuid + "1" } };
         await expect(
-          service.canReadMultiple(mockUser, filter)
+          service.canReadMultiple(
+            // mockUser,
+            filter
+          )
         ).rejects.toBeInstanceOf(PermissionDeniedError);
       },
       ["admin", "public"]
     );
     it('does not allow "public" to read multiple', async () => {
       await expect(
-        service.canReadMultiple(mockUsers.public, null)
+        service.canReadMultiple(
+          // mockUsers.public,
+          null
+        )
       ).rejects.toBeInstanceOf(PermissionDeniedError);
     });
   });
