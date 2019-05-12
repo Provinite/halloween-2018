@@ -71,9 +71,7 @@ export abstract class PrizeController {
       // these fields should never be given to normal users.
       options.select = [
         ...dbMetadataService.getDefaultSelect(Prize),
-        "weight",
-        "currentStock",
-        "initialStock"
+        ...prizeAdminFields
       ] as any;
     }
     container.register("prizeOptions", asValue(options));

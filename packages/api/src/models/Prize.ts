@@ -44,3 +44,5 @@ export class Prize {
   @OneToMany(type => DrawEvent, drawEvent => drawEvent.prize, { eager: false })
   drawEvents: DrawEvent[];
 }
+
+export const prizeAdminFields = ["weight", "currentStock", "initialStock"];

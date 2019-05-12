@@ -1,6 +1,6 @@
 import { EntityRepository, MoreThan, Repository } from "typeorm";
 import { Game } from "../Game";
-import { Prize } from "../Prize";
+import { Prize, prizeAdminFields } from "../Prize";
 
 @EntityRepository(Prize)
 export class PrizeRepository extends Repository<Prize> {
