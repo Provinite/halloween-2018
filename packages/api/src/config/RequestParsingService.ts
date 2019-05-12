@@ -1,6 +1,7 @@
-import { asValue, AwilixContainer } from "awilix";
+import { asValue } from "awilix";
 import { Context } from "koa";
 import { Component } from "../reflection/Component";
+import { ContextContainer } from "./context/ApplicationContext";
 
 /**
  * Service used for parsing incoming requests into useful data.
