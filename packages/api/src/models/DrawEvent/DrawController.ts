@@ -1,30 +1,25 @@
-import { Repository } from "typeorm";
-import { TransactionService } from "../../db/TransactionService";
+import { RequestContext } from "../../config/context/RequestContext";
 import { HttpMethod } from "../../HttpMethod";
+import { logger } from "../../logging";
 import { selectRandomItemFromPool } from "../../RandomUtils";
 import { Component } from "../../reflection/Component";
 import { Route } from "../../reflection/Route";
 import { validateValue, validators } from "../../web/RequestValidationUtils";
 import { DrawEvent } from "../DrawEvent";
-import { Game } from "../Game";
-import { GameAuthorizationService } from "../game/GameAuthorizationService";
 import { NoPrizesInStockError } from "../prize/NoPrizesInStockError";
-import { PrizeRepository } from "../prize/PrizeRepository";
-import { User } from "../User";
-import { DrawEventAuthorizationService } from "./DrawEventAuthorizationService";
-import { DrawEventRepository } from "./DrawEventRepository";
 import { rollWin } from "./DrawEventUtils";
 @Component()
 export class DrawController {
+  /** @inject */
   @Route({
     route: "/games/{gameId}/draws",
     method: HttpMethod.GET,
     roles: ["public"]
   })
-  async getDrawsByGame(
-    gameId: string,
-    drawEventRepository: DrawEventRepository
-  ) {
+  async getDrawsByGame({
+    pathVariables: { gameId },
+    drawEventRepository
+  }: RequestContext) {
     const result = await drawEventRepository.find({
       where: { game: gameId },
       loadEagerRelations: true
@@ -40,22 +35,23 @@ export class DrawController {
    * more prizes than we have, or multiple copies of a unique prize.
    *
    * @return The newly created draw event.
+   * @inject
    */
   @Route({
     route: "/games/{gameId}/draws",
     method: HttpMethod.POST,
     roles: ["user"]
   })
-  async drawPrize(
-    gameId: string,
-    user: User,
-    drawEventRepository: DrawEventRepository,
-    prizeRepository: PrizeRepository,
-    drawEventAuthorizationService: DrawEventAuthorizationService,
-    gameAuthorizationService: GameAuthorizationService,
-    gameRepository: Repository<Game>,
-    transactionService: TransactionService
-  ): Promise<DrawEvent> {
+  async drawPrize({
+    pathVariables: { gameId },
+    user,
+    drawEventRepository,
+    prizeRepository,
+    drawEventAuthorizationService,
+    gameAuthorizationService,
+    gameRepository,
+    transactionService
+  }: RequestContext): Promise<DrawEvent> {
     validateValue(gameId, "gameId", validators.digitString);
     const game = await gameRepository.findOneOrFail(gameId);
     await gameAuthorizationService.canRead(game);
@@ -75,10 +71,7 @@ export class DrawController {
     let drawEvent: DrawEvent;
     // run all of this in a transaction so it's all nice and atomic
     return await transactionService.runTransaction(
-      async (
-        prizeRepository: PrizeRepository,
-        drawEventRepository: DrawEventRepository
-      ) => {
+      async ({ prizeRepository, drawEventRepository }: RequestContext) => {
         // TODO: This could be done better. Basically to prevent wasting a DB lock
         // this check is duplicated here.
         await drawEventAuthorizationService.canCreate({ user, game });
@@ -121,12 +114,12 @@ export class DrawController {
     method: HttpMethod.GET,
     roles: ["user"]
   })
-  async getDraws(
-    user: User,
-    userId: string,
-    drawEventRepository: Repository<DrawEvent>,
-    drawEventAuthorizationService: DrawEventAuthorizationService
-  ): Promise<DrawEvent[]> {
+  async getDraws({
+    user,
+    pathVariables: { userId },
+    drawEventRepository,
+    drawEventAuthorizationService
+  }: RequestContext): Promise<DrawEvent[]> {
     const filter = { where: { user: userId } };
     await drawEventAuthorizationService.canReadMultiple(filter);
     return await drawEventRepository.find(filter);
