@@ -33,3 +33,9 @@ export class ComponentRegistrar {
     return componentClass.name[0].toLowerCase() + componentClass.name.substr(1);
   }
 }
+
+declare global {
+  interface ApplicationContext {
+    ComponentList: IScannableClass[];
+  }
+}

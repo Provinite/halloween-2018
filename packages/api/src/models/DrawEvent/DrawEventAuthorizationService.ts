@@ -128,3 +128,10 @@ export class DrawEventAuthorizationService {
 
 // tslint:disable-next-line no-empty-interface
 export interface DrawEventAuthorizationService extends ContainerAware {}
+
+declare global {
+  interface ApplicationContext {
+    /** Service for authenticating actions on DrawEvent models */
+    drawEventAuthorizationService: DrawEventAuthorizationService;
+  }
+}

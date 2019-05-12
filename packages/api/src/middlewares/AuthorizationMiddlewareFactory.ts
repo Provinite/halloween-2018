@@ -74,3 +74,9 @@ export class AuthorizationMiddlewareFactory implements IMiddlewareFactory {
     };
   }
 }
+
+declare global {
+  interface RequestContext {
+    user: User | undefined;
+  }
+}

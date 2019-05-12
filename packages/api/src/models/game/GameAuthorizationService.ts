@@ -38,3 +38,10 @@ export class GameAuthorizationService {
     };
   }
 }
+
+declare global {
+  interface ApplicationContext {
+    /** Service for authenticating actions on Game models */
+    gameAuthorizationService: GameAuthorizationService;
+  }
+}

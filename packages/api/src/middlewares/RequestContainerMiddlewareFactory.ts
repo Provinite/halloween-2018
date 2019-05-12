@@ -31,3 +31,10 @@ export class RequestContainerMiddlewareFactory implements IMiddlewareFactory {
     await next();
   };
 }
+
+declare global {
+  interface RequestContext {
+    ctx: Context;
+    query: any;
+  }
+}

@@ -41,3 +41,9 @@ export class PrizeRepository extends Repository<Prize> {
       .getMany();
   }
 }
+
+declare global {
+  interface ApplicationContext {
+    prizeRepository: PrizeRepository;
+  }
+}

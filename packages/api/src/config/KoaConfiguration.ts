@@ -104,3 +104,9 @@ function createMiddleware(
 ) {
   return container.build(asClass(factoryClass)).create();
 }
+
+declare global {
+  interface ApplicationContext {
+    koaConfiguration: KoaConfiguration;
+  }
+}

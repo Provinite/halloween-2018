@@ -67,3 +67,10 @@ interface ITokenData {
   /** Deviantart api access token. */
   accessToken: string;
 }
+
+declare global {
+  interface ApplicationContext {
+    /** Service for managing JWTs */
+    tokenService: TokenService;
+  }
+}

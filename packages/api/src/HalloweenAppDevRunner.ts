@@ -1,4 +1,10 @@
-import { asClass, asValue, createContainer, InjectionMode } from "awilix";
+import {
+  asClass,
+  asValue,
+  AwilixContainer,
+  createContainer,
+  InjectionMode
+} from "awilix";
 import { asStaticMethod } from "./AwilixHelpers";
 import { ComponentRegistrar } from "./config/context/ComponentRegistrar";
 import { OrmContext } from "./config/context/OrmContext";
@@ -43,5 +49,16 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
     const koaConfiguration: KoaConfiguration =
       container.cradle.koaConfiguration;
     koaConfiguration.configure();
+  }
+}
+
+declare global {
+  interface ApplicationContext {
+    /** The environment hash for this process */
+    NODE_ENV: typeof process.env;
+    /** The awilix container that holds this context */
+    container: AwilixContainer;
+    /** Service for interacting with the process env */
+    envService: EnvService;
   }
 }

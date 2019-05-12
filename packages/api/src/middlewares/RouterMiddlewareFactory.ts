@@ -81,3 +81,9 @@ function registerPathVariables(
     requestContainer.register(variable, asValue(pathVariables[variable]));
   }
 }
+
+declare global {
+  interface RequestContext {
+    pathVariables: { [pathVariable: string]: string | undefined };
+  }
+}

@@ -129,3 +129,10 @@ export class PrizeAuthorizationService {
 }
 // tslint:disable-next-line no-empty-interface
 export interface PrizeAuthorizationService extends ContainerAware {}
+
+declare global {
+  interface ApplicationContext {
+    /** Service for authenticating actions on Prize models */
+    prizeAuthorizationService: PrizeAuthorizationService;
+  }
+}

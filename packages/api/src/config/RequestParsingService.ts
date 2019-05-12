@@ -19,3 +19,17 @@ export class RequestParsingService {
     container.register("requestBody", asValue(ctx.request.body));
   }
 }
+
+declare global {
+  interface ApplicationContext {
+    /**
+     * Service responsible for populating request data into the application
+     * context.
+     */
+    requestParsingService: RequestParsingService;
+  }
+  interface RequestContext {
+    /** Parsed body for this request */
+    requestBody: { [key: string]: any };
+  }
+}

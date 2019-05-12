@@ -69,3 +69,12 @@ export class OrmContext {
     return container;
   }
 }
+
+declare global {
+  interface ApplicationContext {
+    /** The typeorm connection for the application */
+    orm: Connection;
+    /** The entity manager for this container */
+    manager: EntityManager;
+  }
+}

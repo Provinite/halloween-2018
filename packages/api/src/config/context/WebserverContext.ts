@@ -17,3 +17,10 @@ export class WebserverContext {
     return container;
   }
 }
+
+declare global {
+  interface ApplicationContext {
+    /** The Koa instance for the application */
+    webserver: Koa;
+  }
+}

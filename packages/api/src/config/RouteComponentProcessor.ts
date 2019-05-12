@@ -107,3 +107,13 @@ export class RouteComponentProcessor {
       });
   }
 }
+
+declare global {
+  interface ApplicationContext {
+    /**
+     * Component responsible for populating the route registry with routable
+     * methods parsed from the @Component list.
+     */
+    routeComponentProcessor: RouteComponentProcessor;
+  }
+}

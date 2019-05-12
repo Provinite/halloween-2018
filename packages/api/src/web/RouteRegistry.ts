@@ -144,3 +144,10 @@ type IRouteHandler = {
 interface IRouteMap {
   [route: string]: IRouteHandler | undefined;
 }
+
+declare global {
+  interface ApplicationContext {
+    /** The registry of all routes that this application covers */
+    routeRegistry: RouteRegistry;
+  }
+}
