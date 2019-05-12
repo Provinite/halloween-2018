@@ -1,5 +1,5 @@
 import * as JWT from "jsonwebtoken";
-import { EnvService } from "../config/env/EnvService";
+import { ApplicationContext } from "../config/context/ApplicationContext";
 import { ITokenConfiguration } from "../config/env/ITokenConfiguration";
 import { Component } from "../reflection/Component";
 import { ITokenPayload } from "./ITokenPayload";
@@ -16,7 +16,7 @@ export class TokenService {
    * @param envService - The environment service from which to fetch token
    * configuration info
    */
-  constructor(envService: EnvService) {
+  constructor({ envService }: ApplicationContext) {
     this.config = envService.getTokenConfiguration();
   }
   /**
