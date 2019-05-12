@@ -1,6 +1,6 @@
 import Axios from "axios";
 import * as QueryString from "querystring";
-import { EnvService } from "../../config/env/EnvService";
+import { ApplicationContext } from "../../config/context/ApplicationContext";
 import { IDeviantartApiConsumerConfiguration } from "../../config/env/IDeviantartApiConsumerConfig";
 import { Component } from "../../reflection/Component";
 import { IDeviantartAuthResult } from "./IDeviantartAuthResult";
@@ -8,7 +8,8 @@ import { IDeviantartUser } from "./IDeviantartUser";
 @Component()
 export class DeviantartApiConsumer {
   private config: IDeviantartApiConsumerConfiguration;
-  constructor(envService: EnvService) {
+  /** @inject */
+  constructor({ envService }: ApplicationContext) {
     this.config = envService.getDeviantartApiConsumerConfig();
   }
   /**
@@ -76,5 +77,12 @@ export class DeviantartApiConsumer {
       userIcon,
       type
     };
+  }
+}
+
+declare global {
+  interface ApplicationContextMembers {
+    /** API client for interacting with the DeviantArt REST API */
+    deviantartApiConsumer: DeviantartApiConsumer;
   }
 }

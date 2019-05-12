@@ -1,5 +1,6 @@
 import { ROLES } from "@clovercoin/constants";
-import { Column, Entity, PrimaryGeneratedColumn, Repository } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { ApplicationContext } from "../config/context/ApplicationContext";
 import { isDuplicateKeyError } from "../db/OrmErrors";
 
 @Entity()
@@ -13,8 +14,9 @@ export class Role {
    * configuration.
    * @param roleRepository - The role repository to use when creating initial
    *    roles.
+   * @inject
    */
-  static async createInitialEntities(roleRepository: Repository<Role>) {
+  static async createInitialEntities({ roleRepository }: ApplicationContext) {
     const requiredRoleNames = ROLES;
     for (const [, roleName] of Object.entries(requiredRoleNames)) {
       const role = roleRepository.create();

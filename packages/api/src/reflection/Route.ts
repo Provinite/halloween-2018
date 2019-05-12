@@ -1,4 +1,5 @@
 import { RoleLiteral } from "../auth/RoleLiteral";
+import { RequestContext } from "../config/context/RequestContext";
 import { HttpMethod } from "../HttpMethod";
 import { IRoutableMethod } from "./IRoutableMethod";
 import { IRouterClass } from "./IRouterClass";
@@ -27,7 +28,7 @@ export function Route(
   return function(
     target: any,
     propertyKey: string,
-    descriptor: PropertyDescriptor
+    descriptor: TypedPropertyDescriptor<(context: RequestContext) => any>
   ) {
     const value = descriptor.value as IRoutableMethod;
     let requestedRoute: string;

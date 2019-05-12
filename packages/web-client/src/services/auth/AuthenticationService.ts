@@ -98,3 +98,9 @@ export class AuthenticationService {
     return role.name === ROLES.admin;
   }
 }
+
+declare global {
+  interface ApplicationContext {
+    authenticationService: AuthenticationService;
+  }
+}

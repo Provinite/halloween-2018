@@ -36,3 +36,10 @@ export class DrawEventRepository extends Repository<DrawEvent> {
     return result[0];
   }
 }
+
+declare global {
+  interface ApplicationContextMembers {
+    /** Repository for managing draw events */
+    drawEventRepository: DrawEventRepository;
+  }
+}

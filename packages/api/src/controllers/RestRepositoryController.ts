@@ -1,10 +1,10 @@
-import { Context } from "koa";
 import { Connection, Repository } from "typeorm";
 import { RoleLiteral } from "../auth/RoleLiteral";
-import { asClassMethod } from "../AwilixHelpers";
+import { bind } from "../AwilixHelpers";
+import { ApplicationContext } from "../config/context/ApplicationContext";
+import { RequestContext } from "../config/context/RequestContext";
 import { HttpMethod } from "../HttpMethod";
 import { MethodNotSupportedError } from "../web/MethodNotSupportedError";
-import { RouteRegistry } from "../web/RouteRegistry";
 import { UnknownRouteError } from "../web/UnknownRouteError";
 /**
  * Pluralize a given string.
@@ -57,8 +57,9 @@ export abstract class RestRepositoryController<T> {
    * Registers default fallback handlers for this repository if they are
    * not already registered.
    * @param routeRegistry The route registry to write to.
+   * @inject
    */
-  registerRoutes(routeRegistry: RouteRegistry) {
+  registerRoutes({ routeRegistry }: ApplicationContext) {
     const fallbackHandlers: IFallbackHandlerMap = {
       [this.listRoute]: {
         [HttpMethod.GET]: {
@@ -91,11 +92,10 @@ export abstract class RestRepositoryController<T> {
             e instanceof MethodNotSupportedError
           ) {
             // handler isn't covered, register it
-            const resolver = asClassMethod(this, methodMap[method].fn);
             routeRegistry.registerRoute(
               route,
               method,
-              resolver,
+              bind(methodMap[method].fn, this),
               this,
               methodMap[method].roles
             );
@@ -136,8 +136,9 @@ export abstract class RestRepositoryController<T> {
    * Handler for list-route POSTs
    * @Route POST /entityPlural
    * @param requestBody
+   * @inject
    */
-  async createOne(requestBody: any, ctx: Context): Promise<T> {
+  async createOne({ requestBody, ctx }: RequestContext): Promise<T> {
     const entity: T = this.repository.create();
     // TODO: massive security issues
     Object.keys(requestBody).forEach(key => {
@@ -156,11 +157,17 @@ export abstract class RestRepositoryController<T> {
    * Handler for detail-route PATCHes
    * @Route PATCH /entityPlural/{id}
    * @param id - The ID of the entity to delete.
+   * @inject
    */
-  async updateOne(id: string, requestBody: any, ctx: Context) {
+  async updateOne(context: RequestContext) {
+    const {
+      pathVariables: { id },
+      requestBody,
+      ctx
+    } = context;
     try {
-      await this.repository.update(id, requestBody);
-      return await this.getOne(id);
+      await this.repository.update(id, requestBody as any);
+      return await this.getOne(context);
     } catch (error) {
       ctx.status = 400;
       ctx.state.result = "";
@@ -172,8 +179,11 @@ export abstract class RestRepositoryController<T> {
    * Handler for detail-route DELETEs
    * @Route DELETE /entityPlural/{id}
    * @param id - The ID of the entity to delete.
+   * @inject
    */
-  async deleteOne(id: string): Promise<{ ok: boolean }> {
+  async deleteOne({
+    pathVariables: { id }
+  }: RequestContext): Promise<{ ok: boolean }> {
     await this.repository.delete(id);
     return { ok: true };
   }
@@ -182,9 +192,10 @@ export abstract class RestRepositoryController<T> {
    * Default handler for detail-route GETs
    * @Route POST /entityPlural/{id}
    * @param id - The ID of the entitity to fetch.
+   * @inject
    */
   // @Route("/entities/{id}", GET)
-  getOne(id: string): Promise<T> {
+  getOne({ pathVariables: { id } }: RequestContext): Promise<T> {
     return this.repository.findOne(id);
   }
 
@@ -193,8 +204,12 @@ export abstract class RestRepositoryController<T> {
    * @Route PATCH /entityPlural/{id}
    * @param id - Pathvariable, the ID of the entity to fetch.
    * @param requestBody
+   * @inject
    */
-  async modifyOne(id: string, requestBody: any): Promise<T> {
+  async modifyOne({
+    pathVariables: { id },
+    requestBody
+  }: RequestContext): Promise<T> {
     const entity: T = await this.repository.findOne(id);
     if (!entity) {
       // TODO: 404?

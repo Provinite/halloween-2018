@@ -1,6 +1,7 @@
 import { ROLES } from "@clovercoin/constants";
 import { TokenExpiredError } from "jsonwebtoken";
 import { Repository } from "typeorm";
+import { ApplicationContext } from "../config/context/ApplicationContext";
 import { Role, User } from "../models";
 import { Component } from "../reflection/Component";
 import { AuthenticationFailureException } from "./AuthenticationFailureException";
@@ -11,13 +12,20 @@ import { TokenService } from "./TokenService";
 @Component()
 export class AuthenticationService {
   private client: DeviantartApiConsumer;
-  constructor(
-    deviantartApiConsumer: DeviantartApiConsumer,
-    private roleRepository: Repository<Role>,
-    private userRepository: Repository<User>,
-    private tokenService: TokenService
-  ) {
+  private roleRepository: Repository<Role>;
+  private userRepository: Repository<User>;
+  private tokenService: TokenService;
+  /** @inject */
+  constructor({
+    deviantartApiConsumer,
+    roleRepository,
+    userRepository,
+    tokenService
+  }: ApplicationContext) {
     this.client = deviantartApiConsumer;
+    this.roleRepository = roleRepository;
+    this.userRepository = userRepository;
+    this.tokenService = tokenService;
   }
 
   /**
@@ -85,5 +93,11 @@ export class AuthenticationService {
       }
       throw new AuthenticationFailureException(message);
     }
+  }
+}
+
+declare global {
+  interface ApplicationContextMembers {
+    authenticationService: AuthenticationService;
   }
 }

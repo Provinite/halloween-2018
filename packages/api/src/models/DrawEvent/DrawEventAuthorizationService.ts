@@ -1,10 +1,10 @@
 import { PartialExcept } from "@clovercoin/constants";
-import { AwilixContainer } from "awilix";
 import { addSeconds, differenceInSeconds } from "date-fns";
-import { Connection, EntityManager, FindManyOptions } from "typeorm";
+import { FindManyOptions } from "typeorm";
 import { hasRole } from "../../auth/AuthHelpers";
 import { PermissionDeniedError } from "../../auth/PermissionDeniedError";
 import { ContainerAware, MakeContainerAware } from "../../AwilixHelpers";
+import { RequestContext } from "../../config/context/RequestContext";
 import { Component } from "../../reflection/Component";
 import { getCurrentTime } from "../../TimeUtils";
 import { DrawEvent } from "../DrawEvent";
@@ -14,7 +14,10 @@ import { DrawRateLimitExceededError } from "./DrawRateLimitExceededError";
 @Component()
 @MakeContainerAware()
 export class DrawEventAuthorizationService {
-  constructor(public container: AwilixContainer) {}
+  /** @inject */
+  constructor({ container }: RequestContext) {
+    this.container = container;
+  }
 
   /**
    * Determine if a user may create a new draw event.
@@ -26,7 +29,8 @@ export class DrawEventAuthorizationService {
   get canCreate() {
     return this.buildMethod(this.buildCanCreate);
   }
-  private buildCanCreate(user: User, orm: Connection | EntityManager) {
+  /** @inject */
+  private buildCanCreate({ user, orm }: RequestContext) {
     return async (createEvent: PartialExcept<DrawEvent, "user" | "game">) => {
       if (!hasRole(user, "user")) {
         throw new PermissionDeniedError();
@@ -40,6 +44,7 @@ export class DrawEventAuthorizationService {
       }
       const drawEventRepository = orm.getCustomRepository(DrawEventRepository);
       // draws must be separated by 30 seconds
+      // TODO: draws must be separated by the configured game time not 30 seconds
       const lastDraw = await drawEventRepository.getLastDrawEvent(
         user,
         createEvent.game
@@ -68,7 +73,8 @@ export class DrawEventAuthorizationService {
   get canReadMultiple() {
     return this.buildMethod(this.buildCanReadMultiple);
   }
-  buildCanReadMultiple(user: User) {
+  /** @inject */
+  buildCanReadMultiple({ user }: RequestContext) {
     const contextUser = user;
     return (
       findOptions: FindManyOptions<DrawEvent>,
@@ -128,3 +134,10 @@ export class DrawEventAuthorizationService {
 
 // tslint:disable-next-line no-empty-interface
 export interface DrawEventAuthorizationService extends ContainerAware {}
+
+declare global {
+  interface ApplicationContextMembers {
+    /** Service for authenticating actions on DrawEvent models */
+    drawEventAuthorizationService: DrawEventAuthorizationService;
+  }
+}

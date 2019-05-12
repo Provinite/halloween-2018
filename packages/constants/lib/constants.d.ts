@@ -21,4 +21,15 @@ declare module "@clovercoin/constants" {
   export type ArgumentTypes<T> = T extends (...args: infer U) => infer R
   ? U
   : never;
+
+  /**
+   * "Spread" type U onto type T. Example:
+   * interface Base {
+   *   a: string;
+   *   b: number;
+   * }
+   * type PartiallyExtendsBase = Assign<Base, {a: number, c: boolean}>;
+   * // { a: number; b: number; c: boolean }
+   */
+  export type Assign<T, U> = Omit<T, keyof U> & U;
 }

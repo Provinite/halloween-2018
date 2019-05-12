@@ -1,9 +1,8 @@
-import { asFunction, asValue, AwilixContainer, Lifetime } from "awilix";
+import { asFunction, asValue, Lifetime } from "awilix";
 import { Connection, createConnection, EntityManager } from "typeorm";
-import { asStaticMethod } from "../../AwilixHelpers";
 import { MODELS } from "../../models";
 import { getRepositoryFor } from "../../models/modelUtils";
-import { EnvService } from "../env/EnvService";
+import { AnyContext, ApplicationContext } from "./ApplicationContext";
 
 /**
  * Create a repository name for the given model.
@@ -25,11 +24,12 @@ export class OrmContext {
    * Configures the DI container with ORM related registrations.
    * @configures {typeorm.Connection} orm
    * @configures {typeorm.Repository} [model]Repository for each model.
+   * @inject
    */
-  static async configureContainer(
-    container: AwilixContainer,
-    envService: EnvService
-  ) {
+  static async configureContainer({
+    container,
+    envService
+  }: ApplicationContext) {
     const config = {
       ...envService.getOrmConfiguration(),
       entities: MODELS
@@ -43,7 +43,7 @@ export class OrmContext {
     // ORM
     container.register(
       "manager",
-      asFunction((orm: Connection) => orm.manager, {
+      asFunction(({ orm }: AnyContext) => orm.manager, {
         lifetime: Lifetime.TRANSIENT
       })
     );
@@ -51,21 +51,31 @@ export class OrmContext {
     MODELS.forEach(model => {
       // Register a scoped repository for each model.
       const name = createRepositoryName(model);
-      const proxy = (manager: EntityManager) =>
+      /** @inject */
+      const proxy = ({ manager }: AnyContext) =>
         getRepositoryFor(manager, model);
       const resolver = asFunction(proxy);
-      container.register(name, resolver);
+      container.register(name as keyof ApplicationContext, resolver);
     });
 
     // Fire off createInitialEntites for each model
     await Promise.all(
       MODELS.map(model =>
         model.createInitialEntities
-          ? container.build(asStaticMethod(model.createInitialEntities))
+          ? container.build(model.createInitialEntities)
           : Promise.resolve()
       )
     );
 
     return container;
+  }
+}
+
+declare global {
+  interface ApplicationContextMembers {
+    /** The typeorm connection for the application */
+    orm: Connection;
+    /** The entity manager for this container */
+    manager: EntityManager;
   }
 }

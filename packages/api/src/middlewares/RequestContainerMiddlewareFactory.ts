@@ -1,5 +1,10 @@
-import { asValue, AwilixContainer } from "awilix";
+import { asValue } from "awilix";
 import { Context } from "koa";
+import {
+  ApplicationContainer,
+  ApplicationContext
+} from "../config/context/ApplicationContext";
+import { RequestContainer } from "../config/context/RequestContext";
 import { RequestParsingService } from "../config/RequestParsingService";
 import { IMiddlewareFactory } from "./IMiddlewareFactory";
 import { INextCallback } from "./INextCallback";
@@ -15,12 +20,15 @@ import { INextCallback } from "./INextCallback";
  *  from the parent scope with a request-scoped container.
  */
 export class RequestContainerMiddlewareFactory implements IMiddlewareFactory {
-  constructor(
-    private container: AwilixContainer,
-    private requestParsingService: RequestParsingService
-  ) {}
+  private requestParsingService: RequestParsingService;
+  private container: ApplicationContainer;
+  /** @inject */
+  constructor({ container, requestParsingService }: ApplicationContext) {
+    this.container = container;
+    this.requestParsingService = requestParsingService;
+  }
   create = () => async (ctx: Context, next: INextCallback) => {
-    const requestContainer: AwilixContainer = this.container.createScope();
+    const requestContainer = this.container.createScope<RequestContainer>();
     // register the context
     requestContainer.register("ctx", asValue(ctx));
     requestContainer.register("container", asValue(requestContainer));
@@ -30,4 +38,15 @@ export class RequestContainerMiddlewareFactory implements IMiddlewareFactory {
     ctx.state.requestContainer = requestContainer;
     await next();
   };
+}
+
+declare global {
+  interface RequestContextMembers {
+    /** Request-scoped DI container */
+    container: RequestContainer;
+    /** The Koa context for this request */
+    ctx: Context;
+    /** The parsed querystring (key-value pair hash) */
+    query: any;
+  }
 }

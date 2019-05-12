@@ -1,5 +1,4 @@
-import { AwilixContainer } from "awilix";
-import { asClassMethod } from "../AwilixHelpers";
+import { bind } from "../AwilixHelpers";
 import { Component } from "../reflection/Component";
 import {
   IRouter,
@@ -14,6 +13,10 @@ import {
   targetRoute
 } from "../reflection/Symbols";
 import { RouteRegistry } from "../web/RouteRegistry";
+import {
+  ApplicationContainer,
+  ApplicationContext
+} from "./context/ApplicationContext";
 import { ComponentRegistrar } from "./context/ComponentRegistrar";
 
 /**
@@ -29,18 +32,15 @@ export class RouteComponentProcessor {
    * @member container - The application's DI container. Used to create request
    *    scoped child containers, and provide DI for route handler methods.
    */
-  private container: AwilixContainer;
+  private container: ApplicationContainer;
   /**
    * @private
    * @member componentList - The ComponentList. @see ComponentRegistrar
    */
   private componentList: IScannableClass[];
   private routeRegistry: RouteRegistry;
-  constructor(
-    container: AwilixContainer,
-    ComponentList: IScannableClass[],
-    routeRegistry: RouteRegistry
-  ) {
+  /** @inject */
+  constructor({ container, ComponentList, routeRegistry }: ApplicationContext) {
     this.container = container;
     this.componentList = ComponentList;
     this.routeRegistry = routeRegistry;
@@ -57,7 +57,9 @@ export class RouteComponentProcessor {
      */
     const getInstance = (routerClass: IRouterClass): IRouter => {
       const name = ComponentRegistrar.getRegistrationName(routerClass);
-      const registration = this.container.cradle[name];
+      const registration = this.container.cradle[
+        name as keyof ApplicationContext
+      ] as IRouter;
       return registration as IRouter;
     };
 
@@ -74,7 +76,7 @@ export class RouteComponentProcessor {
           this.routeRegistry.registerRoute(
             route,
             methods,
-            asClassMethod(router, routableMethod),
+            bind(routableMethod, router),
             router,
             roles
           );
@@ -90,7 +92,7 @@ export class RouteComponentProcessor {
      */
     const registerCustomRoutes = (router: IRouter) => {
       if (router.registerRoutes) {
-        this.container.build(asClassMethod(router, router.registerRoutes));
+        this.container.build(bind(router.registerRoutes, router));
       }
     };
 
@@ -105,5 +107,15 @@ export class RouteComponentProcessor {
         // And the custom routes last, so they have the chance to override
         registerCustomRoutes(router);
       });
+  }
+}
+
+declare global {
+  interface ApplicationContextMembers {
+    /**
+     * Component responsible for populating the route registry with routable
+     * methods parsed from the @Component list.
+     */
+    routeComponentProcessor: RouteComponentProcessor;
   }
 }

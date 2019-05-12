@@ -1,5 +1,5 @@
-import { Context } from "koa";
 import { Repository } from "typeorm";
+import { RequestContext } from "../config/context/RequestContext";
 import { HttpMethod } from "../HttpMethod";
 import { User } from "../models";
 import { Component } from "../reflection/Component";
@@ -10,19 +10,18 @@ import { AuthenticationService } from "./AuthenticationService";
 export class LoginController {
   private authService: AuthenticationService;
   private userRepository: Repository<User>;
-  constructor(
-    authenticationService: AuthenticationService,
-    userRepository: Repository<User>
-  ) {
+  /** @inject */
+  constructor({ authenticationService, userRepository }: RequestContext) {
     this.authService = authenticationService;
     this.userRepository = userRepository;
   }
+  /** @inject */
   @Route({
     route: "/login",
     method: HttpMethod.POST,
     roles: ["public"]
   })
-  async handleLogin(requestBody: { authCode?: string }) {
+  async handleLogin({ requestBody }: RequestContext) {
     if (!requestBody.authCode) {
       // todo: return a bad request http response
       return;
@@ -31,13 +30,13 @@ export class LoginController {
       token: await this.authService.authenticate(requestBody.authCode)
     };
   }
-
+  /** @inject */
   @Route({
     route: "/whoami",
     method: HttpMethod.GET,
     roles: ["user"]
   })
-  async whoami(ctx: Context): Promise<User> {
+  async whoami({ ctx }: RequestContext): Promise<User> {
     const token = ctx.get("Authorization").replace("Bearer ", "");
     const payload = await this.authService.authenticateToken(token);
     return this.userRepository.findOne(payload.sub);

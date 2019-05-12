@@ -23,3 +23,10 @@ export class DbMetadataService {
       .map(c => c.propertyName) as any;
   }
 }
+
+declare global {
+  interface ApplicationContextMembers {
+    /** Service for interacting with typeorm database metadata. */
+    dbMetadataService: DbMetadataService;
+  }
+}

@@ -90,3 +90,9 @@ export class RouteTransformationService {
     return new RegExp(`^${pattern}$`);
   }
 }
+
+declare global {
+  interface ApplicationContextMembers {
+    routeTransformationService: RouteTransformationService;
+  }
+}

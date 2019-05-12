@@ -1,10 +1,12 @@
-import { asValue, AwilixContainer } from "awilix";
+import { asValue } from "awilix";
 import { Context, Middleware } from "koa";
 import { Repository } from "typeorm";
 import { AuthenticationService } from "../auth/AuthenticationService";
 import { hasRole } from "../auth/AuthHelpers";
 import { PermissionDeniedError } from "../auth/PermissionDeniedError";
 import { RoleLiteral } from "../auth/RoleLiteral";
+import { ApplicationContext } from "../config/context/ApplicationContext";
+import { RequestContainer } from "../config/context/RequestContext";
 import { getMethod } from "../HttpMethod";
 import { User } from "../models";
 import { RouteRegistry } from "../web/RouteRegistry";
@@ -15,15 +17,23 @@ import { IMiddlewareFactory } from "./IMiddlewareFactory";
  * request. Attaches the current user to request-scoped DI container as "user".
  */
 export class AuthorizationMiddlewareFactory implements IMiddlewareFactory {
-  constructor(
-    private userRepository: Repository<User>,
-    private routeRegistry: RouteRegistry,
-    private authenticationService: AuthenticationService
-  ) {}
+  userRepository: Repository<User>;
+  routeRegistry: RouteRegistry;
+  authenticationService: AuthenticationService;
+  /** @inject */
+  constructor({
+    userRepository,
+    routeRegistry,
+    authenticationService
+  }: ApplicationContext) {
+    this.userRepository = userRepository;
+    this.routeRegistry = routeRegistry;
+    this.authenticationService = authenticationService;
+  }
   create(): Middleware {
     return async (ctx: Context, next: () => Promise<any>) => {
       const { path, method } = ctx;
-      const requestContainer: AwilixContainer = ctx.state.requestContainer;
+      const requestContainer: RequestContainer = ctx.state.requestContainer;
       let allowedRoles: RoleLiteral[];
       try {
         allowedRoles = this.routeRegistry.lookupRoute(path, getMethod(method))
@@ -72,5 +82,11 @@ export class AuthorizationMiddlewareFactory implements IMiddlewareFactory {
       }
       await next();
     };
+  }
+}
+
+declare global {
+  interface RequestContextMembers {
+    user: User | undefined;
   }
 }

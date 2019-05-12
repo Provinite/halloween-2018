@@ -1,6 +1,11 @@
-import { asValue, AwilixContainer } from "awilix";
+import { asValue } from "awilix";
 import { Context, Middleware } from "koa";
-import { asClassMethod } from "../AwilixHelpers";
+import { bind } from "../AwilixHelpers";
+import { ApplicationContext } from "../config/context/ApplicationContext";
+import {
+  RequestContainer,
+  RequestContext
+} from "../config/context/RequestContext";
 import { getMethod, HttpMethod } from "../HttpMethod";
 import { RouteRegistry } from "../web/RouteRegistry";
 import { UnknownMethodError } from "../web/UnknownMethodError";
@@ -14,10 +19,14 @@ import { INextCallback } from "./INextCallback";
  * Depends on ctx.state.requestContainer being set.
  */
 export class RouterMiddlewareFactory implements IMiddlewareFactory {
+  private routeRegistry: RouteRegistry;
   /**
    * @param routeRegistry - The route registry to use when mapping requests.
+   * @inject
    */
-  constructor(private routeRegistry: RouteRegistry) {}
+  constructor({ routeRegistry }: ApplicationContext) {
+    this.routeRegistry = routeRegistry;
+  }
   /**
    * Create the router middleware.
    */
@@ -33,7 +42,7 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
       if (!ctx.state.requestContainer) {
         throw new Error("No request container available.");
       }
-      const requestContainer: AwilixContainer = ctx.state.requestContainer;
+      const requestContainer: RequestContainer = ctx.state.requestContainer;
 
       const {
         router,
@@ -44,7 +53,7 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
       // TODO: this could be a typeguard
       if (router && typeof router.configureRequestContainer === "function") {
         await requestContainer.build(
-          asClassMethod(router, router.configureRequestContainer)
+          bind(router.configureRequestContainer, router)
         );
       }
       // Invoke this route's handler, and store its response on the context
@@ -71,13 +80,22 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
  */
 function registerPathVariables(
   pathVariables: { [key: string]: string },
-  requestContainer: AwilixContainer
+  requestContainer: RequestContainer
 ) {
   requestContainer.register("pathVariables", asValue(pathVariables || {}));
   if (!pathVariables) {
     return;
   }
   for (const variable of Object.keys(pathVariables)) {
-    requestContainer.register(variable, asValue(pathVariables[variable]));
+    requestContainer.register(
+      variable as keyof RequestContext,
+      asValue(pathVariables[variable])
+    );
+  }
+}
+
+declare global {
+  interface RequestContextMembers {
+    pathVariables: { [pathVariable: string]: string | undefined };
   }
 }

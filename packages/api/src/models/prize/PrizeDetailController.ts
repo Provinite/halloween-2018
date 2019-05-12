@@ -1,11 +1,8 @@
-import { FindOneOptions } from "typeorm";
 import { HttpMethod } from "../../HttpMethod";
 import { Controller } from "../../reflection/Controller";
 import { Route } from "../../reflection/Route";
 import { Prize } from "../Prize";
-import { PrizeAuthorizationService } from "./PrizeAuthorizationService";
-import { PrizeController } from "./PrizeController";
-import { PrizeRepository } from "./PrizeRepository";
+import { PrizeController, PrizeRequestContext } from "./PrizeController";
 /**
  * Controller for prize detail-route methods.
  */
@@ -13,17 +10,18 @@ import { PrizeRepository } from "./PrizeRepository";
 export class PrizeDetailController extends PrizeController {
   /**
    * GET a specific prize.
+   * @inject
    */
   @Route({
     route: PrizeController.detailRoute,
     method: HttpMethod.GET,
     roles: ["user"]
   })
-  async getPrize(
-    prizeOptions: FindOneOptions<Prize>,
-    prizeAuthorizationService: PrizeAuthorizationService,
-    prizeRepository: PrizeRepository
-  ): Promise<Prize> {
+  async getPrize({
+    prizeOptions,
+    prizeAuthorizationService,
+    prizeRepository
+  }: PrizeRequestContext): Promise<Prize> {
     const prize = await prizeRepository.findOneOrFail(prizeOptions);
     await prizeAuthorizationService.canRead();
     return prize;
@@ -31,18 +29,19 @@ export class PrizeDetailController extends PrizeController {
 
   /**
    * PATCH a prize with the request body.
+   * @inject
    */
   @Route({
     route: PrizeController.detailRoute,
     method: HttpMethod.PATCH,
     roles: ["admin"]
   })
-  async updatePrize(
-    prizeOptions: FindOneOptions<Prize>,
-    requestBody: any,
-    prizeRepository: PrizeRepository,
-    prizeAuthorizationService: PrizeAuthorizationService
-  ) {
+  async updatePrize({
+    prizeOptions,
+    requestBody,
+    prizeRepository,
+    prizeAuthorizationService
+  }: PrizeRequestContext) {
     const prize = await prizeRepository.findOneOrFail(prizeOptions);
     const body = this.parseBodyForUpdate(requestBody);
     await prizeAuthorizationService.canUpdate(prize, body);
@@ -53,17 +52,18 @@ export class PrizeDetailController extends PrizeController {
 
   /**
    * DELETE a prize.
+   * @inject
    */
   @Route({
     route: PrizeController.detailRoute,
     method: HttpMethod.DELETE,
     roles: ["admin"]
   })
-  async deletePrize(
-    prizeOptions: FindOneOptions<Prize>,
-    prizeRepository: PrizeRepository,
-    prizeAuthorizationService: PrizeAuthorizationService
-  ) {
+  async deletePrize({
+    prizeOptions,
+    prizeRepository,
+    prizeAuthorizationService
+  }: PrizeRequestContext) {
     const prize = await prizeRepository.findOneOrFail(prizeOptions);
     await prizeAuthorizationService.canDelete(prize);
     const result = await prizeRepository.delete(prize);

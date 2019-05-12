@@ -17,6 +17,13 @@ import { IMiddlewareFactory } from "./IMiddlewareFactory";
 import { INextCallback } from "./INextCallback";
 
 export class ErrorHandlerMiddlewareFactory implements IMiddlewareFactory {
+  /**
+   * @inject
+   */
+  constructor() {
+    // empty
+  }
+
   create = () => async (ctx: Context, next: INextCallback) => {
     try {
       await next();

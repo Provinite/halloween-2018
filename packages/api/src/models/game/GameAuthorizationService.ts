@@ -1,14 +1,22 @@
-import { AwilixContainer } from "awilix";
 import { hasRole } from "../../auth/AuthHelpers";
 import { PermissionDeniedError } from "../../auth/PermissionDeniedError";
-import { asClassMethod } from "../../AwilixHelpers";
+import { bind } from "../../AwilixHelpers";
+import {
+  AnyContext,
+  ApplicationContainer
+} from "../../config/context/ApplicationContext";
+import { RequestContext } from "../../config/context/RequestContext";
 import { Component } from "../../reflection/Component";
 import { Game } from "../Game";
 import { User } from "../User";
 
 @Component("TRANSIENT")
 export class GameAuthorizationService {
-  constructor(public container: AwilixContainer) {}
+  container: ApplicationContainer;
+  /** @inject */
+  constructor({ container }: AnyContext) {
+    this.container = container;
+  }
   async canCreate(user: User) {
     if (!hasRole(user, "admin")) {
       throw new PermissionDeniedError();
@@ -26,9 +34,11 @@ export class GameAuthorizationService {
     }
   }
   get canRead() {
-    return this.container.build(asClassMethod(this, this.authCanRead));
+    const authCanRead = this.authCanRead;
+    return this.container.build(bind(authCanRead, this));
   }
-  private authCanRead(user: User) {
+  /** @inject */
+  private authCanRead({ user }: RequestContext) {
     const containerUser = user;
     return async (game: Game, user: User = containerUser) => {
       if (!hasRole(user, "user")) {
@@ -36,5 +46,12 @@ export class GameAuthorizationService {
       }
       return true;
     };
+  }
+}
+
+declare global {
+  interface ApplicationContextMembers {
+    /** Service for authenticating actions on Game models */
+    gameAuthorizationService: GameAuthorizationService;
   }
 }

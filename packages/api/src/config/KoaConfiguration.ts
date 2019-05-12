@@ -1,5 +1,4 @@
-import { asClass, AwilixContainer } from "awilix";
-import * as Koa from "koa";
+import { asClass } from "awilix";
 import * as BodyParser from "koa-bodyparser";
 import { AuthorizationMiddlewareFactory } from "../middlewares/AuthorizationMiddlewareFactory";
 import { CorsMiddlewareFactory } from "../middlewares/CorsMiddlewareFactory";
@@ -9,27 +8,26 @@ import { RenderMiddlewareFactory } from "../middlewares/RenderMiddlewareFactory"
 import { RequestContainerMiddlewareFactory } from "../middlewares/RequestContainerMiddlewareFactory";
 import { RouterMiddlewareFactory } from "../middlewares/RouterMiddlewareFactory";
 import { Component } from "../reflection/Component";
-import { EnvService } from "./env/EnvService";
-import { IWebserverConfiguration } from "./env/IWebserverConfiguration";
-import { RouteComponentProcessor } from "./RouteComponentProcessor";
+import {
+  ApplicationContainer,
+  ApplicationContext
+} from "./context/ApplicationContext";
 
 @Component()
 export class KoaConfiguration {
-  private webserverConfig: IWebserverConfiguration;
-  constructor(
-    private container: AwilixContainer,
-    private routeComponentProcessor: RouteComponentProcessor,
-    private webserver: Koa,
-    envService: EnvService
-  ) {
-    this.webserverConfig = envService.getWebserverConfig();
-  }
   /**
    * Configure the webserver with necessary middlewares and start it listening.
+   * @inject
    */
-  configure() {
-    this.routeComponentProcessor.populateRouteRegistry();
-    const configContainer = this.container.createScope();
+  configure({
+    routeComponentProcessor,
+    container,
+    webserver,
+    envService
+  }: ApplicationContext) {
+    const webserverConfig = envService.getWebserverConfig();
+    routeComponentProcessor.populateRouteRegistry();
+    const configContainer = container.createScope();
     // middleware for triggering controllers' @Route handlers
     const routerMiddleware = createMiddleware(
       configContainer,
@@ -62,32 +60,32 @@ export class KoaConfiguration {
     );
 
     // middleware for parsing request bodies into objects
-    this.webserver.use(BodyParser());
+    webserver.use(BodyParser());
     // the cors middleware relies on other middlewares to set the allow headers
     // so it goes first since it awaits `next()` before setting headers.
-    this.webserver.use(corsMiddleware);
+    webserver.use(corsMiddleware);
     // the request-scoped container is needed by other middleware so it is added
     // early in the chain. Some other useful request-specific stuff is configured
     // in here too.
-    this.webserver.use(requestContainerMiddleware);
+    webserver.use(requestContainerMiddleware);
     // the renderer middleware awaits `next()` before setting the response body
     // based on ctx.state.result. So any middleware that come after it in the
     // chain may control the rendered result
-    this.webserver.use(rendererMiddleware);
+    webserver.use(rendererMiddleware);
     // the error handler middleware wraps its call to `next()` in a try/catch
     // so all middlewares from here down can safely throw known error types
     // and expect them to be converted to a reasonable error responseand rendered
     // properly.
-    this.webserver.use(errorHandlerMiddleware);
+    webserver.use(errorHandlerMiddleware);
     // the authorization middleware will throw meaningful exceptions up to the
     // error handler on auth failures. Also populates the current user into
     // the request scoped DI container.
-    this.webserver.use(authorizationMiddleware);
+    webserver.use(authorizationMiddleware);
     // finally, if everything went well we actually route the request to a
     // controller.
-    this.webserver.use(routerMiddleware);
+    webserver.use(routerMiddleware);
     // start the webserver
-    this.webserver.listen(this.webserverConfig.port);
+    webserver.listen(webserverConfig.port);
   }
 }
 
@@ -99,8 +97,15 @@ export class KoaConfiguration {
  * @param factoryClass - The class to instantiate.
  */
 function createMiddleware(
-  container: AwilixContainer,
-  factoryClass: new (...args: any[]) => IMiddlewareFactory
+  container: ApplicationContainer,
+  factoryClass: new (context: ApplicationContext) => IMiddlewareFactory
 ) {
   return container.build(asClass(factoryClass)).create();
+}
+
+declare global {
+  interface ApplicationContextMembers {
+    /** Configuration class that starts the webserver listening */
+    koaConfiguration: KoaConfiguration;
+  }
 }
