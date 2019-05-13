@@ -1,3 +1,4 @@
+import { ApplicationContext } from "../config/context/ApplicationContext";
 import { RouteTransformationService } from "../config/RouteTransformationService";
 import { HttpMethod } from "../HttpMethod";
 import { MethodNotSupportedError } from "./MethodNotSupportedError";
@@ -5,15 +6,18 @@ import { RouteRegistry } from "./RouteRegistry";
 import { UnknownRouteError } from "./UnknownRouteError";
 
 describe("service:RouteRegistry", () => {
+  let context: ApplicationContext = {} as ApplicationContext;
+  let routeRegistry: RouteRegistry;
+
+  beforeEach(() => {
+    context = {} as any;
+    context.routeTransformationService = new RouteTransformationService();
+    routeRegistry = new RouteRegistry(context);
+  });
   afterEach(() => {
     jest.restoreAllMocks();
   });
   describe("method:registerRoute", () => {
-    let routeRegistry: RouteRegistry;
-    beforeEach(() => {
-      const routeTransformationService = new RouteTransformationService();
-      routeRegistry = new RouteRegistry(routeTransformationService);
-    });
     it("returns this", () => {
       const result = routeRegistry.registerRoute(
         "/foo/bar",
@@ -26,12 +30,9 @@ describe("service:RouteRegistry", () => {
     });
   });
   describe("writing & reading", () => {
-    let routeRegistry: RouteRegistry;
     let insertedResolver: any;
     const method: HttpMethod = HttpMethod.GET;
     beforeEach(() => {
-      const routeTransformationService = new RouteTransformationService();
-      routeRegistry = new RouteRegistry(routeTransformationService);
       insertedResolver = {};
     });
     it("returns the same resolver inserted on exact match", () => {
