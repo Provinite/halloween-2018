@@ -1,64 +1,50 @@
-import * as Awilix from "awilix";
-import * as Koa from "koa";
-import { EnvService } from "../env/EnvService";
-import { WebserverContext } from "./WebserverContext";
-interface IMocks {
-  container: {
-    register: jest.Mock;
-  };
-  envService: EnvService;
+const mockWebserver = { webserver: true };
+function mockKoaConstructor() {
+  mockKoaConstructor.callCount++;
+  return mockWebserver;
 }
-describe("config:WebserverContext", () => {
-  let mocks: Partial<IMocks>;
+mockKoaConstructor.callCount = 0;
+jest.setMock("koa", mockKoaConstructor);
+import * as Awilix from "awilix";
+import { WebserverContext } from "./WebserverContext";
+const AwilixMock = Awilix as jest.Mocked<typeof Awilix>;
+describe("context:Webserver", () => {
   beforeEach(() => {
-    mocks = {};
-    /* Mocks */
-    mocks.container = {
-      register: jest.fn()
-    };
-
-    mocks.envService = {
-      getWebserverConfig: () => ({
-        port: 8081
-      })
-    } as EnvService;
-
-    /* Stubs */
-    jest.spyOn(Awilix, "createContainer").mockReturnValue(mocks.container);
-    const mockAsFunction = (fn: any) => ({
-      type: "function",
-      value: fn,
-      singleton: () => mockAsFunction(fn)
-    });
-    jest.spyOn(Awilix, "asFunction").mockImplementation(mockAsFunction);
+    mockKoaConstructor.callCount = 0;
+    jest
+      .spyOn(Awilix, "asFunction")
+      .mockReturnValue({ singleton: jest.fn() } as any);
   });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   describe("static:configureContainer", () => {
-    it("returns the container", () => {
-      const result = WebserverContext.configureContainer(
-        Awilix.createContainer()
-      );
-      expect(result).toBe(mocks.container);
-    });
+    it("it registers a lazy Koa instance as webserver", () => {
+      const context = {
+        container: {
+          register: jest.fn()
+        }
+      };
+      const mockSingleton = { mock_singleton: "yes" };
+      const mockResolver = { singleton: jest.fn(() => mockSingleton) };
+      AwilixMock.asFunction.mockReturnValue(mockResolver as any);
 
-    it("registers a webserver as a function that returns a Koa", () => {
-      WebserverContext.configureContainer(Awilix.createContainer());
-      expect(mocks.container.register).toBeCalledWith(
+      WebserverContext.configureContainer(context as any);
+      // it calls asFunction
+      expect(AwilixMock.asFunction).toHaveBeenCalledWith(expect.any(Function));
+      // .singleton()
+      expect(mockResolver.singleton).toHaveBeenCalledTimes(1);
+      // it registers the result of .singleton()
+      expect(context.container.register).toHaveBeenCalledWith(
         "webserver",
-        expect.objectContaining({
-          type: "function",
-          value: expect.any(Function)
-        })
+        mockSingleton
       );
-      const registeredFunction: () => Koa =
-        mocks.container.register.mock.calls[0][1].value;
-      const webserver = registeredFunction();
-      expect(webserver.listen).toEqual(expect.any(Function));
-      expect(webserver.use).toEqual(expect.any(Function));
+
+      // get the registered resolver function
+      const registeredFn = AwilixMock.asFunction.mock.calls[0][0];
+
+      // it shouldn't have created the webserver yet
+      expect(mockKoaConstructor.callCount).toBe(0);
+      const ws = registeredFn();
+      expect(ws).toBe(mockWebserver);
+      expect(mockKoaConstructor.callCount).toBe(1);
     });
   });
 });

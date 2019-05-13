@@ -1,6 +1,6 @@
-import { asClass, asValue, createContainer } from "awilix";
+import { asClass, asValue } from "awilix";
+import { createApplicationContainer } from "./AwilixHelpers";
 import {
-  ApplicationContainer,
   ApplicationContext,
   ContextContainer
 } from "./config/context/ApplicationContext";
@@ -16,8 +16,9 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
   async run(): Promise<void> {
     // Proof of concept: classpath scanning
     const components = await ExportPathScanner.scan("./dist/**/*.js");
+
     // Container configuration step
-    const container = createContainer() as ApplicationContainer;
+    const container = createApplicationContainer();
 
     // Register the node environment for injection
     container.register("NODE_ENV", asValue(process.env));
