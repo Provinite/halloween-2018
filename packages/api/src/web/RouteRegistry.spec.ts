@@ -1,125 +1,157 @@
+/**
+ * @file Tests for the integration of the RouteRegistry and RouteTransformationService
+ * components.
+ */
+import { RoleLiteral } from "../auth/RoleLiteral";
 import { ApplicationContext } from "../config/context/ApplicationContext";
 import { RouteTransformationService } from "../config/RouteTransformationService";
 import { HttpMethod } from "../HttpMethod";
+import { createSafeContext } from "../test/testUtils";
 import { MethodNotSupportedError } from "./MethodNotSupportedError";
 import { RouteRegistry } from "./RouteRegistry";
 import { UnknownRouteError } from "./UnknownRouteError";
 
-describe("service:RouteRegistry", () => {
-  let context: ApplicationContext = {} as ApplicationContext;
-  let routeRegistry: RouteRegistry;
-
+describe("RouteRegistry", () => {
+  let context: Pick<ApplicationContext, "routeTransformationService">;
+  let registry: RouteRegistry;
   beforeEach(() => {
-    context = {} as any;
-    context.routeTransformationService = new RouteTransformationService();
-    routeRegistry = new RouteRegistry(context);
+    context = createSafeContext<typeof context>({
+      routeTransformationService: new RouteTransformationService()
+    });
+    registry = new RouteRegistry(context as ApplicationContext);
   });
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-  describe("method:registerRoute", () => {
-    it("returns this", () => {
-      const result = routeRegistry.registerRoute(
-        "/foo/bar",
-        HttpMethod.GET,
-        null,
-        null,
-        null
-      );
-      expect(result).toBe(routeRegistry);
+  describe("construction", () => {
+    it("doesn't blow up", () => {
+      const registry = new RouteRegistry(context as ApplicationContext);
+      expect(registry).toBeInstanceOf(RouteRegistry);
     });
   });
-  describe("writing & reading", () => {
-    let insertedResolver: any;
-    const method: HttpMethod = HttpMethod.GET;
-    beforeEach(() => {
-      insertedResolver = {};
-    });
-    it("returns the same resolver inserted on exact match", () => {
-      routeRegistry.registerRoute(
-        "/foo/bar",
-        method,
-        insertedResolver,
-        null,
-        null
-      );
-      const { resolver: returnedResolver } = routeRegistry.lookupRoute(
-        "/foo/bar",
-        method
-      );
-      expect(returnedResolver).toBe(insertedResolver);
-    });
-    it("works for wildcard routes", () => {
-      routeRegistry.registerRoute(
-        "/{foo}/",
-        method,
-        insertedResolver,
-        null,
-        null
-      );
-      const { resolver } = routeRegistry.lookupRoute("/bar/", method);
-      expect(resolver).toBe(insertedResolver);
-    });
-    describe("method:lookupRoute", () => {
-      it("properly extracts path variables", () => {
-        routeRegistry.registerRoute(
-          "/{user}/{action}",
-          method,
-          insertedResolver,
-          null,
-          null
-        );
-        const { pathVariables } = routeRegistry.lookupRoute(
-          "/username/delete",
-          method
-        );
-        expect(pathVariables).toEqual({
-          user: "username",
-          action: "delete"
-        });
-      });
-      it("throws an UnknownRouteError", () => {
-        try {
-          routeRegistry.lookupRoute("/foo", method);
-          throw new Error("The above line should have thrown.");
-        } catch (e) {
-          const isExpectedError = e instanceof UnknownRouteError;
-          if (!isExpectedError) {
-            throw e;
-          }
-        }
-      });
-      it("throws a MethodNotSupportedError with an appropriate allow array", () => {
-        routeRegistry.registerRoute(
-          "/foo",
-          [HttpMethod.DELETE, HttpMethod.GET],
-          {} as any,
-          null,
-          ["public"]
-        );
-        try {
-          routeRegistry.lookupRoute("/foo", HttpMethod.POST);
-          throw new Error("The above line should have thrown.");
-        } catch (e) {
-          const isExpectedError = e instanceof MethodNotSupportedError;
-          if (isExpectedError) {
-            expect(e.allow.sort()).toEqual(
-              [HttpMethod.DELETE, HttpMethod.GET].sort()
-            );
-          } else {
-            throw e;
-          }
-        }
-      });
-    });
 
-    describe("method:registerRoute", () => {
-      it("overwrites existing registrations", () => {
-        routeRegistry.registerRoute("/", method, {} as any, null, null);
-        routeRegistry.registerRoute("/", method, insertedResolver, null, null);
-        const { resolver } = routeRegistry.lookupRoute("/", method);
-        expect(resolver).toBe(insertedResolver);
-      });
+  describe("reading & writing", () => {
+    it("throws an UnknownRouteError on unknown routes", () => {
+      expect(() => registry.lookupRoute("/foo", HttpMethod.POST)).toThrowError(
+        UnknownRouteError
+      );
+    });
+    it("throws a MethodNotSupportedError on exact match", () => {
+      const routeOptions = {
+        allowedRoles: ["public"] as RoleLiteral[],
+        methods: [HttpMethod.POST],
+        resolver: jest.fn(),
+        route: "/foo",
+        router: {}
+      };
+      registry.registerRoute(routeOptions);
+      expect(() =>
+        registry.lookupRoute(routeOptions.route, HttpMethod.DELETE)
+      ).toThrowError(MethodNotSupportedError);
+    });
+    it("throws a MethodNotSupportedError on wildcard match", () => {
+      const template = "/foo/{id}";
+      const uri = "/foo/123";
+
+      const routeOptions = {
+        allowedRoles: ["public"] as RoleLiteral[],
+        methods: [HttpMethod.POST],
+        resolver: jest.fn(),
+        route: template,
+        router: {}
+      };
+      registry.registerRoute(routeOptions);
+      expect(() => registry.lookupRoute(uri, HttpMethod.DELETE)).toThrowError(
+        MethodNotSupportedError
+      );
+    });
+    it("returns an exact match", () => {
+      const routeOptions = {
+        allowedRoles: ["public"] as RoleLiteral[],
+        methods: [HttpMethod.POST],
+        resolver: jest.fn(),
+        route: "/foo",
+        router: { mockRouter: true }
+      };
+      registry.registerRoute(routeOptions);
+
+      const route = registry.lookupRoute(
+        routeOptions.route,
+        routeOptions.methods[0]
+      );
+
+      expect(route.allowedRoles).toEqual(routeOptions.allowedRoles);
+      expect(route.resolver).toBe(routeOptions.resolver);
+      expect(route.router).toBe(routeOptions.router);
+    });
+    it("overwrites on write", () => {
+      const routeOptions = {
+        allowedRoles: ["public"] as RoleLiteral[],
+        methods: [HttpMethod.POST],
+        resolver: jest.fn(),
+        route: "/foo",
+        router: { mockRouter: true }
+      };
+      registry.registerRoute(routeOptions);
+
+      const newRouteOptions = {
+        ...routeOptions,
+        resolver: jest.fn()
+      };
+      registry.registerRoute(newRouteOptions);
+      const route = registry.lookupRoute(
+        routeOptions.route,
+        routeOptions.methods[0]
+      );
+      expect(route.resolver).toBe(newRouteOptions.resolver);
+      expect(routeOptions.resolver).not.toBe(newRouteOptions.resolver);
+    });
+    it("does not overwrite on different methods", () => {
+      const firstRouteOptions = {
+        allowedRoles: ["public"] as RoleLiteral[],
+        methods: [HttpMethod.POST],
+        resolver: jest.fn(),
+        route: "/foo",
+        router: { mockRouter: true }
+      };
+      const secondRouteOptions = {
+        ...firstRouteOptions,
+        methods: [HttpMethod.GET],
+        resolver: jest.fn(),
+        router: { mockRouter2: "the squeaquel" }
+      };
+      registry.registerRoute(firstRouteOptions);
+      registry.registerRoute(secondRouteOptions);
+      const firstRoute = registry.lookupRoute(
+        firstRouteOptions.route,
+        firstRouteOptions.methods[0]
+      );
+      const secondRoute = registry.lookupRoute(
+        secondRouteOptions.route,
+        secondRouteOptions.methods[0]
+      );
+
+      expect(firstRoute.resolver).toBe(firstRouteOptions.resolver);
+      expect(firstRoute.router).toBe(firstRouteOptions.router);
+
+      expect(secondRoute.resolver).toBe(secondRouteOptions.resolver);
+      expect(secondRoute.router).toBe(secondRouteOptions.router);
+    });
+    it("returns a wildcard match", () => {
+      const template = "/foo/{id}";
+      const uri = "/foo/123";
+
+      const routeOptions = {
+        allowedRoles: ["public"] as RoleLiteral[],
+        methods: [HttpMethod.POST],
+        resolver: jest.fn(),
+        route: template,
+        router: {}
+      };
+      registry.registerRoute(routeOptions);
+      const route = registry.lookupRoute(uri, routeOptions.methods[0]);
+
+      expect(route.allowedRoles).toEqual(routeOptions.allowedRoles);
+      expect(route.resolver).toBe(routeOptions.resolver);
+      expect(route.router).toBe(routeOptions.router);
+      expect(route.pathVariables).toEqual({ id: "123" });
     });
   });
 });

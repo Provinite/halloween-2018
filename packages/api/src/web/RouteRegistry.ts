@@ -20,18 +20,19 @@ export class RouteRegistry {
     this.map = {};
     this.transformationService = routeTransformationService;
   }
+
   /**
    * Assign the supplied awilix resolver as the handler for the given
    * route and http verb(s).
    * @return this
    */
-  registerRoute(
-    route: string,
-    methods: HttpMethod | HttpMethod[],
-    resolver: Resolver<any> | ((...args: any[]) => any),
-    router: any,
-    allowedRoles: RoleLiteral[]
-  ): this {
+  registerRoute({
+    route,
+    methods,
+    resolver,
+    router,
+    allowedRoles
+  }: RegisterRouteOptions): this {
     logger.info(
       `RouteRegistry#registerRoute: Registering endpoint "${route}" [${methods}]`
     );
@@ -129,6 +130,25 @@ export class RouteRegistry {
   }
 }
 
+/* Public Interfaces */
+/**
+ * Type for the `options` arg to RouteRegistry#registerRoute
+ */
+export interface RegisterRouteOptions {
+  /**
+   * The route to match on. Supports wildcards using the {pathVariableName}
+   * format.
+   * @example
+   * "/users" // registers a route at "/users"
+   * @example
+   * "/users/{userId}" // registers a wildcard route with the `userId` pathvariable.
+   */
+  route: string;
+  methods: HttpMethod | HttpMethod[];
+  resolver: Resolver<any> | ((...args: any[]) => any);
+  router: any;
+  allowedRoles: RoleLiteral[];
+}
 /* Private Interfaces */
 /**
  * Object mapping http methods to resolvers for a given route.
