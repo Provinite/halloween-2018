@@ -1,7 +1,7 @@
 import * as _MathUtils from "./MathUtils";
 import { getRandomFloat, selectRandomItemFromPool } from "./RandomUtils";
 import * as _RandomUtils from "./RandomUtils";
-const rand = require("math-random") as jest.Mock<() => number>;
+const rand = require("math-random") as jest.Mock<number>;
 
 jest.mock("math-random");
 
@@ -15,7 +15,7 @@ describe("RandomUtils", () => {
   describe("getRandomFloat", () => {
     it("proxies math-random()", () => {
       const mockResult = { secret: "sauce" };
-      rand.mockReturnValue(mockResult);
+      rand.mockReturnValue((mockResult as unknown) as number);
       expect(getRandomFloat()).toBe(mockResult);
       expect(rand).toHaveBeenCalledTimes(1);
     });
