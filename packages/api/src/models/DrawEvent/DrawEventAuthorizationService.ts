@@ -11,54 +11,60 @@ import { DrawEvent } from "../DrawEvent";
 import { User } from "../User";
 import { DrawEventRepository } from "./DrawEventRepository";
 import { DrawRateLimitExceededError } from "./DrawRateLimitExceededError";
-@Component()
+/**
+ * @class DrawEventAuthorizationService
+ * Service for authorizing users to perform operations on DrawEvent models.
+ */
+@Component("SCOPED")
 @MakeContainerAware()
 export class DrawEventAuthorizationService {
+  private user: User | undefined;
+  private drawEventRepository: DrawEventRepository;
   /** @inject */
-  constructor({ container }: RequestContext) {
-    this.container = container;
+  constructor({ user, drawEventRepository }: RequestContext) {
+    this.user = user;
+    this.drawEventRepository = drawEventRepository;
   }
 
   /**
    * Determine if a user may create a new draw event.
    * @param createEvent - The partial draw event that will be created.
+   * @param [user] - The user doing the creating. Defaults to the request's user.
    * @throws DrawRateLimitExceededError if the user has drawn too recently for
    *  this game.
    * @throws PermissionDeniedError if the user may not create the draw event.
    */
-  get canCreate() {
-    return this.buildMethod(this.buildCanCreate);
-  }
-  /** @inject */
-  private buildCanCreate({ user, orm }: RequestContext) {
-    return async (createEvent: PartialExcept<DrawEvent, "user" | "game">) => {
-      if (!hasRole(user, "user")) {
-        throw new PermissionDeniedError();
-      }
-      // people can only make draws for themselves
-      if (createEvent.user.deviantartUuid !== user.deviantartUuid) {
-        throw new PermissionDeniedError();
-      }
-      if (hasRole(user, "admin")) {
-        return true;
-      }
-      const drawEventRepository = orm.getCustomRepository(DrawEventRepository);
-      // draws must be separated by 30 seconds
-      // TODO: draws must be separated by the configured game time not 30 seconds
-      const lastDraw = await drawEventRepository.getLastDrawEvent(
-        user,
-        createEvent.game
-      );
-      const lastDrawTime = lastDraw ? lastDraw.createDate : undefined;
-      if (
-        lastDrawTime !== undefined &&
-        differenceInSeconds(getCurrentTime(), lastDrawTime) < 30
-      ) {
-        const tryAgainAt = addSeconds(lastDrawTime, 30);
-        throw new DrawRateLimitExceededError(tryAgainAt);
-      }
+  async canCreate(
+    createEvent: PartialExcept<DrawEvent, "user" | "game">,
+    user = this.user
+  ) {
+    if (!hasRole(user, "user")) {
+      throw new PermissionDeniedError();
+    }
+    // people can only make draws for themselves
+    if (createEvent.user.deviantartUuid !== user.deviantartUuid) {
+      throw new PermissionDeniedError();
+    }
+    // admins don't have to wait
+    // TODOD: remove this
+    if (hasRole(user, "admin")) {
       return true;
-    };
+    }
+    // draws must be separated by 30 seconds
+    // TODO: draws must be separated by the configured game time not 30 seconds
+    const lastDraw = await this.drawEventRepository.getLastDrawEvent(
+      user,
+      createEvent.game
+    );
+    const lastDrawTime = lastDraw ? lastDraw.createDate : undefined;
+    if (
+      lastDrawTime !== undefined &&
+      differenceInSeconds(getCurrentTime(), lastDrawTime) < 30
+    ) {
+      const tryAgainAt = addSeconds(lastDrawTime, 30);
+      throw new DrawRateLimitExceededError(tryAgainAt);
+    }
+    return true;
   }
   /**
    * Users may only read their own draw events. The incoming filter must include
@@ -70,44 +76,37 @@ export class DrawEventAuthorizationService {
    * @throws PermissionDeniedError if the user is not allowed to perform this
    *  query.
    */
-  get canReadMultiple() {
-    return this.buildMethod(this.buildCanReadMultiple);
-  }
-  /** @inject */
-  buildCanReadMultiple({ user }: RequestContext) {
-    const contextUser = user;
-    return (
-      findOptions: FindManyOptions<DrawEvent>,
-      user: User = contextUser
-    ) => {
-      if (!user || !hasRole(user, "user")) {
-        throw new PermissionDeniedError();
-      }
-      // admins can read anything
-      if (hasRole(user, "admin")) {
-        return true;
-      }
-      // users must filter their query down to a specific user
-      if (
-        !findOptions ||
-        !findOptions.where ||
-        typeof findOptions.where !== "object" ||
-        !findOptions.where.user
-      ) {
-        throw new PermissionDeniedError();
-      }
-      const whereUser = findOptions.where.user;
-      let whereUserId: string;
-      if (typeof whereUser === "string") {
-        whereUserId = whereUser;
-      } else {
-        whereUserId = whereUser.deviantartUuid;
-      }
-      if (whereUserId !== user.deviantartUuid) {
-        throw new PermissionDeniedError();
-      }
+  async canReadMultiple(
+    findOptions: FindManyOptions<DrawEvent>,
+    user: User = this.user
+  ): Promise<true> {
+    if (!user || !hasRole(user, "user")) {
+      throw new PermissionDeniedError();
+    }
+    // admins can read anything
+    if (hasRole(user, "admin")) {
       return true;
-    };
+    }
+    // users must filter their query down to a specific user
+    if (
+      !findOptions ||
+      !findOptions.where ||
+      typeof findOptions.where !== "object" ||
+      !findOptions.where.user
+    ) {
+      throw new PermissionDeniedError();
+    }
+    const whereUser = findOptions.where.user;
+    let whereUserId: string;
+    if (typeof whereUser === "string") {
+      whereUserId = whereUser;
+    } else {
+      whereUserId = whereUser.deviantartUuid;
+    }
+    if (whereUserId !== user.deviantartUuid) {
+      throw new PermissionDeniedError();
+    }
+    return true;
   }
 
   async canDelete(user: User) {
@@ -136,7 +135,7 @@ export class DrawEventAuthorizationService {
 export interface DrawEventAuthorizationService extends ContainerAware {}
 
 declare global {
-  interface ApplicationContextMembers {
+  interface RequestContextMembers {
     /** Service for authenticating actions on DrawEvent models */
     drawEventAuthorizationService: DrawEventAuthorizationService;
   }
