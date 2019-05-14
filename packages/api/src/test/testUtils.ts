@@ -68,3 +68,29 @@ export function createTestContainer(map: { [key: string]: any }) {
   }
   return container;
 }
+
+/**
+ * Creates an object mimicing the ApplicationContext object's behavior. Useful
+ * for testing components and ensuring that changes in dependencies are caught
+ * by automated tests.
+ * @param [ctx] - The initial context, defaults to an empty object.
+ * @return A proxy wrapping `ctx`. The proxy allows writes to any key, but
+ * instead of returning `undefined` on accessing a nonexistent property, it
+ * throws an UnknownDependencyError
+ */
+export function createSafeContext<T extends {}>(ctx?: T): T {
+  return new Proxy<T>(ctx || ({} as T), {
+    get: (target, prop, receiver) => {
+      if (prop in target) {
+        return (target as any)[prop];
+      } else {
+        throw new UnknownDependencyError(
+          "Could not resolve: `" + prop.toString() + "`"
+        );
+      }
+    }
+  });
+}
+
+/** Error indicating a test context was queried for an unknown dependency. */
+export class UnknownDependencyError extends Error {}

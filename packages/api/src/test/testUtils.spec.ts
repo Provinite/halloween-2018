@@ -1,4 +1,4 @@
-import { makeGetterObject } from "./testUtils";
+import { createSafeContext, makeGetterObject } from "./testUtils";
 
 describe("utils: test", () => {
   describe("makeGetterObject", () => {
@@ -27,6 +27,39 @@ describe("utils: test", () => {
         name: "Tomasz Boonty",
         rainbow: 7
       });
+    });
+  });
+  describe("createSafeContext", () => {
+    const originalFoo = "foo";
+    const originalBar = 1;
+    let ctx: { foo: string; bar: number };
+    let proxy: typeof ctx;
+    beforeEach(() => {
+      ctx = {
+        foo: originalFoo,
+        bar: originalBar
+      };
+      proxy = createSafeContext(ctx);
+    });
+    it("allows reads from provided ctx", () => {
+      expect(proxy.foo).toEqual(originalFoo);
+      ctx.foo = "mockFoo";
+      expect(proxy.foo).toEqual("mockFoo");
+    });
+    it("allows writes to known keys", () => {
+      proxy.foo = "mockFoo";
+      expect(proxy.foo).toEqual("mockFoo");
+    });
+    it("allows writes to unknown keys", () => {
+      const px = proxy as any;
+      px.what = "whatwhat";
+      expect(px.what).toEqual("whatwhat");
+    });
+    it("errors on reads of unknown keys", () => {
+      const px = proxy as any;
+      expect(() => px.what).toThrowErrorMatchingInlineSnapshot(
+        `"Could not resolve: \`what\`"`
+      );
     });
   });
 });
