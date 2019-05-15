@@ -1,5 +1,7 @@
 import { Repository } from "typeorm";
+import { ApplicationContext } from "../config/context/ApplicationContext";
 import { Role, User } from "../models";
+import { createSafeContext } from "../test/testUtils";
 import { AuthenticationService } from "./AuthenticationService";
 import { DeviantartApiConsumer } from "./deviantart/DeviantartApiConsumer";
 import { IDeviantartAuthResult } from "./deviantart/IDeviantartAuthResult";
@@ -75,21 +77,20 @@ describe("service:AuthenticationService", () => {
 
       mocks.userRepository.findOne.mockResolvedValue(mocks.user);
       mocks.userRepository.save.mockResolvedValue(mocks.user);
-      mocks.userRepository.create.mockReturnValue({});
+      mocks.userRepository.create.mockReturnValue({} as User);
 
       mocks.roleRepository.findOneOrFail.mockImplementation(
-        (role: Partial<Role>) => {
+        async (role: Partial<Role>) => {
           return Object.values(mockRoles).find(r => r.name === role.name);
         }
       );
 
       mocks.tokenService.createToken.mockResolvedValue(mocks.token);
+
+      mocks = createSafeContext(mocks);
       /* Default Service */
       authenticationService = new AuthenticationService(
-        mocks.deviantartApiConsumer,
-        mocks.roleRepository,
-        mocks.userRepository,
-        mocks.tokenService
+        (mocks as unknown) as ApplicationContext
       );
     });
     it("authenticates via the deviantart api", async () => {
