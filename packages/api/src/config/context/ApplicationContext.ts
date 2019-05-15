@@ -31,7 +31,7 @@ declare global {
 export type AnyContext = ApplicationContext | RequestContext;
 export type AnyContainer = ContextContainer<AnyContext>;
 
-export interface ContextContainer<ContextType>
+export interface ContextContainer<ContextType = any>
   extends Assign<
     Omit<AwilixContainer, "register" | "createScope">,
     {
