@@ -23,7 +23,7 @@ describe("ErrorHandlerMiddlewareFactory", () => {
         method: "GET"
       } as any;
     });
-    it.each([
+    it.each<[new (...args: any[]) => Error, number, any[]]>([
       [AuthenticationFailureException, 400, []],
       [UnknownRouteError, 404, []],
       [ResourceNotFoundError, 404, []],
