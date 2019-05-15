@@ -24,21 +24,30 @@ describe("AuthHelpers", () => {
       [mockUser, false, false, true, true],
       [mockModerator, false, true, true, true],
       [mockSuperUser, true, true, true, true]
-    ])("hasRole", (user, isAdmin, isMod, isUser, isPublic) => {
-      const roleStr = JSON.stringify(user.roles.map((r: Role) => r.name));
-      it(`${roleStr} is admin: ${isAdmin}`, () => {
-        expect(hasRole(user, "admin")).toBe(isAdmin);
-      });
-      it(`${roleStr} is moderator: ${isMod}`, () => {
-        expect(hasRole(user, "moderator")).toBe(isMod);
-      });
-      it(`${roleStr} is user: ${isUser}`, () => {
-        expect(hasRole(user, "user")).toBe(isUser);
-      });
-      it(`${roleStr} is public: ${isPublic}`, () => {
-        expect(hasRole(user, "public")).toBe(isPublic);
-      });
-    });
+    ])(
+      "hasRole",
+      (
+        user: User,
+        isAdmin: boolean,
+        isMod: boolean,
+        isUser: boolean,
+        isPublic: boolean
+      ) => {
+        const roleStr = JSON.stringify(user.roles.map((r: Role) => r.name));
+        it(`${roleStr} is admin: ${isAdmin}`, () => {
+          expect(hasRole(user, "admin")).toBe(isAdmin);
+        });
+        it(`${roleStr} is moderator: ${isMod}`, () => {
+          expect(hasRole(user, "moderator")).toBe(isMod);
+        });
+        it(`${roleStr} is user: ${isUser}`, () => {
+          expect(hasRole(user, "user")).toBe(isUser);
+        });
+        it(`${roleStr} is public: ${isPublic}`, () => {
+          expect(hasRole(user, "public")).toBe(isPublic);
+        });
+      }
+    );
   });
 });
 
