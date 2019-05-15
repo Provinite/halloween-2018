@@ -17,8 +17,11 @@ export class DrawController {
   })
   async getDrawsByGame({
     pathVariables: { gameId },
-    drawEventRepository
+    drawEventRepository,
+    drawEventAuthorizationService
   }: RequestContext) {
+    const findOptions = { where: { game: gameId }, loadEagerRelations: true };
+    await drawEventAuthorizationService.canReadMultiple(findOptions);
     const result = await drawEventRepository.find({
       where: { game: gameId },
       loadEagerRelations: true
