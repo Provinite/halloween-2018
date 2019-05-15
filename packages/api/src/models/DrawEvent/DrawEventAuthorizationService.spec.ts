@@ -1,36 +1,38 @@
-import { AwilixContainer } from "awilix";
 import * as _dateFns from "date-fns";
-import { Connection } from "typeorm";
 import { PermissionDeniedError } from "../../auth/PermissionDeniedError";
+import {
+  RequestContainer,
+  RequestContext
+} from "../../config/context/RequestContext";
 import { roleLiteralSpec } from "../../test/testUtils";
 import { DrawEvent } from "../DrawEvent";
 import { mockGames } from "../game/mocks/mockGames";
+import { User } from "../User";
 import { mockUsers } from "../user/mocks/mockUsers";
 import { DrawEventAuthorizationService } from "./DrawEventAuthorizationService";
 import { DrawEventRepository } from "./DrawEventRepository";
 import { DrawRateLimitExceededError } from "./DrawRateLimitExceededError";
 const dateFns: jest.Mocked<typeof _dateFns> = _dateFns as any;
 jest.mock("date-fns");
-interface IMocks {
-  drawEventRepository: jest.Mocked<DrawEventRepository>;
-  orm: jest.Mocked<Connection>;
-  container: jest.Mocked<AwilixContainer>;
-}
 describe("DrawEventAuthorizationService", () => {
   let service: DrawEventAuthorizationService;
-  let mocks: IMocks;
   jest.spyOn(dateFns, "differenceInSeconds");
+  let context: {
+    user: User;
+    drawEventRepository: jest.Mocked<DrawEventRepository>;
+    container: jest.Mocked<RequestContainer>;
+  };
   beforeEach(() => {
-    mocks = {
-      drawEventRepository: {
-        getLastDrawEvent: jest.fn()
+    context = {
+      user: mockUsers.user as any,
+      container: {
+        build: jest.fn(fn => fn(context))
       } as any,
-      orm: {
-        getCustomRepository: jest.fn()
-      } as any,
-      container: {} as any
+      drawEventRepository: {} as any
     };
-    service = new DrawEventAuthorizationService(mocks.container);
+    service = new DrawEventAuthorizationService(
+      (context as unknown) as RequestContext
+    );
   });
   afterEach(() => {
     jest.restoreAllMocks();
@@ -39,8 +41,9 @@ describe("DrawEventAuthorizationService", () => {
   describe("canCreate", () => {
     beforeEach(() => {
       dateFns.differenceInSeconds.mockReturnValue(100);
-      mocks.drawEventRepository.getLastDrawEvent.mockResolvedValue(undefined);
-      mocks.orm.getCustomRepository.mockReturnValue(mocks.drawEventRepository);
+      context.drawEventRepository.getLastDrawEvent = jest
+        .fn()
+        .mockResolvedValue(undefined);
     });
     it("does not allow users to create draw events for others", async () => {
       // const mockUser = mockUsers.user;
@@ -50,7 +53,7 @@ describe("DrawEventAuthorizationService", () => {
       await expect(
         service.canCreate(
           // mockUser,
-          mockDrawEvent // , mocks.orm
+          mockDrawEvent // , context.orm
         )
       ).rejects.toBeInstanceOf(PermissionDeniedError);
     });
@@ -62,7 +65,7 @@ describe("DrawEventAuthorizationService", () => {
       await expect(
         service.canCreate(
           // mockUser,
-          mockDrawEvent // , mocks.orm
+          mockDrawEvent // , context.orm
         )
       ).resolves.toBe(true);
     });
@@ -70,7 +73,7 @@ describe("DrawEventAuthorizationService", () => {
       dateFns.differenceInSeconds.mockReturnValue(29);
       const mockLastDrawEvent = new DrawEvent();
       mockLastDrawEvent.createDate = new Date();
-      mocks.drawEventRepository.getLastDrawEvent.mockResolvedValue(
+      context.drawEventRepository.getLastDrawEvent.mockResolvedValue(
         mockLastDrawEvent
       );
       const mockUser = mockUsers.user;
@@ -79,16 +82,15 @@ describe("DrawEventAuthorizationService", () => {
       await expect(
         service.canCreate(
           // mockUser,
-          mockDrawEvent // , mocks.orm
+          mockDrawEvent // , context.orm
         )
       ).rejects.toBeInstanceOf(DrawRateLimitExceededError);
     });
     it("does not allow public to create draw events", async () => {
       await expect(
         service.canCreate(
-          // mockUsers.public,
-          { user: mockUsers.public, game: mockGames.sample }
-          // mocks.orm
+          { user: mockUsers.public, game: mockGames.sample },
+          mockUsers.public
         )
       ).rejects.toBeInstanceOf(PermissionDeniedError);
     });
@@ -100,25 +102,21 @@ describe("DrawEventAuthorizationService", () => {
         const mockUser = mockUsers[roleName];
         const mockDrawEvent = new DrawEvent();
         mockDrawEvent.user = mockUser;
-        expect(await service.canRead(mockUser, mockDrawEvent)).toBe(true);
+        await expect(service.canRead(mockUser, mockDrawEvent)).resolves.toBe(
+          true
+        );
       },
       ["public"]
     );
-  });
-  describe("canUpdate", () => {
-    roleLiteralSpec("does not allow %p to update", async roleName => {
-      const mockDrawEvent = new DrawEvent();
-      mockDrawEvent.user = mockUsers.user;
-      const mockUser = mockUsers[roleName];
-      expect(await service.canUpdate(mockUser, mockDrawEvent)).toBe(false);
-    });
   });
   describe("canDelete", () => {
     roleLiteralSpec("does not allow %p to delete", async roleName => {
       const mockDrawEvent = new DrawEvent();
       mockDrawEvent.user = mockUsers.user;
       const mockUser = mockUsers[roleName];
-      expect(await service.canUpdate(mockUser, mockDrawEvent)).toBe(false);
+      await expect(service.canDelete(mockUser)).rejects.toBeInstanceOf(
+        PermissionDeniedError
+      );
     });
   });
   describe("canRead", () => {
@@ -129,7 +127,9 @@ describe("DrawEventAuthorizationService", () => {
         mockDrawEvent.user = mockUsers.user;
         mockDrawEvent.user.deviantartUuid = "some-other-uuid";
         const mockUser = mockUsers[roleName];
-        expect(await service.canRead(mockUser, mockDrawEvent)).toBe(false);
+        await expect(
+          service.canRead(mockUser, mockDrawEvent)
+        ).rejects.toBeInstanceOf(PermissionDeniedError);
       },
       ["admin"]
     );
@@ -154,7 +154,9 @@ describe("DrawEventAuthorizationService", () => {
       const mockUser = mockUsers[roleName];
       const mockDrawEvent = new DrawEvent();
       mockDrawEvent.user = mockUser;
-      expect(await service.canUpdate(mockUser, mockDrawEvent)).toBe(false);
+      await expect(
+        service.canUpdate(mockUser, mockDrawEvent)
+      ).rejects.toBeInstanceOf(PermissionDeniedError);
     });
   });
   describe("canReadMultiple", () => {
@@ -163,12 +165,9 @@ describe("DrawEventAuthorizationService", () => {
       async roleName => {
         const mockUser = mockUsers[roleName];
         const filter = { where: { user: mockUser.deviantartUuid } };
-        expect(
-          await service.canReadMultiple(
-            // mockUser,
-            filter
-          )
-        ).toBe(true);
+        await expect(service.canReadMultiple(filter, mockUser)).resolves.toBe(
+          true
+        );
       },
       ["public"]
     );
@@ -178,20 +177,14 @@ describe("DrawEventAuthorizationService", () => {
         const mockUser = mockUsers[roleName];
         const filter = { where: { user: mockUser.deviantartUuid + "1" } };
         await expect(
-          service.canReadMultiple(
-            // mockUser,
-            filter
-          )
+          service.canReadMultiple(filter, mockUser)
         ).rejects.toBeInstanceOf(PermissionDeniedError);
       },
       ["admin", "public"]
     );
     it('does not allow "public" to read multiple', async () => {
       await expect(
-        service.canReadMultiple(
-          // mockUsers.public,
-          null
-        )
+        service.canReadMultiple(null, mockUsers.public)
       ).rejects.toBeInstanceOf(PermissionDeniedError);
     });
   });

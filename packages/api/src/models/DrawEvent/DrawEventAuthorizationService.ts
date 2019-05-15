@@ -114,7 +114,7 @@ export class DrawEventAuthorizationService {
     throw new PermissionDeniedError("Draw events cannot be deleted.");
   }
 
-  async canRead(user: User, drawEvent: DrawEvent) {
+  async canRead(user: User, drawEvent: DrawEvent): Promise<true> {
     if (!user) {
       throw new PermissionDeniedError();
     }
@@ -124,6 +124,7 @@ export class DrawEventAuthorizationService {
     if (!canRead) {
       throw new PermissionDeniedError();
     }
+    return true;
   }
 
   async canUpdate(user: User, drawEvent: DrawEvent) {
