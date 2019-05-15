@@ -1,6 +1,8 @@
 import * as JWT from "jsonwebtoken";
+import { ApplicationContext } from "../config/context/ApplicationContext";
 import { EnvService } from "../config/env/EnvService";
 import { ITokenConfiguration } from "../config/env/ITokenConfiguration";
+import { createSafeContext } from "../test/testUtils";
 import { TokenService } from "./TokenService";
 describe("service:TokenService", () => {
   afterEach(() => {
@@ -30,8 +32,9 @@ describe("service:TokenService", () => {
         sub: "userid",
         accessToken: "access_token"
       };
+      mocks = createSafeContext(mocks);
       /* Default Service */
-      tokenService = new TokenService(mocks.envService);
+      tokenService = new TokenService((mocks as unknown) as ApplicationContext);
     });
     it("creates a JWT containing the provided data", async () => {
       const token: string = await tokenService.createToken(mocks.payload);
