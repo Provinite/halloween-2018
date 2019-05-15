@@ -1,6 +1,6 @@
 import { asFunction, asValue, AwilixContainer } from "awilix";
 import { Connection, EntityManager, Repository } from "typeorm";
-import { asClassMethod } from "../../AwilixHelpers";
+import { bind } from "../../AwilixHelpers";
 import { TransactionService } from "../../db/TransactionService";
 import * as _ModelUtils from "../../models/modelUtils";
 import * as _RandomUtils from "../../RandomUtils";
@@ -83,7 +83,10 @@ describe("DrawController", () => {
   });
   describe("drawPrize", () => {
     beforeEach(() => {
-      container.register("gameId", asValue(String(mockGames.sample.id)));
+      container.register(
+        "pathVariables",
+        asValue({ gameId: String(mockGames.sample.id) })
+      );
       container.register("user", asValue(mockUsers.user));
 
       /** Stubs */
@@ -100,7 +103,7 @@ describe("DrawController", () => {
       });
       it("throws a NoPrizesInStockError", async () => {
         await expect(
-          container.build(asClassMethod(controller, controller.drawPrize))
+          container.build(bind(controller.drawPrize, controller))
         ).rejects.toBeInstanceOf(NoPrizesInStockError);
       });
     });
@@ -115,7 +118,7 @@ describe("DrawController", () => {
         const mockUser = mockUsers.user;
 
         const result = await container.build(
-          asClassMethod(controller, controller.drawPrize)
+          bind(controller.drawPrize, controller)
         );
         expect(mocks.drawEventRepository.create).toHaveBeenCalled();
         expect(mocks.drawEventRepository.save).toHaveBeenCalledWith(
@@ -133,14 +136,14 @@ describe("DrawController", () => {
           }
         );
         await expect(
-          container.build(asClassMethod(controller, controller.drawPrize))
+          container.build(bind(controller.drawPrize, controller))
         ).rejects.toBe(mockError);
         const losingDrawEvent = expect.objectContaining({
           user: mockUsers.user
         });
         expect(
           mocks.drawEventAuthorizationService.canCreate
-        ).toHaveBeenCalledWith(mockUsers.user, losingDrawEvent, mocks.orm);
+        ).toHaveBeenCalledWith(losingDrawEvent);
         expect(mocks.drawEventRepository.save).not.toHaveBeenCalled();
       });
     });
@@ -149,7 +152,7 @@ describe("DrawController", () => {
         jest.spyOn(DrawEventUtils, "rollWin").mockReturnValue(true);
       });
       it("does almost all of its work in a transaction", async () => {
-        await container.build(asClassMethod(controller, controller.drawPrize));
+        await container.build(bind(controller.drawPrize, controller));
         expect(mocks.prizeRepository.getInStockPrizeCount).toHaveBeenCalled();
         expect(mocks.drawEventRepository.create).not.toHaveBeenCalled();
         expect(mocks.drawEventRepository.save).not.toHaveBeenCalled();
@@ -172,9 +175,7 @@ describe("DrawController", () => {
           );
         });
         it("fetches in stock prizes for update", async () => {
-          await container.build(
-            asClassMethod(controller, controller.drawPrize)
-          );
+          await container.build(bind(controller.drawPrize, controller));
 
           expect(
             mocks.prizeRepository.getInStockPrizesForUpdate
@@ -185,7 +186,7 @@ describe("DrawController", () => {
           RandomUtils.selectRandomItemFromPool.mockReturnValue(mockSelection);
 
           const result = await container.build(
-            asClassMethod(controller, controller.drawPrize)
+            bind(controller.drawPrize, controller)
           );
 
           // it uses the pool selection helper
@@ -223,7 +224,7 @@ describe("DrawController", () => {
             mockErr
           );
           await expect(
-            container.build(asClassMethod(controller, controller.drawPrize))
+            container.build(bind(controller.drawPrize, controller))
           ).rejects.toBe(mockErr);
           expect(
             mocks.drawEventAuthorizationService.canCreate
@@ -235,10 +236,13 @@ describe("DrawController", () => {
   describe("getDraws", () => {
     beforeEach(() => {
       container.register("user", asValue(mockUsers.user));
-      container.register("userId", asValue(mockUsers.user.deviantartUuid));
+      container.register(
+        "pathVariables",
+        asValue({ userId: mockUsers.user.deviantartUuid })
+      );
     });
     it("fetches prizes for the current user", async () => {
-      await container.build(asClassMethod(controller, controller.getDraws));
+      await container.build(bind(controller.getDraws, controller));
       expect(mocks.drawEventRepository.find).toHaveBeenCalledWith({
         where: { user: mockUsers.user.deviantartUuid }
       });
@@ -251,7 +255,7 @@ describe("DrawController", () => {
         }
       );
       await expect(
-        container.build(asClassMethod(controller, controller.getDraws))
+        container.build(bind(controller.getDraws, controller))
       ).rejects.toBe(mockError);
     });
   });
