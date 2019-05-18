@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "test:integration": "jest -c jest.integration.config.js",
     "start": "node dist/app.js",
     "build": "gulp build",
     "lint": "tslint -p --fix --project tsconfig.json",

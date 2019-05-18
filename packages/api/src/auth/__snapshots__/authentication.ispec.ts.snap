@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`/login POST /login error handling returns a 400/RequestValidationError for bad auth codes 1`] = `
+Object {
+  "error": "RequestValidationError",
+  "errors": Object {
+    "authCode": Object {
+      "message": "authCode is required and must be a string.",
+      "pass": false,
+    },
+  },
+  "message": "Validation failed for field(s): authCode",
+  "status": 400,
+}
+`;

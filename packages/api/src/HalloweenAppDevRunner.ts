@@ -13,9 +13,12 @@ import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
 import { ExportPathScanner } from "./reflection/ExportPathScanner";
 
 export class HalloweenAppDevRunner implements IHalloweenAppRunner {
-  async run(): Promise<void> {
+  async run(): Promise<{ teardown: () => void }> {
+    const path = __filename
+      ? "./src/**/!(test|mocks)/!(*.ispec|*.spec|app).ts"
+      : "./dist/**.js";
     // Proof of concept: classpath scanning
-    const components = await ExportPathScanner.scan("./dist/**/*.js");
+    const components = await ExportPathScanner.scan(path);
 
     // Container configuration step
     const container = createApplicationContainer();
@@ -44,7 +47,20 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
 
     // Hook up middlewares and start the webserver listening
     const koaConfiguration = container.resolve("koaConfiguration");
-    container.build(koaConfiguration.configure);
+    await container.build(koaConfiguration.configure);
+
+    // TODO: this logic should be local to the context files that create
+    // the subscriptions
+    // in other words implement container.dispose() handling
+    const teardown = async ({ webserver, orm }: ApplicationContext) => {
+      const closeWebserver = new Promise(resolve => webserver.close(resolve));
+      const closeOrm = orm.close();
+      await Promise.all([closeWebserver, closeOrm]);
+    };
+
+    return {
+      teardown: () => container.build(teardown)
+    };
   }
 }
 

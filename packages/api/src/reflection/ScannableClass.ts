@@ -9,7 +9,11 @@ import {
 type IClass = new (..._: any[]) => any;
 
 export function classIsScannable(fn: IClass): fn is IScannableClass {
-  return fn && fn.hasOwnProperty(isScannable);
+  if (!fn) {
+    return false;
+  }
+  const scannable = Object.getOwnPropertyDescriptor(fn, isScannable) as any;
+  return scannable;
 }
 
 export interface IScannableClass {

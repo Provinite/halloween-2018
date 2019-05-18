@@ -178,7 +178,7 @@ export class EnvService {
     env: Partial<ENV_VARS>
   ): IWebserverConfiguration {
     return {
-      port: Number.parseInt(firstOf(env.PORT, DEFAULTS.webserver.port), 10)
+      port: firstOf(env.PORT, DEFAULTS.webserver.port)
     };
   }
 
@@ -217,13 +217,15 @@ export class EnvService {
 /**
  * Returns the first argument that is not strictly equal to undefined.
  * @param args
+ * @throws {Error} if
  */
-function firstOf(...args: any[]): any {
+function firstOf<T>(...args: (T | undefined)[]): T {
   for (const arg of args) {
     if (arg !== undefined) {
       return arg;
     }
   }
+  throw new Error("firstOf: no valid candidate value.");
 }
 
 /**

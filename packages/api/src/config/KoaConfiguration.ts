@@ -1,4 +1,4 @@
-import { asClass } from "awilix";
+import { asClass, asValue } from "awilix";
 import * as BodyParser from "koa-bodyparser";
 import { AuthorizationMiddlewareFactory } from "../middlewares/AuthorizationMiddlewareFactory";
 import { CorsMiddlewareFactory } from "../middlewares/CorsMiddlewareFactory";
@@ -12,6 +12,7 @@ import {
   ApplicationContainer,
   ApplicationContext
 } from "./context/ApplicationContext";
+import { Server } from "http";
 
 @Component()
 export class KoaConfiguration {
@@ -22,7 +23,7 @@ export class KoaConfiguration {
   configure({
     routeComponentProcessor,
     container,
-    webserver,
+    koa,
     envService
   }: ApplicationContext) {
     const webserverConfig = envService.getWebserverConfig();
@@ -60,32 +61,33 @@ export class KoaConfiguration {
     );
 
     // middleware for parsing request bodies into objects
-    webserver.use(BodyParser());
+    koa.use(BodyParser());
     // the cors middleware relies on other middlewares to set the allow headers
     // so it goes first since it awaits `next()` before setting headers.
-    webserver.use(corsMiddleware);
+    koa.use(corsMiddleware);
     // the request-scoped container is needed by other middleware so it is added
     // early in the chain. Some other useful request-specific stuff is configured
     // in here too.
-    webserver.use(requestContainerMiddleware);
+    koa.use(requestContainerMiddleware);
     // the renderer middleware awaits `next()` before setting the response body
     // based on ctx.state.result. So any middleware that come after it in the
     // chain may control the rendered result
-    webserver.use(rendererMiddleware);
+    koa.use(rendererMiddleware);
     // the error handler middleware wraps its call to `next()` in a try/catch
     // so all middlewares from here down can safely throw known error types
     // and expect them to be converted to a reasonable error responseand rendered
     // properly.
-    webserver.use(errorHandlerMiddleware);
+    koa.use(errorHandlerMiddleware);
     // the authorization middleware will throw meaningful exceptions up to the
     // error handler on auth failures. Also populates the current user into
     // the request scoped DI container.
-    webserver.use(authorizationMiddleware);
+    koa.use(authorizationMiddleware);
     // finally, if everything went well we actually route the request to a
     // controller.
-    webserver.use(routerMiddleware);
+    koa.use(routerMiddleware);
     // start the webserver
-    webserver.listen(webserverConfig.port);
+    const webserver = koa.listen(webserverConfig.port);
+    container.register("webserver", asValue(webserver));
   }
 }
 
@@ -105,6 +107,8 @@ function createMiddleware(
 
 declare global {
   interface ApplicationContextMembers {
+    /** Webserver for the application */
+    webserver: Server;
     /** Configuration class that starts the webserver listening */
     koaConfiguration: KoaConfiguration;
   }

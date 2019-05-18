@@ -5,6 +5,7 @@ import { User } from "../models";
 import { Component } from "../reflection/Component";
 import { Route } from "../reflection/Route";
 import { AuthenticationService } from "./AuthenticationService";
+import { validateRequest, validators } from "../web/RequestValidationUtils";
 
 @Component()
 export class LoginController {
@@ -22,12 +23,11 @@ export class LoginController {
     roles: ["public"]
   })
   async handleLogin({ requestBody }: RequestContext) {
-    if (!requestBody.authCode) {
-      // todo: return a bad request http response
-      return;
-    }
+    const body = validateRequest(requestBody, {
+      authCode: validators.string
+    });
     return {
-      token: await this.authService.authenticate(requestBody.authCode)
+      token: await this.authService.authenticate(body.authCode)
     };
   }
   /** @inject */

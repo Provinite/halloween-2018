@@ -17,17 +17,23 @@ export class ExportPathScanner {
     });
     // final result
     const components: IScannableClass[] = [];
+    const importPromises: { [moduleIdentifier: string]: Promise<any> } = {};
+    const modules: { [moduleIdentifier: string]: any } = {};
 
     // require in all the files we found
     for (const file of files) {
-      require(file);
+      importPromises[file] = import(file);
+    }
+    for (const file of files) {
+      modules[file] = await importPromises[file];
     }
 
     // run down all loaded modules
     // potential pitfall: we're not validating the modules we're scanning are
     // actually from the provided path. Anyone else's routable methods
     // and such would run over our stuff.
-    const modules = require.cache;
+    //const modules = require.cache;
+
     // This is sloppy. Isn't there an Object.entries or something specifically
     // for this use case?
     for (const moduleId of Object.keys(modules)) {
@@ -38,19 +44,18 @@ export class ExportPathScanner {
       // dependency or just in /foo/foo-node_modules-bar/my-app
       const isOurModule: boolean = !moduleId.includes("node_modules");
 
-      if (theModule.exports && isOurModule) {
+      if (theModule && isOurModule) {
         // Same sloppiness as above
-        const exportedNames = Object.keys(theModule.exports);
+        const exportedNames = Object.keys(theModule);
         // Run down the exports provided by the module
         for (const exportName of exportedNames) {
-          const theExport = theModule.exports[exportName];
+          const theExport = theModule[exportName];
           // Grab all of our decorated classes
           // JS gives us a ton of flexibility here. Is it possible to decorate
           // an exported variable?
-          if (
-            classIsScannable(theExport) &&
-            theExport[decoratedType] === DecoratedTypes.CLASS
-          ) {
+          const isScannable = classIsScannable(theExport);
+          const isClass = theExport[decoratedType] === DecoratedTypes.CLASS;
+          if (isScannable && isClass) {
             components.push(theExport);
           }
         }
