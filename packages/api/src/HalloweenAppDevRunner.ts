@@ -25,7 +25,6 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
 
     // Register the DI container
     container.register("container", asValue(container));
-
     // Register the Environment Service. This data is used
     // by the context providers, so it needs to be built
     // very early on here.
