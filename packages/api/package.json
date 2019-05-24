@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "test:coverage": "yarn test --coverage",
     "start": "node dist/app.js",
     "build": "gulp build",
     "lint": "tslint -p --fix --project tsconfig.json",
