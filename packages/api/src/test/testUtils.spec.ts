@@ -1,4 +1,8 @@
-import { createSafeContext, makeGetterObject } from "./testUtils";
+import {
+  createSafeContext,
+  makeGetterObject,
+  getThrownError
+} from "./testUtils";
 
 describe("utils: test", () => {
   describe("makeGetterObject", () => {
@@ -59,6 +63,21 @@ describe("utils: test", () => {
       const px = proxy as any;
       expect(() => px.what).toThrowErrorMatchingInlineSnapshot(
         `"Could not resolve: \`what\`"`
+      );
+    });
+  });
+  describe("getThrownError", () => {
+    it("returns the thrown error", () => {
+      const mockError = {};
+      const mockFn = () => {
+        throw mockError;
+      };
+      expect(getThrownError(mockFn)).toBe(mockError);
+    });
+    it("throws if the function does not", () => {
+      const mockFn = jest.fn();
+      expect(() => getThrownError(mockFn)).toThrowErrorMatchingInlineSnapshot(
+        `"Expected function to throw an error, but none was thrown."`
       );
     });
   });

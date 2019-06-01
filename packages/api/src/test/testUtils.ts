@@ -92,5 +92,27 @@ export function createSafeContext<T extends {}>(ctx?: T): T {
   });
 }
 
+/**
+ * Execute an argless function and return the error it threw. If it does not
+ * throw, this function will throw an error.
+ * @param fn - The fn to run and extract an error from.
+ */
+export function getThrownError(fn: (this: void) => any): any {
+  let didCatch = false;
+  let caughtErr;
+  try {
+    fn();
+  } catch (e) {
+    didCatch = true;
+    caughtErr = e;
+  }
+  if (didCatch === false) {
+    throw new Error(
+      "Expected function to throw an error, but none was thrown."
+    );
+  }
+  return caughtErr;
+}
+
 /** Error indicating a test context was queried for an unknown dependency. */
 export class UnknownDependencyError extends Error {}

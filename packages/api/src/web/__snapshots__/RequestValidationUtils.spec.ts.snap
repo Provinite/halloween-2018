@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RequestValidationUtils createValidator bypasses the validator for undefined values, optional: false 1`] = `"Missing required field: \\"someKey\\"."`;
+
+exports[`RequestValidationUtils createValidator bypasses the validator for undefined values, optional: true 1`] = `"Missing required field: \\"someKey\\"."`;
+
+exports[`RequestValidationUtils createValidator bypasses the validator on null values nullable: false 1`] = `"\\"someKey\\" cannot be empty."`;
+
+exports[`RequestValidationUtils createValidator bypasses the validator on null values nullable: true 1`] = `"\\"someKey\\" cannot be empty."`;
