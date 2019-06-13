@@ -136,6 +136,18 @@ describe("EnvService", () => {
       const config = service.getOrmConfiguration();
       expect(config).toEqual(expectedConfig);
     });
+    it.each([
+      "mysql://user:password@dbhost.domain:6632/database",
+      "postgres://:password@somedb.host:1030/db",
+      "postgres://username@somedb.host:1030/db",
+      "postgres://username:password@:1030/db",
+      "postgres://username:password@somedb.host/db",
+      "postgres://username:password@somedb.host:3306"
+    ])("throws on invalid postgres url: %p", databaseUrl => {
+      NODE_ENV.DATABASE_URL = databaseUrl;
+      const createService = () => new EnvService(context);
+      expect(createService).toThrowError(/[iI]nvalid DATABASE_URL/);
+    });
   });
   describe("method:getWebserverConfiguration", () => {
     it("provides expected defaults", () => {

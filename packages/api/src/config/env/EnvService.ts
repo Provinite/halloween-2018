@@ -165,11 +165,6 @@ export class EnvService {
    */
   private createTokenConfig(env: Partial<ENV_VARS>): ITokenConfiguration {
     required(env, "cch2018_token_secret");
-    if (!env.cch2018_token_secret) {
-      throw new Error(
-        `Unable to initialize. Environment key: cch2018_token_secret must exist`
-      );
-    }
     return {
       secret: env.cch2018_token_secret
     };
@@ -201,7 +196,7 @@ export class EnvService {
   } {
     const matcher = /^postgres(?:ql)?:\/\/(.+?):(.+?)@(.+?):(\d+?)\/(.+?)$/i;
     if (!matcher.test(uri)) {
-      throw new Error("Invalid postgres uri supplied.");
+      throw new Error("Invalid DATABASE_URL supplied");
     } else {
       const result = matcher.exec(uri);
       const [, username, password, host, , database] = result;
