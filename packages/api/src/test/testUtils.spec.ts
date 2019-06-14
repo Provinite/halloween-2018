@@ -1,7 +1,8 @@
 import {
   createSafeContext,
   makeGetterObject,
-  getThrownError
+  getThrownError,
+  getRejectReason
 } from "./testUtils";
 
 describe("utils: test", () => {
@@ -80,5 +81,20 @@ describe("utils: test", () => {
         `"Expected function to throw an error, but none was thrown."`
       );
     });
+  });
+  describe("getRejectedValue", () => {
+    it("rejects if the promise resolves", async () => {
+      await expect(
+        getRejectReason(Promise.resolve())
+      ).rejects.toMatchInlineSnapshot(
+        `[Error: Expected promise to reject, but it resolved.]`
+      );
+    });
+    it.each([null, undefined, 1, "foo", {}, () => {}])(
+      "resolves with the rejection reason",
+      reason => {
+        expect(getRejectReason(Promise.reject(reason))).resolves.toBe(reason);
+      }
+    );
   });
 });

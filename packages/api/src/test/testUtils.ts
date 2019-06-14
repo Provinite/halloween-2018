@@ -114,5 +114,20 @@ export function getThrownError(fn: (this: void) => any): any {
   return caughtErr;
 }
 
+export async function getRejectReason(promise: Promise<any>) {
+  const sentinel = {};
+  let rejectReason = undefined;
+  try {
+    await promise;
+    throw sentinel;
+  } catch (reason) {
+    if (reason === sentinel) {
+      throw new Error("Expected promise to reject, but it resolved.");
+    }
+    rejectReason = reason;
+  }
+  return rejectReason;
+}
+
 /** Error indicating a test context was queried for an unknown dependency. */
 export class UnknownDependencyError extends Error {}
