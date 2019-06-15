@@ -1,3 +1,6 @@
+import { Lifetime, LifetimeType, AwilixContainer } from "awilix";
+import * as Awilix from "awilix";
+
 export function mockAsFunction(fn: (...args: any[]) => any) {
   return createMock(fn, "function");
 }
@@ -10,29 +13,61 @@ export function mockAsClass(clazz: new (...args: any[]) => any) {
   return createMock(clazz, "class");
 }
 
-function createMock(value: any, type: "class" | "function" | "value") {
+type createMockOptions = {
+  lifetime?: LifetimeType;
+};
+
+function createMock<T>(
+  value: new (...args: any[]) => T,
+  type: "class",
+  opts?: createMockOptions
+): IMockClassResolver<T>;
+function createMock<T>(
+  value: (...args: any[]) => T,
+  type: "function",
+  opts?: createMockOptions
+): IMockFunctionResolver<T>;
+function createMock<T>(
+  value: T,
+  type: "value",
+  opts?: createMockOptions
+): IMockFunctionResolver<T>;
+function createMock<T>(
+  value: T,
+  type: "class" | "function" | "value",
+  opts?: createMockOptions
+): IMockResolver<T>;
+function createMock(
+  value: any,
+  type: "class" | "function" | "value",
+  opts: { lifetime?: LifetimeType } = {}
+): IMockResolver {
   return {
     type,
     value,
-    singleton: () => createMock(value, type)
+    singleton: () => createMock(value, type, { lifetime: Lifetime.SINGLETON }),
+    resolve: () => value,
+    ...opts
   };
 }
 
-interface IMockResolver {
-  value: any;
+interface IMockResolver<T = any> {
+  value: T;
   type: "class" | "function" | "value";
-  singleton: () => IMockResolver;
+  singleton: () => IMockResolver<T>;
+  lifetime?: LifetimeType;
+  resolve: (container: AwilixContainer) => T;
 }
 
-interface IMockClassResolver extends IMockResolver {
+interface IMockClassResolver<T = any> extends IMockResolver<T> {
   type: "class";
 }
 
-interface IMockFunctionResolver extends IMockResolver {
+interface IMockFunctionResolver<T = any> extends IMockResolver<T> {
   type: "function";
 }
 
-interface IMockValueResolver extends IMockResolver {
+interface IMockValueResolver<T = any> extends IMockResolver<T> {
   type: "value";
 }
 
@@ -54,7 +89,8 @@ export function isMockClassResolver(obj: any): obj is IMockClassResolver {
 
 function toBeMockClassResolverFor(
   actual: any,
-  clazz: new (...args: any[]) => any
+  clazz: new (...args: any[]) => any,
+  lifetime?: LifetimeType
 ) {
   const fail = {
     message: () => `Expected to be a mock class resolver for ${clazz.name}.`,
@@ -66,7 +102,10 @@ function toBeMockClassResolverFor(
     pass: true
   };
   if (isMockClassResolver(actual) && actual.value === clazz) {
-    return pass;
+    if (lifetime === undefined) {
+      return pass;
+    }
+    return actual.lifetime === lifetime ? pass : fail;
   }
   return fail;
 }
@@ -103,8 +142,64 @@ function toBeMockValueResolverFor(actual: any, val: any) {
   return fail;
 }
 
-export function aMockFunctionResolverFor(fn: (...args: any[]) => any) {
-  return;
+/**
+ * Create an asymmetric matcher that expects a mock (or real) resolver for the
+ * specified value.
+ * @param val - The value
+ * @param [strict=true] - If true, uses .toBe comparison, otherwise uses .toEqual
+ */
+function expectAsValue(val: any, strict = true) {
+  return asymmetricMatcher((actual: any) => {
+    try {
+      if (strict) {
+        expect(actual.resolve()).toBe(val);
+      } else {
+        expect(actual.resolve()).toEqual(val);
+      }
+    } catch (e) {
+      return false;
+    }
+    return true;
+  });
+}
+
+/**
+ *
+ * @param val
+ * @param lifetime
+ */
+function expectAsClass(val: any, lifetime?: LifetimeType) {
+  return asymmetricMatcher(actual => {
+    try {
+      expect(actual).toBeMockClassResolverFor(val, lifetime);
+    } catch (e) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function asymmetricMatcher(fn: (actual: any) => boolean) {
+  return {
+    asymmetricMatch: fn
+  };
+}
+
+type AwilixModule = typeof Awilix;
+/**
+ * Apply mocks to the awilix module. Stubs resolver functions (asClass, asValue,
+ * etc) for use with mockResolver jest extensions.
+ * @param awilix - The awilix module.
+ */
+export function applyMockResolvers(
+  awilix: AwilixModule
+): AwilixModule &
+  jest.Mocked<Pick<AwilixModule, "asClass" | "asFunction" | "asValue">> {
+  jest.spyOn(awilix, "asClass").mockImplementation(mockAsClass as any);
+  jest.spyOn(awilix, "asFunction").mockImplementation(mockAsFunction as any);
+  jest.spyOn(awilix, "asValue").mockImplementation(mockAsValue as any);
+
+  return awilix as any;
 }
 
 expect.extend({
@@ -113,11 +208,22 @@ expect.extend({
   toBeMockValueResolverFor
 });
 
+expect.asValue = expectAsValue;
+expect.asClass = expectAsClass;
+
 declare global {
   namespace jest {
-    // tslint:disable-next-line
+    interface Expect {
+      /** Expect `actual` to be an asValue resolver */
+      asValue(value: any, strict?: boolean): any;
+      /** Expect `actual` to be a mock asClass resolver */
+      asClass(value: any, lifetime?: LifetimeType): any;
+    }
     interface Matchers<R> {
-      toBeMockClassResolverFor(clazz: new (...args: any[]) => any): R;
+      toBeMockClassResolverFor(
+        clazz: new (...args: any[]) => any,
+        lifetime?: LifetimeType
+      ): R;
       toBeMockFunctionResolverFor(fn: (...args: any[]) => any): R;
       toBeMockValueResolverFor(value: any): R;
     }

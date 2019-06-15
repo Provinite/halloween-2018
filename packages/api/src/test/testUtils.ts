@@ -1,5 +1,5 @@
 import { ROLES } from "@clovercoin/constants";
-import { asValue, createContainer, InjectionMode } from "awilix";
+import { asValue, createContainer } from "awilix";
 import { RoleLiteral } from "../auth/RoleLiteral";
 
 /**
@@ -62,9 +62,72 @@ export function createDeferred<T = any>() {
  * Register each entry of the map to the provided Awilix container.
  */
 export function createTestContainer(map: { [key: string]: any }) {
-  const container = createContainer({ injectionMode: InjectionMode.CLASSIC });
+  const container = createContainer();
   for (const [key, value] of Object.entries(map)) {
     container.register(key, asValue(value));
   }
   return container;
 }
+
+/**
+ * Creates an object mimicing the ApplicationContext object's behavior. Useful
+ * for testing components and ensuring that changes in dependencies are caught
+ * by automated tests.
+ * @param [ctx] - The initial context, defaults to an empty object.
+ * @return A proxy wrapping `ctx`. The proxy allows writes to any key, but
+ * instead of returning `undefined` on accessing a nonexistent property, it
+ * throws an UnknownDependencyError
+ */
+export function createSafeContext<T extends {}>(ctx?: T): T {
+  return new Proxy<T>(ctx || ({} as T), {
+    get: (target, prop, receiver) => {
+      if (prop in target) {
+        return (target as any)[prop];
+      } else {
+        throw new UnknownDependencyError(
+          "Could not resolve: `" + prop.toString() + "`"
+        );
+      }
+    }
+  });
+}
+
+/**
+ * Execute an argless function and return the error it threw. If it does not
+ * throw, this function will throw an error.
+ * @param fn - The fn to run and extract an error from.
+ */
+export function getThrownError(fn: (this: void) => any): any {
+  let didCatch = false;
+  let caughtErr;
+  try {
+    fn();
+  } catch (e) {
+    didCatch = true;
+    caughtErr = e;
+  }
+  if (didCatch === false) {
+    throw new Error(
+      "Expected function to throw an error, but none was thrown."
+    );
+  }
+  return caughtErr;
+}
+
+export async function getRejectReason(promise: Promise<any>) {
+  const sentinel = {};
+  let rejectReason = undefined;
+  try {
+    await promise;
+    throw sentinel;
+  } catch (reason) {
+    if (reason === sentinel) {
+      throw new Error("Expected promise to reject, but it resolved.");
+    }
+    rejectReason = reason;
+  }
+  return rejectReason;
+}
+
+/** Error indicating a test context was queried for an unknown dependency. */
+export class UnknownDependencyError extends Error {}

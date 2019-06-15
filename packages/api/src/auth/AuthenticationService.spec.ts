@@ -1,11 +1,17 @@
 import { Repository } from "typeorm";
+import { ApplicationContext } from "../config/context/ApplicationContext";
 import { Role, User } from "../models";
+import { createSafeContext, getRejectReason } from "../test/testUtils";
 import { AuthenticationService } from "./AuthenticationService";
 import { DeviantartApiConsumer } from "./deviantart/DeviantartApiConsumer";
 import { IDeviantartAuthResult } from "./deviantart/IDeviantartAuthResult";
 import { IDeviantartUser } from "./deviantart/IDeviantartUser";
 import { mockRoles } from "./mocks/mockRoles";
 import { TokenService } from "./TokenService";
+import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import { ArgumentTypes } from "@clovercoin/constants";
+import { AuthenticationFailureException } from "./AuthenticationFailureException";
+import { AuthenticationTokenExpiredError } from "./AuthenticationTokenExpiredError";
 
 describe("service:AuthenticationService", () => {
   afterEach(() => {
@@ -75,21 +81,20 @@ describe("service:AuthenticationService", () => {
 
       mocks.userRepository.findOne.mockResolvedValue(mocks.user);
       mocks.userRepository.save.mockResolvedValue(mocks.user);
-      mocks.userRepository.create.mockReturnValue({});
+      mocks.userRepository.create.mockReturnValue({} as User);
 
       mocks.roleRepository.findOneOrFail.mockImplementation(
-        (role: Partial<Role>) => {
+        async (role: Partial<Role>) => {
           return Object.values(mockRoles).find(r => r.name === role.name);
         }
       );
 
       mocks.tokenService.createToken.mockResolvedValue(mocks.token);
+
+      mocks = createSafeContext(mocks);
       /* Default Service */
       authenticationService = new AuthenticationService(
-        mocks.deviantartApiConsumer,
-        mocks.roleRepository,
-        mocks.userRepository,
-        mocks.tokenService
+        (mocks as unknown) as ApplicationContext
       );
     });
     it("authenticates via the deviantart api", async () => {
@@ -125,6 +130,78 @@ describe("service:AuthenticationService", () => {
         sub: mocks.daUser.userId
       });
       expect(jwt).toEqual(mocks.token);
+    });
+  });
+
+  describe("method:authenticateToken", () => {
+    let context: ApplicationContext;
+    let service: AuthenticationService;
+    let readTokenStub: jest.MockInstance<
+      ReturnType<TokenService["readToken"]>,
+      ArgumentTypes<TokenService["readToken"]>
+    >;
+
+    beforeEach(() => {
+      readTokenStub = jest.fn();
+      context = createSafeContext({
+        tokenService: {
+          readToken: readTokenStub
+        },
+        deviantartApiConsumer: {},
+        roleRepository: {},
+        userRepository: {}
+      }) as any;
+      service = new AuthenticationService(context);
+    });
+
+    describe("with a valid, active token", () => {
+      it("wraps tokenService#readToken", async () => {
+        const mockPayload = {};
+        readTokenStub.mockResolvedValue(mockPayload as any);
+        const mockToken = "TheWorldCelebrated";
+
+        await expect(service.authenticateToken(mockToken)).resolves.toBe(
+          mockPayload
+        );
+        expect(context.tokenService.readToken).toHaveBeenCalledWith(mockToken);
+      });
+    });
+
+    describe("with an invalid token", () => {
+      it("rejects with an AuthenticationFailureException matching the underlying message", async () => {
+        const mockError = new JsonWebTokenError("Yargh, thar be problems");
+        readTokenStub.mockRejectedValue(mockError);
+        const error = await getRejectReason(service.authenticateToken(""));
+        expect(error).toBeInstanceOf(AuthenticationFailureException);
+        expect(error.message).toEqual(mockError.message);
+      });
+    });
+    describe("with an expired token", () => {
+      it("rejects with an AuthenticationTokenExpiredError matching the underlying message", async () => {
+        const mockError = new TokenExpiredError("Token got totes expired", 10);
+        readTokenStub.mockRejectedValue(mockError);
+        const error = await getRejectReason(service.authenticateToken(""));
+        expect(error).toBeInstanceOf(AuthenticationTokenExpiredError);
+        expect(error.message).toEqual(mockError.message);
+      });
+    });
+    describe("with unknown failure", () => {
+      it("rejects with the message if there is one", async () => {
+        const mockError = new Error("Ruh roh!");
+        readTokenStub.mockRejectedValue(mockError);
+        const error = await getRejectReason(service.authenticateToken(""));
+        expect(error).toBeInstanceOf(AuthenticationFailureException);
+        expect(error.message).toEqual(mockError.message);
+      });
+      it("rejects with a default message without one", async () => {
+        const mockError = "I am a string instead of an error for some reason";
+        readTokenStub.mockRejectedValue(mockError);
+        const error = await getRejectReason(service.authenticateToken(""));
+        expect(error).toBeInstanceOf(AuthenticationFailureException);
+        expect(error).toMatchInlineSnapshot(
+          `[Error: Unknown authentication failure.]`
+        );
+      });
     });
   });
 });

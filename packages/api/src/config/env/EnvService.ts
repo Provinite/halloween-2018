@@ -3,6 +3,7 @@ import { IDeviantartApiConsumerConfiguration } from "./IDeviantartApiConsumerCon
 import { IOrmConfiguration } from "./IOrmConfiguration";
 import { ITokenConfiguration } from "./ITokenConfiguration";
 import { IWebserverConfiguration } from "./IWebserverConfiguration";
+import { ApplicationContext } from "../context/ApplicationContext";
 
 /**
  * Sensible defaults for the application (where possible). Not all values
@@ -23,7 +24,8 @@ const DEFAULTS: {
     username: "halloween2018",
     password: "halloween-password",
     database: "halloween2018",
-    synchronize: false
+    synchronize: false,
+    port: 5432
   },
   deviantartApiConsumer: {
     baseRoute: "https://www.deviantart.com/api/v1/oauth2/",
@@ -49,7 +51,7 @@ export class EnvService {
    * @param NODE_ENV - The runtime environment to use.
    * @inject
    */
-  constructor({ NODE_ENV }: ApplicationContextMembers) {
+  constructor({ NODE_ENV }: ApplicationContext) {
     this.ormConfig = this.createOrmConfig(NODE_ENV);
     this.tokenConfig = this.createTokenConfig(NODE_ENV);
     this.webserverConfig = this.createWebserverConfig(NODE_ENV);
@@ -112,6 +114,7 @@ export class EnvService {
   ): IDeviantartApiConsumerConfiguration {
     required(env, "cch2018_da_client_id");
     required(env, "cch2018_da_client_secret");
+    required(env, "cch2018_da_redirect_uri");
     const defaults = DEFAULTS.deviantartApiConsumer;
     const baseRoute = firstOf(env.cch2018_da_baseroute, defaults.baseRoute);
     const oauthEndpoint = firstOf(
@@ -150,7 +153,8 @@ export class EnvService {
         host: firstOf(env.cch2018_orm_host, DEFAULTS.orm.host),
         database: firstOf(env.cch2018_orm_database, DEFAULTS.orm.database),
         username: firstOf(env.cch2018_orm_username, DEFAULTS.orm.username),
-        password: firstOf(env.cch2018_orm_password, DEFAULTS.orm.password)
+        password: firstOf(env.cch2018_orm_password, DEFAULTS.orm.password),
+        port: Number(firstOf(env.cch2018_orm_port, DEFAULTS.orm.port))
       };
     }
     return config;
@@ -161,11 +165,6 @@ export class EnvService {
    */
   private createTokenConfig(env: Partial<ENV_VARS>): ITokenConfiguration {
     required(env, "cch2018_token_secret");
-    if (!env.cch2018_token_secret) {
-      throw new Error(
-        `Unable to initialize. Environment key: cch2018_token_secret must exist`
-      );
-    }
     return {
       secret: env.cch2018_token_secret
     };
@@ -178,7 +177,7 @@ export class EnvService {
     env: Partial<ENV_VARS>
   ): IWebserverConfiguration {
     return {
-      port: Number.parseInt(firstOf(env.PORT, DEFAULTS.webserver.port), 10)
+      port: Number(firstOf(env.PORT, DEFAULTS.webserver.port))
     };
   }
 
@@ -197,7 +196,7 @@ export class EnvService {
   } {
     const matcher = /^postgres(?:ql)?:\/\/(.+?):(.+?)@(.+?):(\d+?)\/(.+?)$/i;
     if (!matcher.test(uri)) {
-      throw new Error("Invalid postgres uri supplied.");
+      throw new Error("Invalid DATABASE_URL supplied");
     } else {
       const result = matcher.exec(uri);
       const [, username, password, host, , database] = result;

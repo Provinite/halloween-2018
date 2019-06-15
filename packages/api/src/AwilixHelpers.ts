@@ -1,4 +1,8 @@
-import { ContextContainer } from "./config/context/ApplicationContext";
+import * as Awilix from "awilix";
+import {
+  ApplicationContainer,
+  ContextContainer
+} from "./config/context/ApplicationContext";
 import { RequestContext } from "./config/context/RequestContext";
 
 /**
@@ -49,4 +53,12 @@ export function bind<T extends (this: U, ...args: any) => any, U>(
   thisArg: any
 ) {
   return fn.bind(thisArg) as T;
+}
+
+export function createContainer<T>(): ContextContainer<T> {
+  return Awilix.createContainer() as ContextContainer<T>;
+}
+
+export function createApplicationContainer(): ApplicationContainer {
+  return Awilix.createContainer() as ApplicationContainer;
 }

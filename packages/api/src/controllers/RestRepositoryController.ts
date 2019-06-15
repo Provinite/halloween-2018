@@ -92,13 +92,13 @@ export abstract class RestRepositoryController<T> {
             e instanceof MethodNotSupportedError
           ) {
             // handler isn't covered, register it
-            routeRegistry.registerRoute(
+            routeRegistry.registerRoute({
               route,
-              method,
-              bind(methodMap[method].fn, this),
-              this,
-              methodMap[method].roles
-            );
+              methods: method,
+              resolver: bind(methodMap[method].fn, this),
+              router: this,
+              allowedRoles: methodMap[method].roles
+            });
           } else {
             throw e;
           }

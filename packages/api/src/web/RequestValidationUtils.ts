@@ -130,7 +130,7 @@ export function createValidator<R = any>(
  * @return true iff val is a string that consists only of one or more digits.
  */
 export function isDigitString(val: any) {
-  if (typeof val !== "string") {
+  if (!isString(val)) {
     return false;
   }
   return /^\d+$/.test(val);
@@ -156,22 +156,22 @@ export function isPresent<T>(val: T): val is Exclude<T, undefined> {
 }
 
 export function isString(val: any): val is string {
-  return typeof val === "string";
+  return typeof val === "string" || val instanceof String;
 }
 
 export function isNonEmptyString(val: any): boolean {
-  return typeof val === "string" && val.length > 0;
+  return isString(val) && val.length > 0;
 }
 
 export function isValidDateString(val: any): val is string {
-  if (typeof val !== "string" || !val) {
+  if (!isString(val) || !val) {
     return false;
   }
   return moment(val, "YYYY-MM-DD", true).isValid();
 }
 
 export function isValidDateTimeString(val: any): val is string {
-  if (typeof val !== "string") {
+  if (!isString(val)) {
     return false;
   }
   return moment(val, "YYYY-MM-DD HH:mm:ss", true).isValid();

@@ -16,13 +16,15 @@ export interface ENV_VARS {
   cch2018_orm_username: string;
   /** The database connection password. */
   cch2018_orm_password: string;
-  /* The database provider. See typeorm docs for options. */
+  /** The database provider. See typeorm docs for options. */
   cch2018_orm_type: string;
-  /* The database host. */
+  /** The database host. */
   cch2018_orm_host: string;
-  /* The database name. */
+  /** The database port. */
+  cch2018_orm_port: string;
+  /** The database name. */
   cch2018_orm_database: string;
-  /* True to synchronize (autogenerate schema) on connection. */
+  /** True to synchronize (autogenerate schema) on connection. */
   cch2018_orm_synchronize: boolean;
 
   // ====================

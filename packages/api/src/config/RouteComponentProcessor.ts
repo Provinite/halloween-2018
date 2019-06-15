@@ -12,7 +12,7 @@ import {
   routableMethods,
   targetRoute
 } from "../reflection/Symbols";
-import { RouteRegistry } from "../web/RouteRegistry";
+import { RegisterRouteOptions, RouteRegistry } from "../web/RouteRegistry";
 import {
   ApplicationContainer,
   ApplicationContext
@@ -70,16 +70,14 @@ export class RouteComponentProcessor {
     const registerDecoratedRoutes = (router: IRouter) => {
       if (router[routableMethods]) {
         router[routableMethods].forEach(routableMethod => {
-          const route: string = routableMethod[targetRoute];
-          const methods = routableMethod[httpMethods];
-          const roles = routableMethod[allowedRoles];
-          this.routeRegistry.registerRoute(
-            route,
-            methods,
-            bind(routableMethod, router),
-            router,
-            roles
-          );
+          const routeOptions: RegisterRouteOptions = {
+            route: routableMethod[targetRoute],
+            methods: routableMethod[httpMethods],
+            allowedRoles: routableMethod[allowedRoles],
+            resolver: bind(routableMethod, router),
+            router: this
+          };
+          this.routeRegistry.registerRoute(routeOptions);
         });
       }
     };

@@ -17,7 +17,7 @@ describe("DrawEventRepository", () => {
     (repository as any).manager = mockManager;
     mockUser = mockUsers.user;
   });
-  describe("getLastDrawEvent", async () => {
+  describe("getLastDrawEvent", () => {
     it("returns undefined when there are none", async () => {
       mockManager.find.mockResolvedValue([]);
       const result = await repository.getLastDrawEvent(

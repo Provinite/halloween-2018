@@ -3,11 +3,12 @@ import * as Awilix from "awilix";
 import { Context, Middleware } from "koa";
 import { RequestParsingService } from "../config/RequestParsingService";
 import { mockAsValue } from "../test/AwilixMocks";
+import { createSafeContext } from "../test/testUtils";
 import { RequestContainerMiddlewareFactory } from "./RequestContainerMiddlewareFactory";
 describe("RequestContainerMiddlewareFactory", () => {
   describe("create() middleware", () => {
     beforeEach(() => {
-      jest.spyOn(Awilix, "asValue").mockImplementation(mockAsValue);
+      jest.spyOn(Awilix, "asValue").mockImplementation(mockAsValue as any);
     });
     it("attaches a child-scoped container to request.state.requestContainer", async () => {
       const mockRequestContainer = {
@@ -26,10 +27,10 @@ describe("RequestContainerMiddlewareFactory", () => {
         }
       } as Context;
       const next = jest.fn();
-      const factory = new RequestContainerMiddlewareFactory(
-        mockContainer,
-        mockRequestParsingService
-      );
+      const factory = new RequestContainerMiddlewareFactory(createSafeContext({
+        container: mockContainer,
+        requestParsingService: mockRequestParsingService
+      }) as any);
       const middleware: Middleware = factory.create();
       await middleware(mockContext, next);
       // it invokes next
