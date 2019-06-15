@@ -2,6 +2,7 @@ import { asValue } from "awilix";
 import { Context } from "koa";
 import { Component } from "../reflection/Component";
 import { ContextContainer } from "./context/ApplicationContext";
+import { RequestContext } from "./context/RequestContext";
 
 /**
  * Service used for parsing incoming requests into useful data.
@@ -16,11 +17,12 @@ export class RequestParsingService {
    * @param ctx - The Koa context.
    * @param container - The container to register request data to.
    */
-  parse<T extends { [key: string]: any }>(
+  parse<T extends Pick<RequestContext, "requestBody">>(
     ctx: Context,
     container: ContextContainer<T>
   ) {
-    container.register("requestBody", asValue(ctx.request.body));
+    const body = ctx.request;
+    container.register("requestBody", asValue(body));
   }
 }
 

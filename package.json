@@ -6,7 +6,9 @@
   "author": "Collin Driscoll",
   "license": "UNLICENSED",
   "workspaces": {
-    "packages": ["packages/*"]
+    "packages": [
+      "packages/*"
+    ]
   },
   "private": true,
   "devDependencies": {

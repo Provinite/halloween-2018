@@ -14,13 +14,7 @@
     "sourceRoot": "./src/",
     "noUnusedLocals": true
   },
-  "parserOptions": {
-  },
-  "include": [
-    "src/**/*.ts",
-  ],
-  "exclude": [
-    "./node_modules/**/*",
-    "./*.js"
-  ]
+  "parserOptions": {},
+  "include": ["src/**/*.ts"],
+  "exclude": ["./node_modules/**/*", "./*.js"]
 }
