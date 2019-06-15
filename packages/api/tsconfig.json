@@ -12,7 +12,8 @@
     "alwaysStrict": false,
     "sourceMap": true,
     "sourceRoot": "./src/",
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "strict": true
   },
   "parserOptions": {},
   "include": ["src/**/*.ts"],
