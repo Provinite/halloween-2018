@@ -48,15 +48,7 @@ export class TokenService {
    * @param token - The token to parse.
    */
   async readToken(token: string): Promise<ITokenPayload> {
-    return new Promise<ITokenPayload>((resolve, reject) => {
-      JWT.verify(token, this.config.secret, (err, payload: ITokenPayload) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(payload);
-        }
-      });
-    });
+    return JWT.verify(token, this.config.secret) as ITokenPayload;
   }
 }
 /**

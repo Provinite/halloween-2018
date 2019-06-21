@@ -8,27 +8,27 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 @Entity()
 export class Game {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   /** The name of the game. */
   @Column({ nullable: false, unique: true })
-  name: string;
+  name!: string;
 
   /** Description for the game. */
   @Column({ nullable: false })
-  description: string;
+  description!: string;
 
   /** Contact details for the game's owner */
   @Column({ nullable: false })
-  contact: string;
+  contact!: string;
 
   /** Datetime at which the game opens. */
   @Column({ type: "time without time zone", nullable: true })
-  startDate: Date;
+  startDate: Date | null = null;
 
   /** Datetime at which the game closes. */
   @Column({ type: "time without time zone", nullable: true })
-  endDate: Date;
+  endDate: Date | null = null;
 
   /**
    * Crontab style string representing the draw reset schedule.
@@ -40,19 +40,19 @@ export class Game {
   @Column({
     default: "0 12 * * *"
   })
-  drawResetSchedule: string;
+  drawResetSchedule!: string;
 
   /**
    * How many draws a player gets per reset.
    */
   @Column({ default: 1 })
-  drawsPerReset: number;
+  drawsPerReset!: number;
 
   /**
    * How many draws a VIP gets per reset.
    */
   @Column({ default: 2 })
-  vipDrawsPerReset: number;
+  vipDrawsPerReset!: number;
 
   /**
    * The win rate (percentage) for this event.
@@ -66,5 +66,5 @@ export class Game {
     default: 0.5,
     type: "double precision"
   })
-  winRate: number;
+  winRate!: number;
 }

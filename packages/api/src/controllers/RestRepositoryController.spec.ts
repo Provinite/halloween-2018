@@ -34,10 +34,10 @@ interface IMocks {
 
 describe("abstract:RestRepositoryController", () => {
   let ctrl: MockRestRepository;
-  let mocks: Partial<IMocks>;
+  let mocks: IMocks;
   beforeEach(() => {
     /* Mocks */
-    mocks = {};
+    mocks = {} as any;
     mocks.repository = ({
       find: jest.fn(),
       save: jest.fn()
@@ -50,7 +50,7 @@ describe("abstract:RestRepositoryController", () => {
     mocks.baseRoute = "/mockEntity";
     mocks.listRoute = "/mockEntities";
     /* Stubs */
-    mocks.orm.getRepository.mockImplementation(() => mocks.repository);
+    mocks.orm.getRepository.mockImplementation(() => mocks.repository as any);
 
     /* Default Controller */
     ctrl = new MockRestRepository(mocks.orm, MockEntity);

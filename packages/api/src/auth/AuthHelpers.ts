@@ -7,7 +7,7 @@ import { RoleLiteral } from "./RoleLiteral";
  * @param user - The user to check.
  * @param role - The role literal to check for, eg "user", "public".
  */
-export function hasRole(user: User, role: RoleLiteral) {
+export function hasRole(user: User | null | undefined, role: RoleLiteral) {
   if (role === "public") {
     return true;
   }

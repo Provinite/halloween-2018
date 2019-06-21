@@ -33,7 +33,7 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
   create(): Middleware {
     return async (ctx: Context, next: INextCallback) => {
       const path: string = ctx.path;
-      const method: HttpMethod = getMethod(ctx.method);
+      const method: HttpMethod | undefined = getMethod(ctx.method);
       if (!method) {
         throw new UnknownMethodError();
       }
@@ -79,7 +79,7 @@ export class RouterMiddlewareFactory implements IMiddlewareFactory {
  * @configures * - One entry for each path variable received. (DEPRECATED)
  */
 function registerPathVariables(
-  pathVariables: { [key: string]: string },
+  pathVariables: { [key: string]: string } | undefined,
   requestContainer: RequestContainer
 ) {
   requestContainer.register("pathVariables", asValue(pathVariables || {}));

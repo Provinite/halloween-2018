@@ -5,14 +5,14 @@ import { Role } from "./Role";
 })
 export class User {
   @PrimaryColumn()
-  deviantartUuid: string;
+  deviantartUuid!: string;
   @Column()
-  deviantartName: string;
+  deviantartName!: string;
   @Column()
-  iconUrl: string;
+  iconUrl!: string;
   @ManyToMany(type => Role, {
     eager: true
   })
   @JoinTable()
-  roles: Role[];
+  roles!: Role[];
 }

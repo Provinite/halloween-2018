@@ -8,9 +8,9 @@ import { RequestContext } from "../../config/context/RequestContext";
 import { Component } from "../../reflection/Component";
 import { getCurrentTime } from "../../TimeUtils";
 import { DrawEvent } from "../DrawEvent";
-import { User } from "../User";
 import { DrawEventRepository } from "./DrawEventRepository";
 import { DrawRateLimitExceededError } from "./DrawRateLimitExceededError";
+import { RequestUser } from "../../middlewares/AuthorizationMiddlewareFactory";
 /**
  * @class DrawEventAuthorizationService
  * Service for authorizing users to perform operations on DrawEvent models.
@@ -18,7 +18,7 @@ import { DrawRateLimitExceededError } from "./DrawRateLimitExceededError";
 @Component("SCOPED")
 @MakeContainerAware()
 export class DrawEventAuthorizationService {
-  private user: User | undefined;
+  private user: RequestUser;
   private drawEventRepository: DrawEventRepository;
   /** @inject */
   constructor({ user, drawEventRepository }: RequestContext) {
@@ -41,8 +41,12 @@ export class DrawEventAuthorizationService {
     if (!hasRole(user, "user")) {
       throw new PermissionDeniedError();
     }
+    user = user!;
     // people can only make draws for themselves
-    if (createEvent.user.deviantartUuid !== user.deviantartUuid) {
+    if (
+      !createEvent.user ||
+      createEvent.user.deviantartUuid !== user.deviantartUuid
+    ) {
       throw new PermissionDeniedError();
     }
     // admins don't have to wait
@@ -78,7 +82,7 @@ export class DrawEventAuthorizationService {
    */
   async canReadMultiple(
     findOptions: FindManyOptions<DrawEvent>,
-    user: User = this.user
+    user: RequestUser = this.user
   ): Promise<true> {
     if (!user || !hasRole(user, "user")) {
       throw new PermissionDeniedError();
@@ -109,12 +113,12 @@ export class DrawEventAuthorizationService {
     return true;
   }
 
-  async canDelete(user: User) {
+  async canDelete(user: RequestUser) {
     // DrawEvents cannot be deleted
     throw new PermissionDeniedError("Draw events cannot be deleted.");
   }
 
-  async canRead(user: User, drawEvent: DrawEvent): Promise<true> {
+  async canRead(user: RequestUser, drawEvent: DrawEvent): Promise<true> {
     if (!user) {
       throw new PermissionDeniedError();
     }
@@ -127,7 +131,7 @@ export class DrawEventAuthorizationService {
     return true;
   }
 
-  async canUpdate(user: User, drawEvent: DrawEvent) {
+  async canUpdate(user: RequestUser, drawEvent: DrawEvent) {
     throw new PermissionDeniedError("Draw events cannot be changed.");
   }
 }

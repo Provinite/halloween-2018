@@ -21,7 +21,7 @@ export class RequestParsingService {
     ctx: Context,
     container: ContextContainer<T>
   ) {
-    const body = ctx.request;
+    const body = ctx.request.body as RequestContextMembers["requestBody"];
     container.register("requestBody", asValue(body));
   }
 }

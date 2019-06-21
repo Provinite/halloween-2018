@@ -36,7 +36,8 @@ export class AuthorizationMiddlewareFactory implements IMiddlewareFactory {
       const requestContainer: RequestContainer = ctx.state.requestContainer;
       let allowedRoles: RoleLiteral[];
       try {
-        allowedRoles = this.routeRegistry.lookupRoute(path, getMethod(method))
+        // TODO:
+        allowedRoles = this.routeRegistry.lookupRoute(path, getMethod(method)!)
           .allowedRoles;
       } catch (e) {
         // TODO: Relying on a downstream middleware to handle this isn't the best
@@ -51,7 +52,7 @@ export class AuthorizationMiddlewareFactory implements IMiddlewareFactory {
       /** if true, allow the request through */
       let allow: boolean = false;
       /** the current user */
-      let user: User;
+      let user: User | undefined;
       if (token) {
         // try to authenticate
         // let any auth errors bubble up
@@ -90,3 +91,5 @@ declare global {
     user: User | undefined;
   }
 }
+
+export type RequestUser = RequestContextMembers["user"];

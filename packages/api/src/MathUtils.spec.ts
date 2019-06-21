@@ -14,7 +14,7 @@ describe("MathUtils", () => {
     });
     it("throws if an array of objects is used without a reducer", () => {
       const values = [{ value: 1 }];
-      expect(() => getOrderedPartialSums(values, undefined)).toThrowError();
+      expect(() => getOrderedPartialSums(values, undefined!)).toThrowError();
     });
   });
 });

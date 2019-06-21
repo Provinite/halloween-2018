@@ -91,13 +91,14 @@ export abstract class RestRepositoryController<T> {
             e instanceof UnknownRouteError ||
             e instanceof MethodNotSupportedError
           ) {
+            const handler = methodMap[method]!;
             // handler isn't covered, register it
             routeRegistry.registerRoute({
               route,
               methods: method,
-              resolver: bind(methodMap[method].fn, this),
+              resolver: bind(handler.fn, this),
               router: this,
-              allowedRoles: methodMap[method].roles
+              allowedRoles: handler.roles
             });
           } else {
             throw e;
@@ -138,7 +139,7 @@ export abstract class RestRepositoryController<T> {
    * @param requestBody
    * @inject
    */
-  async createOne({ requestBody, ctx }: RequestContext): Promise<T> {
+  async createOne({ requestBody, ctx }: RequestContext): Promise<T | null> {
     const entity: T = this.repository.create();
     // TODO: massive security issues
     Object.keys(requestBody).forEach(key => {
@@ -166,7 +167,7 @@ export abstract class RestRepositoryController<T> {
       ctx
     } = context;
     try {
-      await this.repository.update(id, requestBody as any);
+      await this.repository.update(id!, requestBody as any);
       return await this.getOne(context);
     } catch (error) {
       ctx.status = 400;
@@ -184,7 +185,7 @@ export abstract class RestRepositoryController<T> {
   async deleteOne({
     pathVariables: { id }
   }: RequestContext): Promise<{ ok: boolean }> {
-    await this.repository.delete(id);
+    await this.repository.delete(id!);
     return { ok: true };
   }
 
@@ -196,7 +197,7 @@ export abstract class RestRepositoryController<T> {
    */
   // @Route("/entities/{id}", GET)
   getOne({ pathVariables: { id } }: RequestContext): Promise<T> {
-    return this.repository.findOne(id);
+    return this.repository.findOneOrFail(id);
   }
 
   /**
@@ -209,8 +210,8 @@ export abstract class RestRepositoryController<T> {
   async modifyOne({
     pathVariables: { id },
     requestBody
-  }: RequestContext): Promise<T> {
-    const entity: T = await this.repository.findOne(id);
+  }: RequestContext): Promise<T | void> {
+    const entity: T | undefined = await this.repository.findOne(id);
     if (!entity) {
       // TODO: 404?
       return;

@@ -29,10 +29,10 @@ export function makeGetterObject<T extends Record<keyof T, () => any>>(
  * @param name - The test name.
  * @param spec - The spec itself.
  */
-export function roleLiteralSpec(
+export function roleLiteralSpec<T extends RoleLiteral>(
   name: string,
-  spec: (roleName: RoleLiteral) => any,
-  exclude: RoleLiteral[] = []
+  spec: (roleName: Exclude<RoleLiteral, T>) => any,
+  exclude: T[] = []
 ) {
   const roleNames: RoleLiteral[] = [
     ...(Object.keys(ROLES) as RoleLiteral[]),
@@ -40,7 +40,7 @@ export function roleLiteralSpec(
   ];
   const it = (global as any).it;
   const filteredRoleNames = roleNames.filter(
-    roleName => exclude.indexOf(roleName) === -1
+    roleName => exclude.indexOf(roleName as any) === -1
   );
   it.each(filteredRoleNames)(name, spec);
 }
@@ -55,6 +55,8 @@ export function createDeferred<T = any>() {
     resolve = res;
     reject = rej;
   });
+  resolve = resolve!;
+  reject = reject!;
   return { resolve, reject, promise };
 }
 

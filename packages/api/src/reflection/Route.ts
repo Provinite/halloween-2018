@@ -25,10 +25,10 @@ export function Route(
         roles?: RoleLiteral[];
       }
 ) {
-  return function(
+  return function<ContextType extends RequestContext = RequestContext>(
     target: any,
     propertyKey: string,
-    descriptor: TypedPropertyDescriptor<(context: RequestContext) => any>
+    descriptor: TypedPropertyDescriptor<(context: ContextType) => any>
   ) {
     const value = descriptor.value as IRoutableMethod;
     let requestedRoute: string;

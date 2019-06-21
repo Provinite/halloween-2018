@@ -36,13 +36,14 @@ export class Role {
    * Unique identifier.
    */
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
   /**
    * @property name
    * A unique name for this role.
    */
   @Column({
-    unique: true
+    unique: true,
+    nullable: false
   })
-  name: string;
+  name!: string;
 }

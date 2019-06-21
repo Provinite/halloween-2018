@@ -19,11 +19,11 @@ describe("AuthHelpers", () => {
     beforeEach(() => {
       makeMocks();
     });
-    describe.each([
-      [mockAdmin, true, false, true, true],
-      [mockUser, false, false, true, true],
-      [mockModerator, false, true, true, true],
-      [mockSuperUser, true, true, true, true]
+    describe.each<[User, ...boolean[]]>([
+      [mockAdmin!, true, false, true, true],
+      [mockUser!, false, false, true, true],
+      [mockModerator!, false, true, true, true],
+      [mockSuperUser!, true, true, true, true]
     ])(
       "hasRole",
       (

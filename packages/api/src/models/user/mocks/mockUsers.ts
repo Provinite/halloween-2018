@@ -1,6 +1,7 @@
 import { mockRoles } from "../../../auth/mocks/mockRoles";
 import { makeGetterObject } from "../../../test/testUtils";
 import { User } from "../../User";
+import { RequestUser } from "../../../middlewares/AuthorizationMiddlewareFactory";
 
 const admin = () => {
   const adminUser = new User();
@@ -33,5 +34,5 @@ export const mockUsers = makeGetterObject({
   admin,
   moderator,
   user,
-  public: () => null as User
+  public: () => undefined as RequestUser
 });
