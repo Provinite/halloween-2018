@@ -8,7 +8,7 @@ import {
 } from "../../config/context/RequestContext";
 import { Component } from "../../reflection/Component";
 import { Prize } from "../Prize";
-import { User } from "../User";
+import { RequestUser } from "../../middlewares/AuthorizationMiddlewareFactory";
 
 @Component("TRANSIENT")
 @MakeContainerAware()
@@ -62,7 +62,7 @@ export class PrizeAuthorizationService {
   /** @inject */
   private buildCanCreate({ user }: RequestContext) {
     const containerUser = user;
-    return async (prize: Prize, user: User = containerUser) => {
+    return async (prize: Prize, user: RequestUser = containerUser) => {
       if (!hasRole(user, "admin")) {
         throw new PermissionDeniedError(
           "Only administrators may create prizes."
@@ -83,7 +83,7 @@ export class PrizeAuthorizationService {
   private buildCanRead({ user }: RequestContext) {
     // TODO: This should be limiting users down by game and prize history.
     const containerUser = user;
-    return (user: User = containerUser) => {
+    return (user: RequestUser = containerUser) => {
       return hasRole(user, "user");
     };
   }
@@ -106,7 +106,7 @@ export class PrizeAuthorizationService {
     return (
       prize: Prize,
       patch: Partial<Prize>,
-      user: User = containerUser
+      user: RequestUser = containerUser
     ) => {
       // TODO: This should be limiting users to strictly decrementing the prize
       // total by 1 and verifying it is in their prize history.

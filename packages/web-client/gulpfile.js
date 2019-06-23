@@ -25,23 +25,19 @@ const paths = {
     all: "./src/**/*",
     scripts: {
       all: [
-        './src/**/*.ts',
-        './src/**/*.tsx',
-        '!./src/**/*.spec.ts',
-        '!**/node_modules/**'
+        "./src/**/*.ts",
+        "./src/**/*.tsx",
+        "!./src/**/*.spec.ts",
+        "!**/node_modules/**"
       ],
-      entry: [
-        "./src/app.tsx"
-      ]
+      entry: ["./src/app.tsx"]
     },
     html: {
-      index: './src/index.html',
-      all: './src/**/*.html',
+      index: "./src/index.html",
+      all: "./src/**/*.html"
     },
     sass: {
-      all: [
-        "./src/**/*.scss"
-      ]
+      all: ["./src/**/*.scss"]
     },
     static: {
       all: "./src/static/**/*"
@@ -53,9 +49,7 @@ const paths = {
       all: "./dist/**/*",
       scripts: {
         root: "./dist/js",
-        all: [
-          './dist/js/*.js',
-        ]
+        all: ["./dist/js/*.js"]
       },
       html: {
         root: "./dist",
@@ -71,64 +65,74 @@ const paths = {
       }
     }
   }
-}
+};
 
 function errorHandler(err) {
   log.error(err);
   console.log(err);
-  console.log("**********************************************************************************");
+  console.log(
+    "**********************************************************************************"
+  );
   this.emit("end");
 }
 
 gulp.task("sass", () => {
-  return gulp.src(paths.src.sass.all)
-  .pipe(sourcemaps.init())
-  .pipe(concat('bundle.scss'))
-  .pipe(sass())
-  .pipe(autoprefixer())
-  .pipe(concat('bundle.css'))
-  .pipe(sourcemaps.write('.'))
-  .pipe(gulp.dest(paths.out.dev.css.root));
+  return gulp
+    .src(paths.src.sass.all)
+    .pipe(sourcemaps.init())
+    .pipe(concat("bundle.scss"))
+    .pipe(sass())
+    .pipe(autoprefixer())
+    .pipe(concat("bundle.css"))
+    .pipe(sourcemaps.write("."))
+    .pipe(gulp.dest(paths.out.dev.css.root));
 });
 const browserifyOptions = {
   debug: true,
   entries: paths.src.scripts.entry
 };
-const bundlerOpts = {...browserifyOptions, ...watchify.args};
+const bundlerOpts = { ...browserifyOptions, ...watchify.args };
 let bundler;
 
-const initializeBundler = (done) => {
-  if (bundler) {return done()};
+const initializeBundler = done => {
+  if (bundler) {
+    return done();
+  }
 
   bundler = browserify(bundlerOpts)
-  .plugin(tsify)
-  .transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
-  .transform(envify, {extensions: [".tsx", ".ts"]});
+    .plugin(tsify)
+    .transform(babelify, { extensions: [".jsx", ".js", ".tsx", ".ts"] })
+    .transform(envify, { extensions: [".tsx", ".ts"] });
   done();
 };
 
-const initializeWatchifyBundler = (done) => {
-  if (bundler) {return done()};
+const initializeWatchifyBundler = done => {
+  if (bundler) {
+    return done();
+  }
 
   bundler = watchify(browserify(bundlerOpts))
-  .plugin(tsify)
-  .transform(babelify, {extensions: [".jsx",".js",".tsx",".ts"]})
-  .transform(envify, {extensions: [".tsx", ".ts"]});
+    .plugin(tsify)
+    .transform(babelify, { extensions: [".jsx", ".js", ".tsx", ".ts"] })
+    .transform(envify, { extensions: [".tsx", ".ts"] });
   done();
-}
+};
 
 gulp.task("bundle", () => {
-  return bundler.bundle()
-  .on("error", errorHandler)
-  .pipe(source('app.js'))
-  .pipe(buffer())
-  .pipe(sourcemaps.init({loadMaps: true}))
-  .pipe(sourcemaps.write('.'))
-  .pipe(gulp.dest(paths.out.dev.scripts.root));
+  return bundler
+    .bundle()
+    .on("error", errorHandler)
+    .pipe(source("app.js"))
+    .pipe(buffer())
+    .pipe(sourcemaps.init({ loadMaps: true }))
+    .pipe(sourcemaps.write("."))
+    .pipe(gulp.dest(paths.out.dev.scripts.root));
 });
 
 function doCopy(type) {
-  return gulp.src(paths.src[type].all).pipe(gulp.dest(paths.out.dev[type].root));
+  return gulp
+    .src(paths.src[type].all)
+    .pipe(gulp.dest(paths.out.dev[type].root));
 }
 gulp.task("clean", () => {
   return del(paths.out.dev.all);
@@ -139,37 +143,49 @@ gulp.task("copy:html", () => {
 
 gulp.task("copy:static", () => {
   return doCopy("static");
-})
+});
 
 gulp.task("inject:index", () => {
   const injectables = {
     scripts: gulp.src(paths.out.dev.scripts.all, { read: false }),
-    style: gulp.src(paths.out.dev.css.all, { read: false})
+    style: gulp.src(paths.out.dev.css.all, { read: false })
   };
   return gulp
     .src(paths.out.dev.html.index)
     .pipe(inject(injectables.scripts, { relative: true, ignorePath: "dist/" }))
     .pipe(inject(injectables.style, { relative: true, ignorePath: "dist/" }))
-    .pipe(replace("<!-- inject:base /-->", `<base href="${process.env.cch2018_wc_base}" />`))
+    .pipe(
+      replace(
+        "<!-- inject:base /-->",
+        `<base href="${process.env.cch2018_wc_base}" />`
+      )
+    )
     .pipe(gulp.dest(paths.out.dev.root));
 });
 
-gulp.task("build", 
+gulp.task(
+  "build",
   gulp.series(
     initializeBundler,
-    gulp.parallel("sass","bundle","copy:html","copy:static"),
+    gulp.parallel("sass", "bundle", "copy:html", "copy:static"),
     "inject:index"
-  ));
+  )
+);
 
-gulp.task("serve", gulp.series(initializeWatchifyBundler, "build", function() {
-  connect.server({
-    root: "./dist",
-    fallback: "./dist/index.html"
-  });
+gulp.task(
+  "serve",
+  gulp.series(initializeWatchifyBundler, "build", function() {
+    connect.server({
+      root: "./dist",
+      fallback: "./dist/index.html"
+    });
 
+    /*
   gulp.src("./").pipe(open({
     uri: "http://localhost:8080/"
   }));
+  */
 
-  gulp.watch(paths.src.all, gulp.series("build"));
-}));
+    gulp.watch(paths.src.all, gulp.series("build"));
+  })
+);

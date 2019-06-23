@@ -30,7 +30,7 @@ export class GameController {
   }: GameControllerRequestContext) {
     validateValue(gameId, "gameId", validators.optional.digitString);
     if (gameId === undefined) {
-      container.register("game", undefined);
+      container.register("game", asValue(undefined));
     } else {
       container.register("game", asValue(await gameRepository.findOne(gameId)));
     }
@@ -92,7 +92,7 @@ export class GameController {
   }: GameControllerRequestContext) {
     validateValue(gameId, "gameId", validators.digitString);
     const gameParts = parseBodyForUpdate(requestBody);
-    const game = await gameRepository.findOne(gameId);
+    const game = await gameRepository.findOneOrFail(gameId);
     await gameAuthorizationService.canUpdate(user);
     gameRepository.merge(game, gameParts);
     return await gameRepository.save(game);

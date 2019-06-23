@@ -28,13 +28,13 @@ export class RouteTransformationService {
    * Get a map of populated path variables for the specified route & request path.
    * @param route - The (parsed) route to populate.
    * @param path - The actual request path to pull params from.
-   * @return An object mapping path param names to string values. Returns void if
+   * @return An object mapping path param names to string values. Returns undefined if
    *    the route did not match this path.
    */
   getPathVariables(
     route: IParsedRoute,
     requestPath: string
-  ): { [param: string]: string } {
+  ): { [param: string]: string } | undefined {
     const { routeParams, pattern } = route;
     const result: { [param: string]: string } = {};
 

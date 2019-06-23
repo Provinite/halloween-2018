@@ -83,11 +83,9 @@ describe("service:AuthenticationService", () => {
       mocks.userRepository.save.mockResolvedValue(mocks.user);
       mocks.userRepository.create.mockReturnValue({} as User);
 
-      mocks.roleRepository.findOneOrFail.mockImplementation(
-        async (role: Partial<Role>) => {
-          return Object.values(mockRoles).find(r => r.name === role.name);
-        }
-      );
+      mocks.roleRepository.findOneOrFail.mockImplementation(async role => {
+        return Object.values(mockRoles).find(r => r.name === role!.name)!;
+      });
 
       mocks.tokenService.createToken.mockResolvedValue(mocks.token);
 

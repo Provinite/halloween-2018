@@ -28,7 +28,7 @@ export const MakeContainerAware: () => ClassDecorator = () => (
  * @MakeContainerAware()
  */
 export abstract class ContainerAware {
-  protected container: ContextContainer<any>;
+  public container: ContextContainer<any>;
   constructor(container: ContextContainer<any>) {
     this.container = container;
   }

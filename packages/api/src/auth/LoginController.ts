@@ -39,6 +39,6 @@ export class LoginController {
   async whoami({ ctx }: RequestContext): Promise<User> {
     const token = ctx.get("Authorization").replace("Bearer ", "");
     const payload = await this.authService.authenticateToken(token);
-    return this.userRepository.findOne(payload.sub);
+    return this.userRepository.findOneOrFail(payload.sub);
   }
 }

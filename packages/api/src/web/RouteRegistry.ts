@@ -7,6 +7,7 @@ import { logger } from "../logging";
 import { Component } from "../reflection/Component";
 import { MethodNotSupportedError } from "./MethodNotSupportedError";
 import { UnknownRouteError } from "./UnknownRouteError";
+
 @Component()
 /**
  * Class used for mapping request paths and http methods to handler resolvers.
@@ -39,11 +40,12 @@ export class RouteRegistry {
     if (!this.map[route]) {
       this.map[route] = {};
     }
+    const endpoint = this.map[route]!;
     if (!Array.isArray(methods)) {
       methods = [methods];
     }
     methods.forEach(method => {
-      this.map[route][method] = {
+      endpoint[method] = {
         router,
         resolver,
         allowedRoles
@@ -56,71 +58,55 @@ export class RouteRegistry {
    * Get the resolver and path variables for the given request path.
    * @return The resolver and any path variables for the route and method.
    */
-  lookupRoute(
-    requestPath: string,
-    method: HttpMethod
-  ): {
-    /**
-     * The router instance for the handler, if any.
-     */
-    router: any;
-    /**
-     * An awilix resolver for the actual route handler. If lookup fails,
-     * undefined.
-     */
-    resolver?: Resolver<any> | ((...args: any[]) => any);
-    /**
-     * A map of the extracted path variables for the request (name => value).
-     * Undefined if lookup fails.
-     */
-    pathVariables?: { [key: string]: string };
-    /**
-     * A list of roles that may use this route.
-     */
-    allowedRoles?: RoleLiteral[];
-  } {
+  lookupRoute(requestPath: string, method: HttpMethod): RouteLookupResult {
     // Exact match (but don't get false exact matches on wildcard routes if the
     // request path literally contains something like {id})
     if (!requestPath.includes("{")) {
       if (this.map[requestPath]) {
-        if (this.map[requestPath][method]) {
-          return {
-            router: this.map[requestPath][method].router,
-            resolver: this.map[requestPath][method].resolver,
-            allowedRoles: this.map[requestPath][method].allowedRoles
+        const endpoint = this.map[requestPath]!;
+        if (endpoint[method]) {
+          const route = this.map[requestPath]![method]!;
+          const result: RouteLookupResult = {
+            router: route.router,
+            resolver: route.resolver,
+            allowedRoles: route.allowedRoles
           };
+          return result;
         } else {
           throw new MethodNotSupportedError(Object.keys(
-            this.map[requestPath]
+            endpoint
           ) as HttpMethod[]);
         }
       }
     }
 
     // Check wildcard routes
-    for (const route in this.map) {
-      if (!route.includes("{")) {
+    for (const path in this.map) {
+      if (!path.includes("{")) {
         continue;
       }
       // TODO: This could be cached. Calculating on every request seems
       // wasteful.
-      const parsedRoute = this.transformationService.parseRoute(route);
+      const parsedRoute = this.transformationService.parseRoute(path);
       const pathVariables = this.transformationService.getPathVariables(
         parsedRoute,
         requestPath
       );
       if (pathVariables) {
+        const endpoint = this.map[path]!;
         // route matched, check method support
-        if (this.map[route][method]) {
-          return {
-            router: this.map[route][method].router,
-            resolver: this.map[route][method].resolver,
-            allowedRoles: this.map[route][method].allowedRoles,
+        if (endpoint[method]) {
+          const route = endpoint[method]!;
+          const result: RouteLookupResult = {
+            router: route.router,
+            resolver: route.resolver,
+            allowedRoles: route.allowedRoles,
             pathVariables
           };
+          return result;
         } else {
           throw new MethodNotSupportedError(Object.keys(
-            this.map[route]
+            endpoint
           ) as HttpMethod[]);
         }
       }
@@ -165,6 +151,27 @@ type IRouteHandler = {
  */
 interface IRouteMap {
   [route: string]: IRouteHandler | undefined;
+}
+
+interface RouteLookupResult {
+  /**
+   * The router instance for the handler, if any.
+   */
+  router: any;
+  /**
+   * An awilix resolver for the actual route handler. If lookup fails,
+   * undefined.
+   */
+  resolver: Resolver<any> | ((...args: any[]) => any);
+  /**
+   * A list of roles that may use this route.
+   */
+  allowedRoles: RoleLiteral[];
+  /**
+   * A map of the extracted path variables for the request (name => value).
+   * Undefined if lookup fails.
+   */
+  pathVariables?: { [key: string]: string };
 }
 
 declare global {

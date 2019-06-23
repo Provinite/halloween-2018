@@ -163,7 +163,7 @@ describe("RequestValidationUtils", () => {
       [0.2, false],
       [{}, false],
       [[], false]
-    ])("isValidInt(%p) === %p", (val, expectedResult) => {
+    ] as const)("isValidInt(%p) === %p", (val, expectedResult) => {
       expect(isValidInt(val)).toBe(expectedResult);
     });
   });
@@ -181,7 +181,7 @@ describe("RequestValidationUtils", () => {
       [undefined, false],
       [{}, false],
       [[], false]
-    ])("isValidFloat(%p) === %p", (val, expectedResult) => {
+    ] as const)("isValidFloat(%p) === %p", (val, expectedResult) => {
       expect(isValidFloat(val)).toBe(expectedResult);
     });
   });

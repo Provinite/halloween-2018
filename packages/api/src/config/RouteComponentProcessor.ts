@@ -69,13 +69,13 @@ export class RouteComponentProcessor {
      */
     const registerDecoratedRoutes = (router: IRouter) => {
       if (router[routableMethods]) {
-        router[routableMethods].forEach(routableMethod => {
+        router[routableMethods]!.forEach(routableMethod => {
           const routeOptions: RegisterRouteOptions = {
             route: routableMethod[targetRoute],
             methods: routableMethod[httpMethods],
             allowedRoles: routableMethod[allowedRoles],
             resolver: bind(routableMethod, router),
-            router: this
+            router
           };
           this.routeRegistry.registerRoute(routeOptions);
         });

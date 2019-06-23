@@ -9,6 +9,7 @@ import { RequestContext } from "../../config/context/RequestContext";
 import { Component } from "../../reflection/Component";
 import { Game } from "../Game";
 import { User } from "../User";
+import { RequestUser } from "../../middlewares/AuthorizationMiddlewareFactory";
 
 @Component("TRANSIENT")
 export class GameAuthorizationService {
@@ -17,17 +18,17 @@ export class GameAuthorizationService {
   constructor({ container }: AnyContext) {
     this.container = container;
   }
-  async canCreate(user: User) {
+  async canCreate(user: RequestUser) {
     if (!hasRole(user, "admin")) {
       throw new PermissionDeniedError();
     }
   }
-  async canUpdate(user: User) {
+  async canUpdate(user: RequestUser) {
     if (!hasRole(user, "admin")) {
       throw new PermissionDeniedError();
     }
   }
-  async canReadMultiple(user: User) {
+  async canReadMultiple(user: RequestUser) {
     const canRead = hasRole(user, "admin") || hasRole(user, "user");
     if (!canRead) {
       throw new PermissionDeniedError();
@@ -40,7 +41,7 @@ export class GameAuthorizationService {
   /** @inject */
   private authCanRead({ user }: RequestContext) {
     const containerUser = user;
-    return async (game: Game, user: User = containerUser) => {
+    return async (game: Game, user: User | undefined = containerUser) => {
       if (!hasRole(user, "user")) {
         throw new PermissionDeniedError();
       }

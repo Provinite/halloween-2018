@@ -14,35 +14,35 @@ import { Game } from "./Game";
 @Unique(["name", "game"])
 export class Prize {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
-  @Column()
-  name: string;
+  @Column({ nullable: false })
+  name!: string;
 
-  @Column()
-  description: string;
+  @Column({ nullable: false })
+  description!: string;
 
-  @Column({ select: false })
-  initialStock: number;
+  @Column({ select: false, nullable: false })
+  initialStock!: number;
 
-  @Column({ select: false })
-  currentStock: number;
+  @Column({ select: false, nullable: false })
+  currentStock!: number;
 
   @Column({
     default: 1.0,
     type: "double precision",
     select: false
   })
-  weight: number;
+  weight!: number;
 
   @ManyToOne(type => Game, { nullable: false })
-  game: Game;
+  game!: Game;
 
   @RelationId((prize: Prize) => prize.game)
-  gameId: number;
+  gameId!: number;
 
   @OneToMany(type => DrawEvent, drawEvent => drawEvent.prize, { eager: false })
-  drawEvents: DrawEvent[];
+  drawEvents!: DrawEvent[];
 }
 
 /** These fields are excluded from most requests and must be explicitly added.
