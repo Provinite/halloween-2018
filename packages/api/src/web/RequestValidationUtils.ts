@@ -43,7 +43,7 @@ export function validateRequest<
   let failed = false;
   for (const key of keys) {
     const validator =
-      validators[key] === undefined ? alwaysPass : validators[key];
+      validators[key] === undefined ? alwaysPass : validators[key]!;
     const result = validator(requestBody[key], key, body);
     if (result.pass !== true) {
       failed = true;

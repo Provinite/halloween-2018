@@ -12,7 +12,7 @@ export enum HttpMethod {
  * @param method - One of "GET", "POST", etc.
  * @return The matching HttpMethod, or undefined if it is unknown.
  */
-export function getMethod(method: string): HttpMethod {
+export function getMethod(method: string): HttpMethod | undefined {
   if (HttpMethod.hasOwnProperty(method)) {
     return (HttpMethod as any)[method];
   }

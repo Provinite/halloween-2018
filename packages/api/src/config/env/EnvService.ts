@@ -113,17 +113,18 @@ export class EnvService {
     env: Partial<ENV_VARS>
   ): IDeviantartApiConsumerConfiguration {
     required(env, "cch2018_da_client_id");
+    const clientId = env.cch2018_da_client_id!;
     required(env, "cch2018_da_client_secret");
+    const clientSecret = env.cch2018_da_client_secret!;
     required(env, "cch2018_da_redirect_uri");
+    const redirectUri = env.cch2018_da_redirect_uri!;
+
     const defaults = DEFAULTS.deviantartApiConsumer;
     const baseRoute = firstOf(env.cch2018_da_baseroute, defaults.baseRoute);
     const oauthEndpoint = firstOf(
       env.cch2018_da_oauth_endpoint,
       defaults.oauthEndpoint
     );
-    const clientId = env.cch2018_da_client_id;
-    const clientSecret = env.cch2018_da_client_secret;
-    const redirectUri = env.cch2018_da_redirect_uri;
     return {
       baseRoute,
       oauthEndpoint,
@@ -166,7 +167,7 @@ export class EnvService {
   private createTokenConfig(env: Partial<ENV_VARS>): ITokenConfiguration {
     required(env, "cch2018_token_secret");
     return {
-      secret: env.cch2018_token_secret
+      secret: env.cch2018_token_secret!
     };
   }
   /**
@@ -198,7 +199,7 @@ export class EnvService {
     if (!matcher.test(uri)) {
       throw new Error("Invalid DATABASE_URL supplied");
     } else {
-      const result = matcher.exec(uri);
+      const result = matcher.exec(uri)!;
       const [, username, password, host, , database] = result;
       const port = Number.parseInt(result[4], 10);
       return {

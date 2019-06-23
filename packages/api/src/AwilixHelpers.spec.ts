@@ -12,14 +12,14 @@ describe("AwilixHelpers", () => {
   // too simple to warrant testing at this time
   describe("containerAware", () => {
     class Inheritance extends ContainerAware {
-      suffix: string;
+      suffix: string | undefined;
       getName({ name }: { name: string }) {
         return name + this.suffix;
       }
     }
     @MakeContainerAware()
     class Mixin {
-      suffix: string;
+      suffix: string | undefined;
       constructor(public container: ContextContainer<any>) {}
       getName({ name }: { name: string }) {
         return name + this.suffix;
@@ -31,10 +31,10 @@ describe("AwilixHelpers", () => {
     type MockClass = new (
       container: ContextContainer<{ name: string }>
     ) => ContainerAware & {
-      suffix: string;
+      suffix: string | undefined;
       getName(context: { name: string }): string;
     };
-    describe.each([Inheritance, Mixin])(
+    describe.each<MockClass>([Inheritance, Mixin])(
       "containerAware: %p",
       (Clazz: MockClass) => {
         describe("buildMethod", () => {

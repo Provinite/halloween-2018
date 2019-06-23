@@ -54,6 +54,8 @@ export class DrawController {
     gameRepository,
     transactionService
   }: RequestContext): Promise<DrawEvent> {
+    // no public access
+    user = user!;
     validateValue(gameId, "gameId", validators.digitString);
     const game = await gameRepository.findOneOrFail(gameId);
     await gameAuthorizationService.canRead(game);
@@ -75,6 +77,7 @@ export class DrawController {
     return await transactionService.runTransaction(
       /** @inject */
       async ({ prizeRepository, drawEventRepository }: RequestContext) => {
+        user = user!;
         // TODO: This could be done better. Basically to prevent wasting a DB lock
         // this check is duplicated here.
         await drawEventAuthorizationService.canCreate({ user, game });

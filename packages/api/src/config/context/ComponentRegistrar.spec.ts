@@ -32,13 +32,13 @@ function createMockComponent(name: string) {
 }
 
 describe("config:ComponentRegistrar", () => {
-  let mocks: Partial<IMocks>;
+  let mocks: IMocks = undefined as any;
   beforeEach(() => {
     /* Mocks */
     const MockContainer = jest.fn(() => ({
       register: jest.fn()
     }));
-    mocks = {};
+    mocks = {} as IMocks;
     mocks.container = new MockContainer() as any;
 
     /* Stubs */
@@ -128,8 +128,8 @@ describe("config:ComponentRegistrar", () => {
     @Component()
     class wrongNameForACLASS {}
 
-    it.each([
-      [FooComponent, "fooComponent"],
+    it.each<[IScannableClass, string]>([
+      [FooComponent as any, "fooComponent"],
       [FluxCapacitanceInheritor, "fluxCapacitanceInheritor"],
       [sumbinch, "sumbinch"],
       [wrongNameForACLASS, "wrongNameForACLASS"]

@@ -46,7 +46,7 @@ describe("DrawEventRepository", () => {
     });
     it("throws if user is undefined", async () => {
       await expect(
-        repository.getLastDrawEvent(undefined, mockGames.sample)
+        repository.getLastDrawEvent(undefined!, mockGames.sample)
       ).rejects.toEqual(
         expect.objectContaining({
           message: "Cannot get last draw event without user."

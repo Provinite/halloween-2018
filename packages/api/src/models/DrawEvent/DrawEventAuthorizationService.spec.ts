@@ -87,11 +87,13 @@ describe("DrawEventAuthorizationService", () => {
       ).rejects.toBeInstanceOf(DrawRateLimitExceededError);
     });
     it("does not allow public to create draw events", async () => {
+      expect(mockUsers.public).toBeUndefined();
+      const data = {
+        user: mockUsers.public!,
+        game: mockGames.sample
+      };
       await expect(
-        service.canCreate(
-          { user: mockUsers.public, game: mockGames.sample },
-          mockUsers.public
-        )
+        service.canCreate(data, mockUsers.user)
       ).rejects.toBeInstanceOf(PermissionDeniedError);
     });
   });
@@ -153,7 +155,7 @@ describe("DrawEventAuthorizationService", () => {
     roleLiteralSpec("does not allow %p to update", async roleName => {
       const mockUser = mockUsers[roleName];
       const mockDrawEvent = new DrawEvent();
-      mockDrawEvent.user = mockUser;
+      if (mockUser) mockDrawEvent.user = mockUser;
       await expect(
         service.canUpdate(mockUser, mockDrawEvent)
       ).rejects.toBeInstanceOf(PermissionDeniedError);
@@ -184,7 +186,7 @@ describe("DrawEventAuthorizationService", () => {
     );
     it('does not allow "public" to read multiple', async () => {
       await expect(
-        service.canReadMultiple(null, mockUsers.public)
+        service.canReadMultiple({}, mockUsers.public)
       ).rejects.toBeInstanceOf(PermissionDeniedError);
     });
   });

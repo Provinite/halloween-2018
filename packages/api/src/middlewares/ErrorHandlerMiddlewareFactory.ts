@@ -88,7 +88,7 @@ export class ErrorHandlerMiddlewareFactory implements IMiddlewareFactory {
         // Duplicate key error, attempt to extract the key and make the message
         // more useful.
         const knownDetailPattern = /Key \((.*?)\)=\(.*?\) already exists/i;
-        const match = knownDetailPattern.exec(e.detail);
+        const match = knownDetailPattern.exec(e.detail || "");
         errorResult.error = "DuplicateKeyError";
         if (match === null) {
           errorResult.message = e.detail || "Unacceptable duplicate value.";

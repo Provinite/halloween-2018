@@ -47,7 +47,9 @@ export class AuthenticationService {
     // fetch the deviantart account info
     const daUser: IDeviantartUser = await this.client.getUser(loginResult);
     // check if they already exist
-    let user: User = await this.userRepository.findOne(daUser.userId);
+    let user: User | undefined = await this.userRepository.findOne(
+      daUser.userId
+    );
     if (!user) {
       // create the new user
       user = this.userRepository.create();
