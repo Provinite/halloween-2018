@@ -75,7 +75,7 @@ export class RouteComponentProcessor {
             methods: routableMethod[httpMethods],
             allowedRoles: routableMethod[allowedRoles],
             resolver: bind(routableMethod, router),
-            router: this
+            router
           };
           this.routeRegistry.registerRoute(routeOptions);
         });
