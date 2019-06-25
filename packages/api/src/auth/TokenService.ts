@@ -56,9 +56,9 @@ export class TokenService {
  */
 interface ITokenData {
   /** Subject, should be the user's unique identifier. */
-  sub: string;
+  sub: number;
   /** Deviantart api access token. */
-  accessToken: string;
+  accessToken: string | null;
 }
 
 declare global {
