@@ -72,8 +72,6 @@ export class DrawController {
       await drawEventAuthorizationService.canCreate(loseDrawEvent);
       return await drawEventRepository.save(loseDrawEvent);
     }
-    let drawEvent: DrawEvent;
-    // run all of this in a transaction so it's all nice and atomic
     return await transactionService.runTransaction(
       /** @inject */
       async ({ prizeRepository, drawEventRepository }: RequestContext) => {
@@ -90,8 +88,7 @@ export class DrawController {
         const selectedPrize = selectRandomItemFromPool(prizes, prize => {
           return Math.floor(prize.weight * 100) * prize.currentStock;
         });
-
-        drawEvent = drawEventRepository.create();
+        let drawEvent = drawEventRepository.create();
         drawEvent.user = user;
         drawEvent.prize = selectedPrize;
         drawEvent.game = game;
