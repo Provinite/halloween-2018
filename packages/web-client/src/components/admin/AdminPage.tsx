@@ -347,9 +347,7 @@ export class AdminPage extends React.Component<
     this.setState(prevState => ({
       users: {
         ...prevState.users,
-        list: prevState.users.list.map(u =>
-          u.deviantartUuid === result.deviantartUuid ? result : u
-        )
+        list: prevState.users.list.map(u => (u.id === result.id ? result : u))
       }
     }));
   };
@@ -366,9 +364,7 @@ export class AdminPage extends React.Component<
     this.setState(prevState => ({
       users: {
         ...prevState.users,
-        list: prevState.users.list.map(u =>
-          u.deviantartUuid === result.deviantartUuid ? result : u
-        )
+        list: prevState.users.list.map(u => (u.id === result.id ? result : u))
       }
     }));
   };
