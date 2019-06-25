@@ -95,7 +95,6 @@ export class AuthenticationService {
     );
     let user = daAccount && daAccount.user;
     if (!daAccount) {
-      // TODO: this should be done in a transaction
       // create the new user
       user = await this.userRepository.createFromDeviantartUser(daUser, [
         await defaultRole
