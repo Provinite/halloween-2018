@@ -43,10 +43,7 @@ export class DrawEventAuthorizationService {
     }
     user = user!;
     // people can only make draws for themselves
-    if (
-      !createEvent.user ||
-      createEvent.user.deviantartUuid !== user.deviantartUuid
-    ) {
+    if (!createEvent.user || createEvent.user.id !== user.id) {
       throw new PermissionDeniedError();
     }
     // admins don't have to wait
@@ -101,13 +98,13 @@ export class DrawEventAuthorizationService {
       throw new PermissionDeniedError();
     }
     const whereUser = findOptions.where.user;
-    let whereUserId: string;
-    if (typeof whereUser === "string") {
+    let whereUserId: number;
+    if (typeof whereUser === "number") {
       whereUserId = whereUser;
     } else {
       whereUserId = whereUser.deviantartUuid;
     }
-    if (whereUserId !== user.deviantartUuid) {
+    if (whereUserId !== user.id) {
       throw new PermissionDeniedError();
     }
     return true;
@@ -123,7 +120,7 @@ export class DrawEventAuthorizationService {
       throw new PermissionDeniedError();
     }
     const isAdmin = hasRole(user, "admin");
-    const isOwnEvent = drawEvent.user.deviantartUuid === user.deviantartUuid;
+    const isOwnEvent = drawEvent.user.id === user.id;
     const canRead = isAdmin || isOwnEvent;
     if (!canRead) {
       throw new PermissionDeniedError();

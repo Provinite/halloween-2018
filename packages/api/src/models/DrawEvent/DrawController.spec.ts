@@ -238,13 +238,13 @@ describe("DrawController", () => {
       container.register("user", asValue(mockUsers.user));
       container.register(
         "pathVariables",
-        asValue({ userId: mockUsers.user.deviantartUuid })
+        asValue({ userId: mockUsers.user.id })
       );
     });
     it("fetches prizes for the current user", async () => {
       await container.build(bind(controller.getDraws, controller));
       expect(mocks.drawEventRepository.find).toHaveBeenCalledWith({
-        where: { user: mockUsers.user.deviantartUuid }
+        where: { user: mockUsers.user.id }
       });
     });
     it("bubbles errors from drawEventAuthorizationService.canReadMultiple", async () => {

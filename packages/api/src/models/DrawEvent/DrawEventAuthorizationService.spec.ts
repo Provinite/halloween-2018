@@ -49,7 +49,7 @@ describe("DrawEventAuthorizationService", () => {
       // const mockUser = mockUsers.user;
       const mockDrawEvent = new DrawEvent();
       mockDrawEvent.user = mockUsers.user;
-      mockDrawEvent.user.deviantartUuid = "a-different-uuid";
+      mockDrawEvent.user.id = mockDrawEvent.user.id + 100;
       await expect(
         service.canCreate(
           // mockUser,
@@ -127,7 +127,7 @@ describe("DrawEventAuthorizationService", () => {
       async roleName => {
         const mockDrawEvent = new DrawEvent();
         mockDrawEvent.user = mockUsers.user;
-        mockDrawEvent.user.deviantartUuid = "some-other-uuid";
+        mockDrawEvent.user.id = mockDrawEvent.user.id + 100;
         const mockUser = mockUsers[roleName];
         await expect(
           service.canRead(mockUser, mockDrawEvent)
@@ -166,7 +166,7 @@ describe("DrawEventAuthorizationService", () => {
       "allows %p to read their own",
       async roleName => {
         const mockUser = mockUsers[roleName];
-        const filter = { where: { user: mockUser.deviantartUuid } };
+        const filter = { where: { user: mockUser.id } };
         await expect(service.canReadMultiple(filter, mockUser)).resolves.toBe(
           true
         );
@@ -177,7 +177,7 @@ describe("DrawEventAuthorizationService", () => {
       "does not allow %p to read multiple of others",
       async roleName => {
         const mockUser = mockUsers[roleName];
-        const filter = { where: { user: mockUser.deviantartUuid + "1" } };
+        const filter = { where: { user: mockUser.id + 1 } };
         await expect(
           service.canReadMultiple(filter, mockUser)
         ).rejects.toBeInstanceOf(PermissionDeniedError);

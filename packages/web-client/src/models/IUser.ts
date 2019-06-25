@@ -1,8 +1,8 @@
 import { IRole } from "./IRole";
 
 export interface IUser {
-  deviantartUuid: string;
-  deviantartName: string;
-  iconUrl: string;
+  id: number;
+  iconUrl: string | null;
+  displayName: string;
   roles: IRole[];
 }
