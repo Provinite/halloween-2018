@@ -14,11 +14,11 @@ export class PasswordHashingService {
   async hashPassword(password: string): Promise<string> {
     if (!password) {
       const msg = "Non-empty password required to hash";
-      return Promise.reject(new Error(msg));
+      throw new Error(msg);
     }
     if (password.length > BCRYPT_MAX_INPUT_LENGTH) {
       const msg = `Maximum password length exceeded, must not be greater than: ${BCRYPT_MAX_INPUT_LENGTH}`;
-      return Promise.reject(new Error(msg));
+      throw new Error(msg);
     }
     return hash(password, SALT_ROUNDS);
   }
@@ -36,7 +36,7 @@ export class PasswordHashingService {
     if (!password || !passwordHash) {
       const msg =
         "Password and existing hash both required to verify credentials.";
-      return Promise.reject(new Error(msg));
+      throw new Error(msg);
     }
     return compare(password, passwordHash);
   }
