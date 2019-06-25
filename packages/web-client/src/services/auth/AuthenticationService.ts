@@ -55,11 +55,11 @@ export class AuthenticationService {
       throw new AuthenticationError("Session expired.");
     }
     const { data } = userResponse;
-    if (!data.deviantartName || !data.deviantartUuid || !data.iconUrl) {
+    if (!data.displayName || !data.id || !data.iconUrl) {
       throw new Error("Unexpected response to identity query.");
     }
     const {
-      deviantartName: username,
+      displayName: username,
       deviantartUuid: uuid,
       iconUrl
     } = userResponse.data;

@@ -12,6 +12,11 @@ import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { ArgumentTypes } from "@clovercoin/constants";
 import { AuthenticationFailureException } from "./AuthenticationFailureException";
 import { AuthenticationTokenExpiredError } from "./AuthenticationTokenExpiredError";
+import { PasswordHashingService } from "./PasswordHashingService";
+import { LocalCredentialsRepository } from "../models/localCredentials/LocalCredentialsRepository";
+import { DeviantartAccountRepository } from "../models/deviantartAccount/DeviantartAccountRepository";
+import { DeviantartAccount } from "../models/DeviantartAccount";
+import { UserRepository } from "../models/user/UserRepository";
 
 describe("service:AuthenticationService", () => {
   afterEach(() => {
@@ -24,11 +29,15 @@ describe("service:AuthenticationService", () => {
       authCode: string;
       authResult: IDeviantartAuthResult;
       daUser: IDeviantartUser;
-      userRepository: jest.Mocked<Repository<User>>;
+      userRepository: jest.Mocked<UserRepository>;
       roleRepository: jest.Mocked<Repository<Role>>;
       user: User;
+      daAccount: DeviantartAccount;
       tokenService: jest.Mocked<TokenService>;
       token: string;
+      passwordHashingService: PasswordHashingService;
+      localCredentialsRepository: LocalCredentialsRepository;
+      deviantartAccountRepository: jest.Mocked<DeviantartAccountRepository>;
     }
     let mocks: IMocks;
     let authenticationService: AuthenticationService;
@@ -51,16 +60,24 @@ describe("service:AuthenticationService", () => {
           type: "some_type"
         },
         user: {
-          deviantartName: "some_da_username",
+          displayName: "some_da_username",
           iconUrl: "some_icon_url",
-          deviantartUuid: "some_da_uuid",
+          id: 245,
           roles: [mockRoles.user]
         },
+        daAccount: {} as any,
+        localCredentialsRepository: {
+          findOne: jest.fn()
+        } as any,
         token: "some_jwt",
         userRepository: {
           findOne: jest.fn(),
           create: jest.fn(),
-          save: jest.fn()
+          save: jest.fn(),
+          createFromDeviantartUser: jest.fn()
+        } as any,
+        deviantartAccountRepository: {
+          findOne: jest.fn()
         } as any,
         tokenService: {
           createToken: jest.fn()
@@ -71,14 +88,28 @@ describe("service:AuthenticationService", () => {
         deviantartApiConsumer: {
           authenticate: jest.fn(),
           getUser: jest.fn()
-        } as any
+        } as any,
+        passwordHashingService: {
+          hashPassword: jest.fn(),
+          verifyPasswordHash: jest.fn()
+        }
       };
+      mocks.daAccount.deviantartUuid = mocks.daUser.userId;
+      mocks.daAccount.user = mocks.user;
+      mocks.daAccount.userId = mocks.user.id;
       /* Stubs */
       mocks.deviantartApiConsumer.authenticate.mockResolvedValue(
         mocks.authResult
       );
       mocks.deviantartApiConsumer.getUser.mockResolvedValue(mocks.daUser);
 
+      mocks.deviantartAccountRepository.findOne.mockResolvedValue(
+        mocks.daAccount
+      );
+
+      mocks.userRepository.createFromDeviantartUser.mockResolvedValue(
+        mocks.user
+      );
       mocks.userRepository.findOne.mockResolvedValue(mocks.user);
       mocks.userRepository.save.mockResolvedValue(mocks.user);
       mocks.userRepository.create.mockReturnValue({} as User);
@@ -113,11 +144,11 @@ describe("service:AuthenticationService", () => {
     });
 
     it("creates the user in the database if they don't already exist", async () => {
-      mocks.userRepository.findOne.mockResolvedValue(undefined);
+      mocks.deviantartAccountRepository.findOne.mockResolvedValue(undefined);
       await authenticationService.authenticate(mocks.authCode);
-      expect(mocks.userRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining(mocks.user)
-      );
+      expect(
+        mocks.userRepository.createFromDeviantartUser
+      ).toHaveBeenCalledWith(mocks.daUser, [mockRoles.user]);
     });
 
     it("invokes the tokenService and returns its result", async () => {
@@ -125,7 +156,7 @@ describe("service:AuthenticationService", () => {
       expect(mocks.tokenService.createToken).toHaveBeenCalledTimes(1);
       expect(mocks.tokenService.createToken).toHaveBeenCalledWith({
         accessToken: mocks.authResult.accessToken,
-        sub: mocks.daUser.userId
+        sub: mocks.user.id
       });
       expect(jwt).toEqual(mocks.token);
     });
@@ -147,7 +178,12 @@ describe("service:AuthenticationService", () => {
         },
         deviantartApiConsumer: {},
         roleRepository: {},
-        userRepository: {}
+        userRepository: {},
+        passwordHashingService: {
+          findOne: jest.fn()
+        },
+        deviantartAccountRepository: {},
+        localCredentialsRepository: {}
       }) as any;
       service = new AuthenticationService(context);
     });

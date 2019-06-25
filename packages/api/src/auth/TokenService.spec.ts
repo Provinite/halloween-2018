@@ -13,7 +13,7 @@ describe("service:TokenService", () => {
       envService: jest.Mocked<EnvService>;
       tokenConfig: ITokenConfiguration;
       payload: {
-        sub: string;
+        sub: number;
         accessToken: string;
       };
     }
@@ -29,7 +29,7 @@ describe("service:TokenService", () => {
         secret: "test_secret"
       };
       mocks.payload = {
-        sub: "userid",
+        sub: 123,
         accessToken: "access_token"
       };
       mocks = createSafeContext(mocks);

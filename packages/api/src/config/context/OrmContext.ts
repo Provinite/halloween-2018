@@ -3,6 +3,8 @@ import { Connection, createConnection, EntityManager } from "typeorm";
 import { MODELS } from "../../models";
 import { getRepositoryFor } from "../../models/modelUtils";
 import { AnyContext, ApplicationContext } from "./ApplicationContext";
+import { CustomRepository } from "../../db/CustomRepository";
+import { bind } from "../../AwilixHelpers";
 
 /**
  * Create a repository name for the given model.
@@ -45,16 +47,21 @@ export class OrmContext {
       "manager",
       asFunction(({ orm }: AnyContext) => orm.manager, {
         lifetime: Lifetime.TRANSIENT
-      })
+      }).transient()
     );
 
     MODELS.forEach(model => {
       // Register a scoped repository for each model.
       const name = createRepositoryName(model);
       /** @inject */
-      const proxy = ({ manager }: AnyContext) =>
-        getRepositoryFor(manager, model);
-      const resolver = asFunction(proxy);
+      const proxy = ({ manager, container }: AnyContext) => {
+        const repository = getRepositoryFor(manager, model);
+        if (repository instanceof CustomRepository) {
+          container.build(bind(repository.setContext, repository));
+        }
+        return repository;
+      };
+      const resolver = asFunction(proxy).transient();
       container.register(name as keyof ApplicationContext, resolver);
     });
 

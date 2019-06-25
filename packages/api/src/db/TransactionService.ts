@@ -1,15 +1,11 @@
 import { asValue } from "awilix";
-import { Connection } from "typeorm";
-import {
-  AnyContext,
-  ApplicationContainer
-} from "../config/context/ApplicationContext";
-import { RequestContainer } from "../config/context/RequestContext";
+import { EntityManager } from "typeorm";
+import { AnyContext } from "../config/context/ApplicationContext";
 import { Component } from "../reflection/Component";
 
 @Component("SCOPED")
 export class TransactionService {
-  private container: ApplicationContainer | RequestContainer;
+  private container: AnyContext["container"];
   constructor({ container }: AnyContext) {
     this.container = container;
   }
@@ -18,13 +14,18 @@ export class TransactionService {
    * @param fn - The function to execute, will be built with a DI container.
    * @return The return value of `fn`
    */
-  async runTransaction(fn: (...args: any[]) => any) {
-    const orm: Connection = this.container.cradle.orm;
-    return await orm.transaction(async manager => {
+  async runTransaction<ContextType = AnyContext, T = any>(
+    fn: (ctx: ContextType) => Promise<T> | T
+  ): Promise<T> {
+    const manager: EntityManager = this.container.cradle.manager;
+    const result = await manager.transaction(async manager => {
       const transactionContainer = this.container.createScope();
+      transactionContainer.register("container", asValue(transactionContainer));
       transactionContainer.register("manager", asValue(manager));
-      return await transactionContainer.build(fn);
+      const result = await transactionContainer.build(fn);
+      return result;
     });
+    return result;
   }
 }
 

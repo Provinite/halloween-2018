@@ -1,5 +1,9 @@
 {
-  "extends": ["tslint:recommended", "tslint-config-prettier", "tslint-plugin-prettier"],
+  "extends": [
+    "tslint:recommended",
+    "tslint-config-prettier",
+    "tslint-plugin-prettier"
+  ],
   "rules": {
     "prettier": true,
     "member-access": [true, "no-public"],
@@ -12,6 +16,7 @@
     "interface-name": false,
     "no-shadowed-variable": false,
     "member-ordering": false,
-    "no-floating-promises": true
+    "no-floating-promises": true,
+    "no-console": true
   }
 }

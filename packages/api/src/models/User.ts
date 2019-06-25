@@ -1,15 +1,28 @@
-import { Column, Entity, JoinTable, ManyToMany, PrimaryColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn
+} from "typeorm";
 import { Role } from "./Role";
-@Entity({
-  name: "halloweenUsers"
-})
+@Entity()
 export class User {
-  @PrimaryColumn()
-  deviantartUuid!: string;
-  @Column()
-  deviantartName!: string;
-  @Column()
-  iconUrl!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column({
+    nullable: false
+  })
+  displayName!: string;
+
+  @Column({
+    default: null,
+    nullable: true,
+    type: "varchar"
+  })
+  iconUrl: string | null = null;
+
   @ManyToMany(type => Role, {
     eager: true
   })

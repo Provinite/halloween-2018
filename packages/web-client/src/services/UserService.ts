@@ -54,5 +54,5 @@ export class UserService {
  * Get the detail-route for a user.
  */
 function getDetailRoute(user: IUser) {
-  return `${baseRoute}/${user.deviantartUuid}`;
+  return `${baseRoute}/${user.id}`;
 }

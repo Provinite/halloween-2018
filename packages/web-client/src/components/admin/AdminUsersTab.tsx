@@ -141,13 +141,13 @@ export class AdminUsersTab extends React.Component<
           </TableHead>
           <TableBody>
             {this.props.users.map(user => (
-              <TableRow key={user.deviantartUuid}>
+              <TableRow key={user.id}>
                 <TableCell>
                   <img
-                    src={user.iconUrl}
+                    src={user.iconUrl!}
                     style={{ width: "20px", height: "20px" }}
                   />
-                  {user.deviantartName}
+                  {user.displayName}
                 </TableCell>
                 <TableCell>
                   {/* TODO: Get this stuff going. We want to be able to toggle perms on and off. */}
@@ -171,7 +171,7 @@ export class AdminUsersTab extends React.Component<
                     onChange={this.handleToggle(user, this.context.roles.user)}
                   />
                 </TableCell>
-                <TableCell>{user.deviantartUuid}</TableCell>
+                <TableCell>{user.id}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -186,7 +186,7 @@ export class AdminUsersTab extends React.Component<
           <DialogTitle>
             Make{" "}
             {this.state.userToPromote
-              ? this.state.userToPromote.deviantartName
+              ? this.state.userToPromote.displayName
               : "[no user]"}{" "}
             an administrator?
           </DialogTitle>
