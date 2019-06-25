@@ -1,6 +1,6 @@
 import { Repository } from "typeorm";
 import { ApplicationContext } from "../config/context/ApplicationContext";
-import { Role, User } from "../models";
+import { Role, User, LocalCredentials } from "../models";
 import { createSafeContext, getRejectReason } from "../test/testUtils";
 import { AuthenticationService } from "./AuthenticationService";
 import { DeviantartApiConsumer } from "./deviantart/DeviantartApiConsumer";
@@ -12,6 +12,7 @@ import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 import { ArgumentTypes } from "@clovercoin/constants";
 import { AuthenticationFailureException } from "./AuthenticationFailureException";
 import { AuthenticationTokenExpiredError } from "./AuthenticationTokenExpiredError";
+import { PasswordHashingService } from "./PasswordHashingService";
 
 describe("service:AuthenticationService", () => {
   afterEach(() => {
@@ -29,6 +30,8 @@ describe("service:AuthenticationService", () => {
       user: User;
       tokenService: jest.Mocked<TokenService>;
       token: string;
+      passwordHashingService: PasswordHashingService;
+      localCredentialsRepository: Repository<LocalCredentials>;
     }
     let mocks: IMocks;
     let authenticationService: AuthenticationService;
@@ -51,9 +54,9 @@ describe("service:AuthenticationService", () => {
           type: "some_type"
         },
         user: {
-          deviantartName: "some_da_username",
+          displayName: "some_da_username",
           iconUrl: "some_icon_url",
-          deviantartUuid: "some_da_uuid",
+          id: 245,
           roles: [mockRoles.user]
         },
         token: "some_jwt",
@@ -71,7 +74,11 @@ describe("service:AuthenticationService", () => {
         deviantartApiConsumer: {
           authenticate: jest.fn(),
           getUser: jest.fn()
-        } as any
+        } as any,
+        passwordHashingService: {
+          hashPassword: jest.fn(),
+          verifyPasswordHash: jest.fn()
+        }
       };
       /* Stubs */
       mocks.deviantartApiConsumer.authenticate.mockResolvedValue(
