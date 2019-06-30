@@ -98,7 +98,7 @@ describe("EnvService", () => {
       NODE_ENV.cch2018_orm_host = "theHost";
       NODE_ENV.cch2018_orm_username = "theUsername";
       NODE_ENV.cch2018_orm_password = "thePassword";
-      NODE_ENV.cch2018_orm_synchronize = true;
+      NODE_ENV.cch2018_orm_synchronize = "true";
       NODE_ENV.cch2018_orm_port = "1337";
 
       const service = new EnvService(context);
@@ -110,7 +110,7 @@ describe("EnvService", () => {
         password: NODE_ENV.cch2018_orm_password,
         port: Number(NODE_ENV.cch2018_orm_port),
         type: expect.anything(), // covered by other test
-        synchronize: NODE_ENV.cch2018_orm_synchronize
+        synchronize: true
       };
       expect(config).toEqual(expectedConfig);
     });

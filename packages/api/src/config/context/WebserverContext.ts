@@ -9,7 +9,7 @@ export class WebserverContext {
    */
   static configureContainer({ container }: ApplicationContextMembers) {
     container.register(
-      "webserver",
+      "koaInstance",
       asFunction(() => {
         const webserver: Koa = new Koa();
         return webserver;
@@ -22,6 +22,6 @@ export class WebserverContext {
 declare global {
   interface ApplicationContextMembers {
     /** The Koa instance for the application */
-    webserver: Koa;
+    koaInstance: Koa;
   }
 }

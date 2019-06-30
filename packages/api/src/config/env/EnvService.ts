@@ -10,11 +10,7 @@ import { ApplicationContext } from "../context/ApplicationContext";
  * are required to have a default, and it is acceptable to terminate the
  * application at runtime if a required environmental key is missing.
  */
-const DEFAULTS: {
-  webserver: Partial<IWebserverConfiguration>;
-  orm: Partial<IOrmConfiguration>;
-  deviantartApiConsumer: Partial<IDeviantartApiConsumerConfiguration>;
-} = {
+const DEFAULTS = {
   webserver: {
     port: 8081
   },
@@ -46,18 +42,20 @@ export class EnvService {
   private ormConfig: IOrmConfiguration;
   private tokenConfig: ITokenConfiguration;
   private webserverConfig: IWebserverConfiguration;
+  private overrides: ApplicationContext["ENV_OVERRIDES"];
+  private env: ApplicationContext["NODE_ENV"];
   /**
    * Creates an EnvService with data poulated from the specified environment.
    * @param NODE_ENV - The runtime environment to use.
    * @inject
    */
-  constructor({ NODE_ENV }: ApplicationContext) {
-    this.ormConfig = this.createOrmConfig(NODE_ENV);
-    this.tokenConfig = this.createTokenConfig(NODE_ENV);
-    this.webserverConfig = this.createWebserverConfig(NODE_ENV);
-    this.deviantartApiConsumerConfig = this.createDeviantartApiConsumerConfig(
-      NODE_ENV
-    );
+  constructor({ NODE_ENV, ENV_OVERRIDES }: ApplicationContext) {
+    this.env = NODE_ENV;
+    this.overrides = ENV_OVERRIDES;
+    this.ormConfig = this.createOrmConfig();
+    this.tokenConfig = this.createTokenConfig();
+    this.webserverConfig = this.createWebserverConfig();
+    this.deviantartApiConsumerConfig = this.createDeviantartApiConsumerConfig();
   }
   /**
    * @method getDeviantartApiConsumerConfig
@@ -105,30 +103,63 @@ export class EnvService {
   getTokenConfiguration(): Readonly<ITokenConfiguration> {
     return this.tokenConfig;
   }
+
+  /**
+   * Get a requiired environment variable. All reads from the environment should
+   * run through this method, since it checks the overrides properly.
+   * @throws An error if the specified key is not in the environment
+   * @param key - The environment key to check
+   * @return The value at `key`
+   */
+  private getEnvVal(key: keyof ENV_VARS): string;
+  /**
+   * Get an optional environment variable. All reads from the environment should
+   * run through this method, since it checks the overrides properly.
+   * @param key - The environment key to check
+   * @return The value at `key`, or `defaultValue` if the env key is not set
+   */
+  private getEnvVal(key: keyof ENV_VARS, defaultValue: string): string;
+  private getEnvVal(
+    key: keyof ENV_VARS,
+    defaultValue?: string
+  ): string | undefined {
+    // check overrides first
+    if (this.overrides.hasOwnProperty(key)) {
+      return this.overrides[key] as string;
+    }
+    if (this.env.hasOwnProperty(key)) {
+      return this.env[key] as string;
+    }
+    // no default provided, it is required
+    if (defaultValue === undefined) {
+      throw new Error(
+        `Fatal - EnvService missing required environment variable: "${key}"`
+      );
+    }
+    return defaultValue;
+  }
   /**
    * Examine the application environment and create an appropriate
    * deviantart api consumer configuration.
    */
-  private createDeviantartApiConsumerConfig(
-    env: Partial<ENV_VARS>
-  ): IDeviantartApiConsumerConfiguration {
-    required(env, "cch2018_da_client_id");
-    const clientId = env.cch2018_da_client_id!;
-    required(env, "cch2018_da_client_secret");
-    const clientSecret = env.cch2018_da_client_secret!;
-    required(env, "cch2018_da_redirect_uri");
-    const redirectUri = env.cch2018_da_redirect_uri!;
+  private createDeviantartApiConsumerConfig(): IDeviantartApiConsumerConfiguration {
+    const clientId = this.getEnvVal("cch2018_da_client_id");
+    const clientSecret = this.getEnvVal("cch2018_da_client_secret");
+    const redirectUri = this.getEnvVal("cch2018_da_redirect_uri");
 
     const defaults = DEFAULTS.deviantartApiConsumer;
-    const baseRoute = firstOf(env.cch2018_da_baseroute, defaults.baseRoute);
-    const oauthEndpoint = firstOf(
-      env.cch2018_da_oauth_endpoint,
+    const baseRoute = this.getEnvVal(
+      "cch2018_da_baseroute",
+      defaults.baseRoute
+    );
+    const oauthEndpoint = this.getEnvVal(
+      "cch2018_da_oauth_endpoint",
       defaults.oauthEndpoint
     );
     return {
       baseRoute,
       oauthEndpoint,
-      clientId,
+      clientId: Number(clientId),
       clientSecret,
       redirectUri
     };
@@ -137,25 +168,34 @@ export class EnvService {
    * Examine the application environment and create an appropriate ORM
    * configuration.
    */
-  private createOrmConfig(env: Partial<ENV_VARS>): IOrmConfiguration {
+  private createOrmConfig(): IOrmConfiguration {
     let config = {} as IOrmConfiguration;
-    config.synchronize = Boolean(
-      firstOf(env.cch2018_orm_synchronize, DEFAULTS.orm.synchronize)
+    const defaults = DEFAULTS.orm;
+
+    const defaultSyncVal = defaults.synchronize.toString();
+    const syncEnvVal = this.getEnvVal(
+      "cch2018_orm_synchronize",
+      defaultSyncVal
     );
-    config.type = firstOf(env.cch2018_orm_type, DEFAULTS.orm.type);
-    if (env.DATABASE_URL) {
+    config.synchronize = syncEnvVal === "true" ? true : false;
+
+    config.type = this.getEnvVal("cch2018_orm_type", defaults.type);
+    const databaseUrl = this.getEnvVal("DATABASE_URL", "");
+    if (databaseUrl) {
       config = {
         ...config,
-        ...this.parsePostgresUri(env.DATABASE_URL)
+        ...this.parsePostgresUri(databaseUrl)
       };
     } else {
       config = {
         ...config,
-        host: firstOf(env.cch2018_orm_host, DEFAULTS.orm.host),
-        database: firstOf(env.cch2018_orm_database, DEFAULTS.orm.database),
-        username: firstOf(env.cch2018_orm_username, DEFAULTS.orm.username),
-        password: firstOf(env.cch2018_orm_password, DEFAULTS.orm.password),
-        port: Number(firstOf(env.cch2018_orm_port, DEFAULTS.orm.port))
+        host: this.getEnvVal("cch2018_orm_host", defaults.host),
+        database: this.getEnvVal("cch2018_orm_database", defaults.database),
+        username: this.getEnvVal("cch2018_orm_username", defaults.username),
+        password: this.getEnvVal("cch2018_orm_password", defaults.password),
+        port: Number(
+          this.getEnvVal("cch2018_orm_port", defaults.port.toString())
+        )
       };
     }
     return config;
@@ -164,21 +204,18 @@ export class EnvService {
    * Examine the application environment and create an appropriate auth
    * token configuration.
    */
-  private createTokenConfig(env: Partial<ENV_VARS>): ITokenConfiguration {
-    required(env, "cch2018_token_secret");
+  private createTokenConfig(): ITokenConfiguration {
     return {
-      secret: env.cch2018_token_secret!
+      secret: this.getEnvVal("cch2018_token_secret")
     };
   }
   /**
    * Examine the application environment and create an appropriate webserver
    * configuration.
    */
-  private createWebserverConfig(
-    env: Partial<ENV_VARS>
-  ): IWebserverConfiguration {
+  private createWebserverConfig(): IWebserverConfiguration {
     return {
-      port: Number(firstOf(env.PORT, DEFAULTS.webserver.port))
+      port: Number(this.getEnvVal("PORT", DEFAULTS.webserver.port.toString()))
     };
   }
 
@@ -210,31 +247,5 @@ export class EnvService {
         database
       };
     }
-  }
-}
-
-/* Private Helper Functions */
-/**
- * Returns the first argument that is not strictly equal to undefined.
- * @param args
- */
-function firstOf(...args: any[]): any {
-  for (const arg of args) {
-    if (arg !== undefined) {
-      return arg;
-    }
-  }
-}
-
-/**
- * Verifies that the specified key exists on the env. Throws
- * a useful error message if not.
- */
-function required(env: Partial<ENV_VARS>, key: string) {
-  if (!(env as any)[key]) {
-    throw new Error(
-      "Fatal - EnvService: Cannot initialize without environment variable: " +
-        key
-    );
   }
 }
