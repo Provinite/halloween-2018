@@ -6,6 +6,7 @@
   "scripts": {
     "test": "jest",
     "test:coverage": "yarn test --coverage",
+    "test:integration": "yarn test -c jest.integration.config.js",
     "start": "node dist/app.js",
     "build": "gulp build",
     "lint": "tslint -p --fix --project tsconfig.json",

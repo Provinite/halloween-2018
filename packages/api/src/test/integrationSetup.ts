@@ -5,7 +5,7 @@ import {
 } from "../HalloweenAppDevRunner";
 import { EnvService } from "../config/env/EnvService";
 import { ApplicationContext } from "../config/context/ApplicationContext";
-import * as pg from "pg";
+import { createDatabaseIfNotExists, truncateDatabase } from "./testPgUtils";
 
 jest.setTimeout(30000);
 
@@ -15,62 +15,26 @@ async function createTestDatabase(envOverrides: Partial<ENV_VARS>) {
     ENV_OVERRIDES: envOverrides
   } as ApplicationContext);
   const ormConfig = envService.getOrmConfiguration();
-  const clientConfig = {
-    database: "postgres",
-    host: ormConfig.host,
-    user: ormConfig.username,
-    password: ormConfig.password,
-    port: ormConfig.port
-  };
-  const testClientConfig = { ...clientConfig, database: ormConfig.database };
 
-  const pgClient = new pg.Client(clientConfig);
-  await pgClient.connect();
-  try {
-    // create the database if it doesn't exist
-    try {
-      await pgClient.query(`CREATE DATABASE "${ormConfig.database}"`);
-    } catch (e) {
-      // swallow "DUPLICATE DATABASE" error
-      if (e.code !== "42P04") {
-        throw e;
-      }
-    }
-  } catch (e) {
-    // we only try..catch for the finally block here
-    throw e;
-  } finally {
-    await pgClient.end();
-  }
-  const testClient = new pg.Client(testClientConfig);
-  try {
-    await testClient.connect();
-    await testClient.query(`DROP SCHEMA IF EXISTS "public" CASCADE;`);
-    await testClient.query(`CREATE SCHEMA "public";`);
-  } catch (e) {
-    // we only try..catch for the finally block here
-    throw e;
-  } finally {
-    await testClient.end();
+  // create the test database if it's not there
+  const justCreatedDb = await createDatabaseIfNotExists(
+    ormConfig,
+    ormConfig.database
+  );
+
+  // truncate the database if it already existed
+  if (!justCreatedDb) {
+    await truncateDatabase(ormConfig);
   }
 }
 
 beforeAll(async () => {
-  console.log("BeforeAll. . .");
   const envOverrides: Partial<ENV_VARS> = {
     cch2018_orm_database: "TEST",
     cch2018_orm_synchronize: "true"
   };
-  try {
-    await createTestDatabase(envOverrides);
-  } catch (e) {
-    console.log("Unable to initialize database.");
-    e;
-    throw e;
-  }
+  await createTestDatabase(envOverrides);
   const runner = new HalloweenAppDevRunner();
-  console.log("Starting runner. . .");
-  console.log(process.cwd());
   const instance = await runner.run({
     envOverrides,
     scanPath: "./src/**/!(test|mocks)/!(*.ispec|*.spec|app).ts"
