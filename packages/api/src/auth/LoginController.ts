@@ -5,6 +5,7 @@ import { Component } from "../reflection/Component";
 import { Route } from "../reflection/Route";
 import { AuthenticationService } from "./AuthenticationService";
 import { validateRequest, validators } from "../web/RequestValidationUtils";
+import { BadRequestError } from "../web/BadRequestError";
 
 @Component()
 export class LoginController {
@@ -23,7 +24,7 @@ export class LoginController {
   })
   async handleLogin({ requestBody }: RequestContext) {
     if (!requestBody.authCode) {
-      if (requestBody.principal && requestBody.password) {
+      if (requestBody.principal || requestBody.password) {
         const { principal, password } = validateRequest(requestBody, {
           principal: validators.nonEmptyString,
           password: validators.nonEmptyString
@@ -35,7 +36,9 @@ export class LoginController {
           )
         };
       }
-      return;
+      throw new BadRequestError(
+        "Principal and password, or authorization code must be supplied"
+      );
     }
     return {
       token: await this.authService.authenticate(requestBody.authCode)
