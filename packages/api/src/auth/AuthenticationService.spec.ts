@@ -1,4 +1,4 @@
-import { Repository } from "typeorm";
+import { Repository, In } from "typeorm";
 import { ApplicationContext } from "../config/context/ApplicationContext";
 import { Role, User } from "../models";
 import { createSafeContext, getRejectReason } from "../test/testUtils";
@@ -9,7 +9,7 @@ import { IDeviantartUser } from "./deviantart/IDeviantartUser";
 import { mockRoles } from "./mocks/mockRoles";
 import { TokenService } from "./TokenService";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
-import { ArgumentTypes } from "@clovercoin/constants";
+import { ArgumentTypes, ROLES } from "@clovercoin/constants";
 import { AuthenticationFailureException } from "./AuthenticationFailureException";
 import { AuthenticationTokenExpiredError } from "./AuthenticationTokenExpiredError";
 import { PasswordHashingService } from "./PasswordHashingService";
@@ -200,7 +200,6 @@ describe("service:AuthenticationService", () => {
         expect(context.tokenService.readToken).toHaveBeenCalledWith(mockToken);
       });
     });
-
     describe("with an invalid token", () => {
       it("rejects with an AuthenticationFailureException matching the underlying message", async () => {
         const mockError = new JsonWebTokenError("Yargh, thar be problems");
@@ -212,7 +211,10 @@ describe("service:AuthenticationService", () => {
     });
     describe("with an expired token", () => {
       it("rejects with an AuthenticationTokenExpiredError matching the underlying message", async () => {
-        const mockError = new TokenExpiredError("Token got totes expired", 10);
+        const mockError = new TokenExpiredError(
+          "Token got totes expired",
+          new Date()
+        );
         readTokenStub.mockRejectedValue(mockError);
         const error = await getRejectReason(service.authenticateToken(""));
         expect(error).toBeInstanceOf(AuthenticationTokenExpiredError);
@@ -236,6 +238,72 @@ describe("service:AuthenticationService", () => {
           `[Error: Unknown authentication failure.]`
         );
       });
+    });
+  });
+
+  describe("method:registerUser", () => {
+    let context: ApplicationContext;
+    let service: AuthenticationService;
+    beforeEach(() => {
+      context = createSafeContext({
+        passwordHashingService: {
+          hashPassword: jest.fn()
+        },
+        userRepository: {
+          createLocalUser: jest.fn()
+        },
+        deviantartApiConsumer: {},
+        roleRepository: {
+          find: jest.fn()
+        },
+        tokenService: {},
+        localCredentialsRepository: {},
+        deviantartAccountRepository: {}
+      }) as any;
+
+      service = new AuthenticationService(context);
+    });
+
+    it("creates a user with the user role by default", async () => {
+      const principal = "username";
+      const password = "password";
+
+      const mockHashedPassword = "$$cashmoney";
+      const mockUserRole = mockRoles.user;
+      const mockLocalUser = {
+        name: "Jimbob"
+      };
+
+      jest
+        .spyOn(context.roleRepository, "find")
+        .mockResolvedValue([mockUserRole]);
+      jest
+        .spyOn(context.passwordHashingService, "hashPassword")
+        .mockResolvedValue(mockHashedPassword);
+      jest
+        .spyOn(context.userRepository, "createLocalUser")
+        .mockResolvedValue(mockLocalUser as any);
+
+      const result = await service.registerUser(principal, password);
+
+      // it fetches the user role
+      expect(context.roleRepository.find).toHaveBeenCalledWith({
+        name: In([ROLES["user"]])
+      });
+
+      // it hashes the supplied password
+      expect(context.passwordHashingService.hashPassword).toHaveBeenCalledWith(
+        password
+      );
+
+      // it creates the user
+      expect(context.userRepository.createLocalUser).toHaveBeenCalledWith({
+        principal,
+        passwordHash: mockHashedPassword,
+        roles: [mockUserRole]
+      });
+
+      expect(result).toBe(mockLocalUser);
     });
   });
 });

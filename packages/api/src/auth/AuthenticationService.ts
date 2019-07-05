@@ -1,6 +1,6 @@
 import { ROLES } from "@clovercoin/constants";
 import { TokenExpiredError } from "jsonwebtoken";
-import { Repository } from "typeorm";
+import { Repository, In } from "typeorm";
 import { ApplicationContext } from "../config/context/ApplicationContext";
 import { Role, LocalCredentials } from "../models";
 import { Component } from "../reflection/Component";
@@ -49,19 +49,26 @@ export class AuthenticationService {
    * @param password  - The password the user will authenticate with.
    * @return The new user
    */
-  async registerUser(principal: string, password: string) {
-    const defaultRolePromise = this.roleRepository.findOneOrFail({
-      name: ROLES.user
+  async registerUser(
+    principal: string,
+    password: string,
+    roles: (keyof typeof ROLES)[] = ["user"]
+  ) {
+    const rolePromise = this.roleRepository.find({
+      name: In(roles.map(r => ROLES[r]))
     });
     const hashPromise = this.passwordHashingService.hashPassword(password);
-    const [defaultRole, passwordHash] = await Promise.all([
-      defaultRolePromise,
+    const [rolesToAdd, passwordHash] = await Promise.all([
+      rolePromise,
       hashPromise
     ]);
+    if (rolesToAdd.length !== roles.length) {
+      throw new Error("Missing expected role.");
+    }
     return this.userRepository.createLocalUser({
       principal,
       passwordHash,
-      roles: [defaultRole]
+      roles: [...rolesToAdd]
     });
   }
 

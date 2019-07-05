@@ -50,7 +50,7 @@ export function roleLiteralSpec<T extends RoleLiteral>(
  */
 export function createDeferred<T = any>() {
   let resolve: (value?: T | PromiseLike<T>) => void;
-  let reject: (reason: any) => void;
+  let reject: (reason?: any) => void;
   const promise = new Promise<T>((res, rej) => {
     resolve = res;
     reject = rej;
@@ -129,6 +129,12 @@ export async function getRejectReason(promise: Promise<any>) {
     rejectReason = reason;
   }
   return rejectReason;
+}
+
+export function flushPromises() {
+  return new Promise(resolve => {
+    setImmediate(resolve);
+  });
 }
 
 /** Error indicating a test context was queried for an unknown dependency. */
