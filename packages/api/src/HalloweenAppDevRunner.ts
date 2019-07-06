@@ -17,6 +17,8 @@ export class HalloweenAppDevRunner {
    * @param [applicationOptions] Options for this application instance
    * @param [applicationOptions.envOverrides={}] A map of environment keys that
    *  will take precedence over process.env.
+   * @param [applicationOptions.scanPath] The path to scan for `@Component`
+   *  annotated exports. Defaults to a glob of all js files in ./dist (recursive)
    */
   async run(applicationOptions?: {
     envOverrides: Partial<ENV_VARS>;
