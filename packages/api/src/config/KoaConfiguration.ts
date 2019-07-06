@@ -1,4 +1,4 @@
-import { asClass } from "awilix";
+import { asClass, asValue } from "awilix";
 import * as BodyParser from "koa-bodyparser";
 import { AuthorizationMiddlewareFactory } from "../middlewares/AuthorizationMiddlewareFactory";
 import { CorsMiddlewareFactory } from "../middlewares/CorsMiddlewareFactory";
@@ -12,6 +12,7 @@ import {
   ApplicationContainer,
   ApplicationContext
 } from "./context/ApplicationContext";
+import { Server } from "http";
 
 @Component()
 export class KoaConfiguration {
@@ -22,7 +23,7 @@ export class KoaConfiguration {
   configure({
     routeComponentProcessor,
     container,
-    webserver,
+    koaInstance: webserver,
     envService
   }: ApplicationContext) {
     const webserverConfig = envService.getWebserverConfig();
@@ -85,7 +86,10 @@ export class KoaConfiguration {
     // controller.
     webserver.use(routerMiddleware);
     // start the webserver
-    webserver.listen(webserverConfig.port);
+    container.register(
+      "webserver",
+      asValue(webserver.listen(webserverConfig.port))
+    );
   }
 }
 
@@ -107,5 +111,7 @@ declare global {
   interface ApplicationContextMembers {
     /** Configuration class that starts the webserver listening */
     koaConfiguration: KoaConfiguration;
+    /** The actual http.Server instance for the app */
+    webserver: Server;
   }
 }

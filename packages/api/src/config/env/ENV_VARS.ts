@@ -2,7 +2,6 @@
  * This interface documents what environmental variables are utilized by the
  * application.
  */
-// tslint:disable-next-line
 export interface ENV_VARS {
   // ====================
   // ORM Configuration
@@ -25,7 +24,7 @@ export interface ENV_VARS {
   /** The database name. */
   cch2018_orm_database: string;
   /** True to synchronize (autogenerate schema) on connection. */
-  cch2018_orm_synchronize: boolean;
+  cch2018_orm_synchronize: string;
 
   // ====================
   // Token Configuration

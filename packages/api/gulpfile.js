@@ -13,6 +13,7 @@ const paths = {
       all: [
         "./src/**/*.ts",
         "!./**/*.spec.ts",
+        "!./**/*.ispec.ts",
         "!./src/test/**/*",
         "!./src/**/mocks/**"
       ]
@@ -24,30 +25,37 @@ const paths = {
       all: "./dist/**/*"
     }
   }
-}
+};
 gulp.task("clean", function() {
-  return del(paths.out.dev.all)
+  return del(paths.out.dev.all);
 });
-gulp.task("build", gulp.series("clean", function() {
+gulp.task(
+  "build",
+  gulp.series("clean", function() {
+    var tsResult = gulp
+      .src(paths.src.scripts.all)
+      .pipe(sourcemaps.init())
+      .pipe(tsProject());
 
-  var tsResult = gulp.src(paths.src.scripts.all)
-  .pipe(sourcemaps.init())
-  .pipe(tsProject());
-
-  return tsResult.js
-    .pipe(sourcemaps.write({
-      // Return relative source map root directories per file.
-      sourceRoot: function (file) {
-        var sourceFile = path.join(file.cwd, file.sourceMap.file);
-        return path.relative(path.dirname(sourceFile), file.cwd);
-      }
-    }))
-    .pipe(gulp.dest('./dist'));
-}));
+    return tsResult.js
+      .pipe(
+        sourcemaps.write({
+          // Return relative source map root directories per file.
+          sourceRoot: function(file) {
+            var sourceFile = path.join(file.cwd, file.sourceMap.file);
+            return path.relative(path.dirname(sourceFile), file.cwd);
+          }
+        })
+      )
+      .pipe(gulp.dest("./dist"));
+  })
+);
 
 let node;
 gulp.task("server", function(done) {
-  if (node) { node.kill(); }
+  if (node) {
+    node.kill();
+  }
   node = childProcess.spawn("node", ["dist/app.js"], {
     stdio: "inherit"
   });
@@ -56,7 +64,7 @@ gulp.task("server", function(done) {
 
 gulp.task("watch", function() {
   return gulp.watch(paths.src.scripts.all, gulp.series("build", "server"));
-})
+});
 
 gulp.task("serve", gulp.series("build", gulp.parallel("server", "watch")));
 
@@ -65,6 +73,5 @@ process.on("exit", function() {
     node.kill();
   }
 });
-
 
 gulp.task("run", gulp.series("build", "serve"));

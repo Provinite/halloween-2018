@@ -9,16 +9,35 @@ import { OrmContext } from "./config/context/OrmContext";
 import { WebserverContext } from "./config/context/WebserverContext";
 import { ENV_VARS } from "./config/env/ENV_VARS";
 import { EnvService } from "./config/env/EnvService";
-import { IHalloweenAppRunner } from "./IHalloweenAppRunner";
 import { ExportPathScanner } from "./reflection/ExportPathScanner";
 
-export class HalloweenAppDevRunner implements IHalloweenAppRunner {
-  async run(): Promise<void> {
+export class HalloweenAppDevRunner {
+  /**
+   * Run the application.
+   * @param [applicationOptions] Options for this application instance
+   * @param [applicationOptions.envOverrides={}] A map of environment keys that
+   *  will take precedence over process.env.
+   * @param [applicationOptions.scanPath] The path to scan for `@Component`
+   *  annotated exports. Defaults to a glob of all js files in ./dist (recursive)
+   */
+  async run(applicationOptions?: {
+    envOverrides: Partial<ENV_VARS>;
+    scanPath?: string;
+  }) {
+    applicationOptions = {
+      envOverrides: {},
+      scanPath: "./dist/**/*.js",
+      ...applicationOptions
+    };
+    const { envOverrides, scanPath } = applicationOptions;
     // Proof of concept: classpath scanning
-    const components = await ExportPathScanner.scan("./dist/**/*.js");
+    const components = await ExportPathScanner.scan(scanPath!);
 
     // Container configuration step
     const container = createApplicationContainer();
+
+    // Register env overrides for the envService
+    container.register("ENV_OVERRIDES", asValue(envOverrides));
 
     // Register the node environment for injection
     container.register("NODE_ENV", asValue(process.env));
@@ -44,7 +63,23 @@ export class HalloweenAppDevRunner implements IHalloweenAppRunner {
     // Hook up middlewares and start the webserver listening
     const koaConfiguration = container.resolve("koaConfiguration");
     container.build(koaConfiguration.configure);
+
+    return {
+      shutdown: () => {
+        container.build(({ orm, webserver }: ApplicationContext) => {
+          orm.close();
+          webserver.close();
+        });
+        container.dispose();
+      },
+      context: container.cradle
+    };
   }
+}
+
+export interface ApplicationInstance {
+  shutdown: () => void;
+  context: ApplicationContext;
 }
 
 declare global {
@@ -55,5 +90,7 @@ declare global {
     container: ContextContainer<ApplicationContext>;
     /** Service for interacting with the process env */
     envService: EnvService;
+    /** Environmental overrides to be applied over-top of NODE_ENV  */
+    ENV_OVERRIDES: Partial<ENV_VARS>;
   }
 }

@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`POST /login validates principal and password 1`] = `
+Object {
+  "error": "RequestValidationError",
+  "errors": Object {
+    "password": Object {
+      "message": "password must be a non empty string",
+      "pass": false,
+    },
+  },
+  "message": "Validation failed for field(s): password",
+  "status": 400,
+}
+`;
+
+exports[`POST /login validates principal and password 2`] = `
+Object {
+  "error": "RequestValidationError",
+  "errors": Object {
+    "password": Object {
+      "message": "password must be a non empty string",
+      "pass": false,
+    },
+    "principal": Object {
+      "message": "principal must be a non empty string",
+      "pass": false,
+    },
+  },
+  "message": "Validation failed for field(s): principal, password",
+  "status": 400,
+}
+`;

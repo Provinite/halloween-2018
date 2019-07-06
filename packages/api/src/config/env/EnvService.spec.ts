@@ -8,6 +8,7 @@ describe("EnvService", () => {
   /** Minimal environment, only includes required params */
   let NODE_ENV: Partial<ENV_VARS>;
   let context: ApplicationContext;
+  let ENV_OVERRIDES: typeof NODE_ENV;
   const requiredEnvVars: (keyof ENV_VARS)[] = [
     "cch2018_da_client_id",
     "cch2018_da_client_secret",
@@ -22,7 +23,8 @@ describe("EnvService", () => {
       cch2018_token_secret: "THEYAREEATINGHER",
       cch2018_da_redirect_uri: "http://yeet.me/outside?howbow=dat"
     };
-    context = createSafeContext({ NODE_ENV }) as any;
+    ENV_OVERRIDES = {};
+    context = createSafeContext({ NODE_ENV, ENV_OVERRIDES }) as any;
   });
   describe("construction", () => {
     it("does not throw with minimal environment", () => {
@@ -98,7 +100,7 @@ describe("EnvService", () => {
       NODE_ENV.cch2018_orm_host = "theHost";
       NODE_ENV.cch2018_orm_username = "theUsername";
       NODE_ENV.cch2018_orm_password = "thePassword";
-      NODE_ENV.cch2018_orm_synchronize = true;
+      NODE_ENV.cch2018_orm_synchronize = "true";
       NODE_ENV.cch2018_orm_port = "1337";
 
       const service = new EnvService(context);
@@ -110,7 +112,7 @@ describe("EnvService", () => {
         password: NODE_ENV.cch2018_orm_password,
         port: Number(NODE_ENV.cch2018_orm_port),
         type: expect.anything(), // covered by other test
-        synchronize: NODE_ENV.cch2018_orm_synchronize
+        synchronize: true
       };
       expect(config).toEqual(expectedConfig);
     });
