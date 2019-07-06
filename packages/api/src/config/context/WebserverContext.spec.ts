@@ -33,7 +33,7 @@ describe("context:Webserver", () => {
       expect(mockResolver.singleton).toHaveBeenCalledTimes(1);
       // it registers the result of .singleton()
       expect(context.container.register).toHaveBeenCalledWith(
-        "webserver",
+        "koaInstance",
         mockSingleton
       );
 

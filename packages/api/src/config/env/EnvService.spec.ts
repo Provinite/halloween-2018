@@ -8,6 +8,7 @@ describe("EnvService", () => {
   /** Minimal environment, only includes required params */
   let NODE_ENV: Partial<ENV_VARS>;
   let context: ApplicationContext;
+  let ENV_OVERRIDES: typeof NODE_ENV;
   const requiredEnvVars: (keyof ENV_VARS)[] = [
     "cch2018_da_client_id",
     "cch2018_da_client_secret",
@@ -22,7 +23,8 @@ describe("EnvService", () => {
       cch2018_token_secret: "THEYAREEATINGHER",
       cch2018_da_redirect_uri: "http://yeet.me/outside?howbow=dat"
     };
-    context = createSafeContext({ NODE_ENV }) as any;
+    ENV_OVERRIDES = {};
+    context = createSafeContext({ NODE_ENV, ENV_OVERRIDES }) as any;
   });
   describe("construction", () => {
     it("does not throw with minimal environment", () => {
