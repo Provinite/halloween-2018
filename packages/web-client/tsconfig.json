@@ -8,16 +8,9 @@
     "allowJs": true,
     "skipLibCheck": true,
     "noUnusedLocals": true,
-    "strictFunctionTypes": true,
-    "strictNullChecks": true
+    "strict": true
   },
-  "parserOptions": {
-
-  },
-  "include": [
-    "./src/**/*"
-  ],
-  "exclude": [
-    "./node_modules/**/*"
-  ]
+  "parserOptions": {},
+  "include": ["./src/**/*"],
+  "exclude": ["./node_modules/**/*"]
 }

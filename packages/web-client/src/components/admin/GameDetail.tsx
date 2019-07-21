@@ -42,7 +42,7 @@ export class GameDetailComponent extends Component<
   GameDetailState
 > {
   static contextType = AppContext;
-  context: IAppContext;
+  context!: IAppContext;
   readonly state: Readonly<GameDetailState> = {
     game: null,
     form: {

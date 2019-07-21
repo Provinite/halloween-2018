@@ -16,8 +16,8 @@ export class LoginPage extends React.Component<
   ILoginPageState
 > {
   static contextType = AppContext;
-  context: IAppContext;
-  constructor(props) {
+  context!: IAppContext;
+  constructor(props: ILoginPageProps) {
     super(props);
     this.state = {
       iconUrl: undefined,

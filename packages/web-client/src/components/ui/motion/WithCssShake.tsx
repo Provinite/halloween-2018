@@ -18,9 +18,10 @@ function makeFrames<T>(
   keyFrames: { [key: number]: T },
   transform: (value: T) => CSSProperties
 ) {
-  const result = {};
+  const safeFrames = (frames as any) as { [key: string]: T };
+  const result: { [key: string]: CSSProperties } = {};
   for (const percent of Object.keys(keyFrames)) {
-    result[`${percent}%`] = transform(frames[percent]);
+    result[`${percent}%`] = transform(safeFrames[percent]);
   }
   return result;
 }
@@ -31,7 +32,7 @@ const styles = createStyles({
   },
   "@keyframes cc-with-shake-frames": makeFrames(frames, v => ({
     transform: `translateX(${v}px)`
-  }))
+  })) as any
 });
 
 /**
@@ -48,7 +49,7 @@ export interface IWithCssShakeProps extends WithStyles<typeof styles> {
  * WithCssShake implementaation class.
  */
 class WithCssShakeImpl extends React.Component<IWithCssShakeProps> {
-  constructor(props) {
+  constructor(props: IWithCssShakeProps) {
     super(props);
 
     this.handleAnimationIteration = this.handleAnimationIteration.bind(this);

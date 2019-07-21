@@ -37,7 +37,7 @@ export class AdminUsersTab extends React.Component<
   IAdminUsersTabState
 > {
   static contextType = AppContext;
-  context: IAppContext;
+  context!: IAppContext;
 
   handleToggle = handlerFactory(
     (user: IUser, role: IRole, e?: React.ChangeEvent) => {
@@ -58,7 +58,7 @@ export class AdminUsersTab extends React.Component<
     }
   );
 
-  constructor(props) {
+  constructor(props: IAdminUsersTabProps) {
     super(props);
     this.state = {
       dialogOpen: false,
@@ -101,11 +101,12 @@ export class AdminUsersTab extends React.Component<
 
   render() {
     const { authenticationService } = this.context.services;
-    const isAdmin = user =>
+    const isAdmin = (user: IUser) =>
       authenticationService.hasNamedRole(user, ROLES.admin);
-    const isMod = user =>
+    const isMod = (user: IUser) =>
       authenticationService.hasNamedRole(user, ROLES.moderator);
-    const isUser = user => authenticationService.hasNamedRole(user, ROLES.user);
+    const isUser = (user: IUser) =>
+      authenticationService.hasNamedRole(user, ROLES.user);
     return (
       <>
         <WithMuiTheme>

@@ -15,7 +15,7 @@ export class SplashPage extends React.Component<
   ISplashPageProps,
   ISplashPageState
 > {
-  constructor(props) {
+  constructor(props: ISplashPageProps) {
     super(props);
     this.state = {
       transitioning: false
@@ -24,7 +24,7 @@ export class SplashPage extends React.Component<
     this.handleTransitionEnd = this.handleTransitionEnd.bind(this);
   }
 
-  componentDidUpdate(prevProps): void {
+  componentDidUpdate(prevProps: ISplashPageProps): void {
     if (!this.props.show && this.props.show !== prevProps.show) {
       this.close();
     }

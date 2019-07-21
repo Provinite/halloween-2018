@@ -15,7 +15,7 @@ interface IAdminPrizeTabProps {
  * Component that presents a list and edit controls for prizes.
  */
 export class AdminPrizeTab extends React.Component<IAdminPrizeTabProps> {
-  constructor(props) {
+  constructor(props: IAdminPrizeTabProps) {
     super(props);
   }
 
@@ -41,12 +41,12 @@ export class AdminPrizeTab extends React.Component<IAdminPrizeTabProps> {
                   style={{ marginTop: spacing.unit }}
                 >
                   {/* tslint:disable */}
-                Manage prizes for the event here. Weights are used to determine
-                the relative odds of a particular prize being chosen. For
-                example, a prize with a weight of 0.5 and a stock
-                of 100 will be equally likely to be given out as a
-                prize with a stock of 200 and a weight of 1.0.
-                {/* tslint:enable */}
+                  Manage prizes for the event here. Weights are used to
+                  determine the relative odds of a particular prize being
+                  chosen. For example, a prize with a weight of 0.5 and a stock
+                  of 100 will be equally likely to be given out as a prize with
+                  a stock of 200 and a weight of 1.0.
+                  {/* tslint:enable */}
                 </Typography>
               </div>
             );

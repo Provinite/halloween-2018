@@ -11,6 +11,7 @@ import { SelectProps } from "@material-ui/core/Select";
 import * as React from "react";
 import { IGame } from "../../models/IGame";
 import { AppContext, IAppContext } from "../AppContext";
+import { ChangeEvent } from "react";
 
 interface IState {
   games: IGame[];
@@ -25,7 +26,7 @@ interface IGameDropDownProps
 
 export class GameDropDown extends React.Component<IGameDropDownProps, IState> {
   static contextType = AppContext;
-  context: IAppContext;
+  context!: IAppContext;
   readonly state: IState = {
     games: []
   };
@@ -41,9 +42,9 @@ export class GameDropDown extends React.Component<IGameDropDownProps, IState> {
   /**
    * Handle change events from the select.
    */
-  handleChange = e => {
+  handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
     // get the game and notify parent
-    const game = this.state.games.find(g => g.id === e.target.value);
+    const game = this.state.games.find(g => g.id === Number(e.target.value));
     this.props.onChange(game!);
   };
   render() {

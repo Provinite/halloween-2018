@@ -56,7 +56,7 @@ export default class HalloweenApp extends React.Component<
   errorQueue: string[] = [];
 
   /** Lifecycle */
-  constructor(props) {
+  constructor(props: HalloweenApp["props"]) {
     super(props);
 
     this.handleSplashHide = this.handleSplashHide.bind(this);
@@ -155,7 +155,7 @@ export default class HalloweenApp extends React.Component<
   /**
    * Close the error snackbar.
    */
-  handleErrorClose(event, reason: string) {
+  handleErrorClose(event: any, reason: string) {
     if (reason === "clickaway") {
       return;
     }
@@ -270,7 +270,7 @@ export default class HalloweenApp extends React.Component<
           >
             {this.state.error.currentError}
           </ErrorSnackbar>
-          {splash}
+          {splash || <></>}
           <Switch key="cc-route-switch">
             <Route path="/login" component={LoginPage} />
             <Route path="/admin" component={AdminPage} />

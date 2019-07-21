@@ -62,9 +62,9 @@ export class AdminPage extends React.Component<
   IAdminPageState
 > {
   static contextType = AppContext;
-  context: IAppContext;
+  context!: IAppContext;
 
-  private historyUnregisterCallback: UnregisterCallback | null;
+  private historyUnregisterCallback!: UnregisterCallback | null;
 
   constructor(props: IAdminPageProps) {
     super(props);
@@ -92,7 +92,7 @@ export class AdminPage extends React.Component<
    * Update the selected tab when one is selected.
    * @param selectedTab - The new selected tab.
    */
-  handleTabSelect = (_, nextTab: number) => {
+  handleTabSelect = (_: any, nextTab: number) => {
     this.switchToTab(nextTab);
   };
 
@@ -188,7 +188,7 @@ export class AdminPage extends React.Component<
    * Fetch prizes and update the state.
    */
   async loadPrizes() {
-    const loadingPrizes = prevState => ({
+    const loadingPrizes = (prevState: IAdminPageState) => ({
       prizes: {
         ...prevState.prizes,
         loading: true
@@ -214,7 +214,7 @@ export class AdminPage extends React.Component<
    * Fetch users and update the state.
    */
   async loadUsers() {
-    const loadingUsers = prevState => ({
+    const loadingUsers = (prevState: IAdminPageState) => ({
       users: {
         ...prevState.users,
         loading: true

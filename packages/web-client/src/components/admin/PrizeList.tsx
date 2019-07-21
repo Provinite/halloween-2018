@@ -68,7 +68,7 @@ export class PrizeList extends React.Component<
 
   private formRef: React.RefObject<HTMLFormElement>;
 
-  constructor(props) {
+  constructor(props: IPrizeListProps) {
     super(props);
     /** Refs */
     this.formRef = React.createRef();
