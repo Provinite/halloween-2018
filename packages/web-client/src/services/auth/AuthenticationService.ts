@@ -9,7 +9,7 @@ interface IAuthResult {
   iconUrl: string;
   token: string;
   username: string;
-  uuid: string;
+  id: number;
 }
 export class AuthenticationService {
   private apiClient: ApiClient;

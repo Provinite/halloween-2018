@@ -14,11 +14,13 @@ import * as _env from "../settings.env.json";
 import { IEnvConfig } from "../types/IEnvConfig";
 import { AdminPage } from "./admin/AdminPage";
 import { AppContext, IAppContext } from "./AppContext";
-import { LoginLink } from "./login/LoginLink";
-import { LoginPage } from "./login/LoginPage";
+import { LoginPage } from "./public/LoginPage";
 import { SplashPage } from "./SplashPage";
 import { ConfiguredTheme } from "./ui/ConfiguredTheme";
 import { ErrorSnackbar } from "./ui/ErrorSnackbar";
+import { IndexPage } from "./public/IndexPage";
+import { GameLandingPage } from "./public/GameLandingPage";
+import { isAxiosError } from "../utils/Utils";
 
 const apiBase = process.env.cch2018_api_base;
 
@@ -209,7 +211,7 @@ export default class HalloweenApp extends React.Component<
    */
   handleApiError(error: any): void {
     let errorMessage: string | null = "" + (error && error.toString());
-    if (error && error.response && error.response.data) {
+    if (isAxiosError(error) && error.response) {
       const response = error.response.data;
       if (response.message) {
         errorMessage = response.message;
@@ -221,12 +223,15 @@ export default class HalloweenApp extends React.Component<
           );
           errorMessage = null;
         }
+      } else if (response.error === "ResourceNotFoundError") {
+        errorMessage = "Not found";
       }
     }
     // tslint:disable
     console.log("*************************");
     console.log("*        API Error      *");
     console.log("*************************");
+
     console.log(error);
     // tslint:enable
     if (errorMessage) {
@@ -272,11 +277,10 @@ export default class HalloweenApp extends React.Component<
           </ErrorSnackbar>
           {splash || <></>}
           <Switch key="cc-route-switch">
-            <Route path="/login" component={LoginPage} />
+            <Route path="/login" exact component={LoginPage} />
             <Route path="/admin" component={AdminPage} />
-            <Route path="/">
-              <LoginLink>Log In</LoginLink>
-            </Route>
+            <Route path="/game/:gameId" component={GameLandingPage} />
+            <Route path="/" exact component={IndexPage} />
             <Route>
               <Redirect to="/splash" />
             </Route>
