@@ -20,11 +20,22 @@ export class AuthenticationService {
    * Forget the current user's credentials
    */
   logout() {
-    LocalStorageService.remove("username");
-    LocalStorageService.remove("token");
-    LocalStorageService.remove("iconUrl");
-    LocalStorageService.remove("uuid");
+    this.clearUserDetails();
     this.apiClient.unsetToken();
+  }
+
+  async loginWithLocalCredentials(
+    principal: string,
+    password: string
+  ): Promise<IAuthResult> {
+    const loginResponse = await this.apiClient.post("login", {
+      principal,
+      password
+    });
+    const token = loginResponse.data.token;
+    this.apiClient.setToken(token);
+    const userResponse = await this.apiClient.get("whoami");
+    return { ...this.storeUserDetails(userResponse.data), token };
   }
   /**
    * Authenticate with the given oauth authcode. Updates the api client's
@@ -54,25 +65,7 @@ export class AuthenticationService {
       this.apiClient.unsetToken();
       throw new AuthenticationError("Session expired.");
     }
-    const { data } = userResponse;
-    if (!data.displayName || !data.id || !data.iconUrl) {
-      throw new Error("Unexpected response to identity query.");
-    }
-    const {
-      displayName: username,
-      deviantartUuid: uuid,
-      iconUrl
-    } = userResponse.data;
-    LocalStorageService.put("username", username);
-    LocalStorageService.put("token", token);
-    LocalStorageService.put("iconUrl", iconUrl);
-    LocalStorageService.put("uuid", uuid);
-    return {
-      iconUrl,
-      token,
-      username,
-      uuid
-    };
+    return { ...this.storeUserDetails(userResponse.data), token };
   }
 
   /**
@@ -96,6 +89,28 @@ export class AuthenticationService {
    */
   isAdminRole(role: IRole) {
     return role.name === ROLES.admin;
+  }
+
+  private clearUserDetails() {
+    LocalStorageService.remove("username");
+    LocalStorageService.remove("token");
+    LocalStorageService.remove("iconUrl");
+    LocalStorageService.remove("userid");
+  }
+
+  private storeUserDetails(user: IUser) {
+    if (!user.displayName || !user.hasOwnProperty("iconUrl") || !user.id) {
+      throw new Error("Unexpected response to identity query.");
+    }
+    const { displayName: username, id, iconUrl } = user;
+    LocalStorageService.put("username", username);
+    LocalStorageService.put("iconUrl", iconUrl || "");
+    LocalStorageService.put("userid", id);
+    return {
+      iconUrl: iconUrl || "",
+      username,
+      id
+    };
   }
 }
 
