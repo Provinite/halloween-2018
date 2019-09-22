@@ -139,12 +139,14 @@ describe("EnvService", () => {
       expect(config).toEqual(expectedConfig);
     });
     it.each([
-      "mysql://user:password@dbhost.domain:6632/database",
-      "postgres://:password@somedb.host:1030/db",
-      "postgres://username@somedb.host:1030/db",
-      "postgres://username:password@:1030/db",
-      "postgres://username:password@somedb.host/db",
-      "postgres://username:password@somedb.host:3306"
+      "mysql://user:password@dbhost.domain:6632/database", // not postgres
+      "postgres://:password@somedb.host:1030/db", // missing username
+      "postgres://username@somedb.host:1030/db", // missing `:password`
+      "postgres://username:password@:1030/db", // missing hostname
+      "postgres://username:password@somedb.host/db", // missing port
+      "postgres://username:password@somedb.host:3306", // missing db
+      "foo",
+      "foo@example.com"
     ])("throws on invalid postgres url: %p", databaseUrl => {
       NODE_ENV.DATABASE_URL = databaseUrl;
       const createService = () => new EnvService(context);
