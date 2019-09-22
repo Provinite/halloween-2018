@@ -8,12 +8,12 @@ describe("POST /login", () => {
   let user: User;
   const password = "password";
   beforeAll(async () => {
-    user = await createTestUser(password, ["user"]);
+    user = await createTestUser({ password });
   });
   const endpoint = "/login";
   it("returns a JWT on success", async () => {
     const body = {
-      principal: "username",
+      principal: user.displayName,
       password: "password"
     };
     const result = await testApi()
