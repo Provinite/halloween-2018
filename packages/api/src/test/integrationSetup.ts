@@ -44,7 +44,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (global.testAppInstance) {
-    global.testAppInstance.shutdown();
+    await global.testAppInstance.shutdown();
   }
 });
 

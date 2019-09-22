@@ -65,12 +65,11 @@ export class HalloweenAppDevRunner {
     container.build(koaConfiguration.configure);
 
     return {
-      shutdown: () => {
-        container.build(({ orm, webserver }: ApplicationContext) => {
-          orm.close();
-          webserver.close();
+      shutdown: async () => {
+        await container.build(({ orm, webserver }: ApplicationContext) => {
+          return Promise.all([orm.close(), webserver.close()]);
         });
-        container.dispose();
+        await container.dispose();
       },
       context: container.cradle
     };
@@ -78,7 +77,7 @@ export class HalloweenAppDevRunner {
 }
 
 export interface ApplicationInstance {
-  shutdown: () => void;
+  shutdown: () => Promise<void>;
   context: ApplicationContext;
 }
 
