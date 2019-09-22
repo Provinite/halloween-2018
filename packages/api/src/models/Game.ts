@@ -23,11 +23,11 @@ export class Game {
   contact!: string;
 
   /** Datetime at which the game opens. */
-  @Column({ type: "time without time zone", nullable: true })
+  @Column({ type: "timestamp without time zone", nullable: true })
   startDate: Date | null = null;
 
   /** Datetime at which the game closes. */
-  @Column({ type: "time without time zone", nullable: true })
+  @Column({ type: "timestamp without time zone", nullable: true })
   endDate: Date | null = null;
 
   /**
