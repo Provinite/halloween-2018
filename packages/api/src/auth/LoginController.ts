@@ -6,7 +6,6 @@ import { Route } from "../reflection/Route";
 import { AuthenticationService } from "./AuthenticationService";
 import { validateRequest, validators } from "../web/RequestValidationUtils";
 import { BadRequestError } from "../web/BadRequestError";
-import { ApplicationContext } from "../config/context/ApplicationContext";
 
 @Component()
 export class LoginController {
