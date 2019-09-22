@@ -102,7 +102,11 @@ export class GameController {
    * Fetch a single game.
    * @inject
    */
-  @Route({ route: "/games/{gameId}", roles: ["user"], method: HttpMethod.GET })
+  @Route({
+    route: "/games/{gameId}",
+    roles: ["public"],
+    method: HttpMethod.GET
+  })
   async getGame({
     game,
     gameAuthorizationService
