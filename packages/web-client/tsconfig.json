@@ -11,6 +11,7 @@
     "strict": true
   },
   "parserOptions": {},
-  "include": ["./src/**/*"],
+
+  "include": ["./src/**/*", "./src/**.*.scss"],
   "exclude": ["./node_modules/**/*"]
 }

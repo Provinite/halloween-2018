@@ -1,16 +1,19 @@
 @function staticLink($url) {
-  @return '../static/' + $url;
+  @return "../static/" + $url;
 }
 
 @function staticUrl($url) {
   @return url(staticLink($url));
 }
 
+@import "./components/ui/ui.scss";
+
 span.app-name {
   color: blue;
 }
 
-body, html {
+body,
+html {
   width: 100%;
   min-height: 100%;
   height: 100%;

@@ -266,6 +266,7 @@ export default class HalloweenApp extends React.Component<
     }
     return (
       <AppContext.Provider value={this.state.context}>
+        <base href={process.env.cch2018_wc_base} />
         <ConfiguredTheme>
           <ErrorSnackbar
             open={this.state.error.open}

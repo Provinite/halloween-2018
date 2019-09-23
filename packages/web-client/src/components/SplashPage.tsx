@@ -1,4 +1,5 @@
 import * as React from "react";
+import "./SplashPage.scss";
 interface ISplashPageProps {
   show: boolean;
   onHide: () => void;

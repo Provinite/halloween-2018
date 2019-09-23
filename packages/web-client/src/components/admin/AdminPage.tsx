@@ -16,6 +16,8 @@ import { AdminGameTab } from "./AdminGameTab";
 import { AdminPrizeTab } from "./AdminPrizeTab";
 import { AdminUsersTab } from "./AdminUsersTab";
 
+import "./AdminPage.scss";
+
 const paths = ["/admin/prizes", "/admin/accounts", "/admin/games"];
 /**
  * Props for the admin page component.
