@@ -152,6 +152,7 @@ function parseBodyForCreate(requestBody: any) {
     name: validators.string,
     description: validators.string,
     contact: validators.string,
+    mainImageUrl: validators.nonEmptyString,
     startDate: validators.optional.dateString,
     endDate: validators.optional.dateString,
     drawResetSchedule: validators.optional.string,

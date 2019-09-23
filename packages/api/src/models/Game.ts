@@ -67,4 +67,10 @@ export class Game {
     type: "double precision"
   })
   winRate!: number;
+
+  /**
+   * URL for main splash image
+   */
+  @Column({ nullable: false, default: "" })
+  mainImageUrl!: string;
 }

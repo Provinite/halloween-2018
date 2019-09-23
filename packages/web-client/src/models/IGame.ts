@@ -8,6 +8,8 @@ export interface IGame {
   description: string;
   /** Contact information for the game owner. */
   contact: string;
+  /** Main splash image URL */
+  mainImageUrl: string;
   /** Start date for the game */
   startDate: string | null;
   /** End date for the game */
