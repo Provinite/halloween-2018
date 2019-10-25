@@ -7,6 +7,8 @@ import { validateValue, validators } from "../../web/RequestValidationUtils";
 import { DrawEvent } from "../DrawEvent";
 import { NoPrizesInStockError } from "../prize/NoPrizesInStockError";
 import { rollWin } from "./DrawEventUtils";
+import { DrawRateLimitExceededError } from "./DrawRateLimitExceededError";
+import moment = require("moment");
 @Component()
 export class DrawController {
   /** @inject */
@@ -113,12 +115,11 @@ export class DrawController {
    * @param userId - The ID of the user to get draws for.
    */
   @Route({
-    route: "/user/{userId}/draws",
+    route: "/users/{userId}/draws",
     method: HttpMethod.GET,
     roles: ["user"]
   })
   async getDraws({
-    user,
     pathVariables: { userId },
     drawEventRepository,
     drawEventAuthorizationService
@@ -127,4 +128,51 @@ export class DrawController {
     await drawEventAuthorizationService.canReadMultiple(filter);
     return await drawEventRepository.find(filter);
   }
+
+  @Route({
+    route: "/games/{gameId}/can-draw",
+    method: HttpMethod.GET,
+    roles: ["user"]
+  })
+  async getNextDrawTime({
+    pathVariables: { gameId },
+    drawEventAuthorizationService,
+    gameRepository,
+    user
+  }: RequestContext): Promise<NextDrawTimeResponse> {
+    if (!user) {
+      throw new Error("User required");
+    }
+    const response: NextDrawTimeResponse = {
+      canDraw: false
+    };
+
+    try {
+      // fetch the game
+      const game = await gameRepository.findOneOrFail(gameId);
+
+      // auth a prize draw
+      await drawEventAuthorizationService.canCreate({
+        user,
+        game
+      });
+      response.canDraw = true;
+    } catch (e) {
+      response.canDraw = false;
+      if (e instanceof DrawRateLimitExceededError) {
+        response.tryAgainInSeconds = moment(e.tryAgainAt).diff(
+          moment(),
+          "seconds"
+        );
+        response.tryAgainAt = e.tryAgainAt;
+      }
+    }
+    return response;
+  }
+}
+
+interface NextDrawTimeResponse {
+  canDraw: boolean;
+  tryAgainInSeconds?: number;
+  tryAgainAt?: Date;
 }

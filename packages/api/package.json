@@ -65,6 +65,7 @@
     "pg": "^7.4.3",
     "source-map-support": "^0.5.9",
     "typeorm": "^0.2.7",
-    "winston": "^3.1.0"
+    "winston": "^3.1.0",
+    "cron-parser": "^2.13.0"
   }
 }

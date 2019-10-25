@@ -7,6 +7,7 @@ import { GameService } from "../services/GameService";
 import { PrizeService } from "../services/PrizeService";
 import { RoleService } from "../services/RoleService";
 import { UserService } from "../services/UserService";
+import { IUser } from "../models/IUser";
 export interface IAppContext {
   services: {
     apiClient: ApiClient;
@@ -16,6 +17,7 @@ export interface IAppContext {
     roleService: RoleService;
     gameService: GameService;
   };
+  user: IUser | null;
   roles: Record<keyof typeof ROLES, IRole>;
   onApiError: (error: any) => void;
   onSuccess: (message: string) => void;

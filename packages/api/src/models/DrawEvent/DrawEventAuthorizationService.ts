@@ -1,16 +1,16 @@
 import { PartialExcept } from "@clovercoin/constants";
-import { addSeconds, differenceInSeconds } from "date-fns";
 import { FindManyOptions } from "typeorm";
 import { hasRole } from "../../auth/AuthHelpers";
 import { PermissionDeniedError } from "../../auth/PermissionDeniedError";
 import { ContainerAware, MakeContainerAware } from "../../AwilixHelpers";
 import { RequestContext } from "../../config/context/RequestContext";
 import { Component } from "../../reflection/Component";
-import { getCurrentTime } from "../../TimeUtils";
 import { DrawEvent } from "../DrawEvent";
 import { DrawEventRepository } from "./DrawEventRepository";
 import { DrawRateLimitExceededError } from "./DrawRateLimitExceededError";
 import { RequestUser } from "../../middlewares/AuthorizationMiddlewareFactory";
+import * as cronParser from "cron-parser";
+import moment = require("moment");
 /**
  * @class DrawEventAuthorizationService
  * Service for authorizing users to perform operations on DrawEvent models.
@@ -46,24 +46,26 @@ export class DrawEventAuthorizationService {
     if (!createEvent.user || createEvent.user.id !== user.id) {
       throw new PermissionDeniedError();
     }
-    // admins don't have to wait
-    // TODOD: remove this
-    if (hasRole(user, "admin")) {
-      return true;
-    }
     // draws must be separated by 30 seconds
     // TODO: draws must be separated by the configured game time not 30 seconds
     const lastDraw = await this.drawEventRepository.getLastDrawEvent(
       user,
       createEvent.game
     );
-    const lastDrawTime = lastDraw ? lastDraw.createDate : undefined;
-    if (
-      lastDrawTime !== undefined &&
-      differenceInSeconds(getCurrentTime(), lastDrawTime) < 30
-    ) {
-      const tryAgainAt = addSeconds(lastDrawTime, 30);
-      throw new DrawRateLimitExceededError(tryAgainAt);
+    if (!lastDraw) {
+      // never drawn before on this game
+      return true;
+    }
+    const lastDrawTime = lastDraw.createDate;
+
+    const { drawResetSchedule } = createEvent.game;
+    const cronExpression = cronParser.parseExpression(drawResetSchedule);
+    const lastReset = moment(cronExpression.prev().toISOString());
+    const nextReset = moment(cronExpression.next().toISOString());
+
+    if (lastReset.isBefore(lastDrawTime)) {
+      // alreaedy drew this reset
+      throw new DrawRateLimitExceededError(nextReset.toDate());
     }
     return true;
   }

@@ -89,6 +89,7 @@ export default class HalloweenApp extends React.Component<
       },
       onApiError: this.handleApiError,
       onSuccess: this.handleSuccess,
+      user: null,
       roles: {
         admin: null!,
         moderator: null!,
@@ -152,7 +153,11 @@ export default class HalloweenApp extends React.Component<
   /**
    * Handler for logout events. Sends the user back to the login page.
    */
-  handleAuthLogout = () => this.props.history.push("/login");
+  handleAuthLogout = () => {
+    this.state.context.user = null;
+    this.state.context.services.authenticationService.logout();
+    this.props.history.push("/login");
+  };
 
   /**
    * Close the error snackbar.

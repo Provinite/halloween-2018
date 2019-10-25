@@ -12,13 +12,17 @@ import {
   withStyles
 } from "@material-ui/core";
 import classNames = require("classnames");
+import { CountDown } from "./draw/CountDown";
 type GameLandingPageClasses =
   | "container"
   | "flexRow"
   | "flexColumn"
   | "logoImage"
   | "mainHeader"
-  | "gameImage";
+  | "topBar"
+  | "gameImage"
+  | "gameName"
+  | "gameImageContainer";
 export interface GameLandingPageProps
   extends StyledComponentProps<GameLandingPageClasses>,
     RouteComponentProps<{ gameId: string }> {}
@@ -46,23 +50,19 @@ export const GameLandingPageComponent: FunctionComponent<
   }
   return (
     <div className={classNames(classes.flexColumn, classes.container)}>
-      <div className={classes.flexRow}>
+      {/* CloverCoin Logo */}
+      <div className={classes.topBar}>
         <img
-          src={image({
-            size: 128,
-            backgroundColor: "FCE896",
-            textColor: "000000",
-            text: "CloverCoin"
-          })}
+          src="https://www.clovercoin.com/assets/img/banner_cc_10.png"
           className={classes.logoImage}
         />
-        <h1 className={classes.mainHeader}>CloverCoin Presents</h1>
       </div>
+      {/* Game Splash Image */}
       <div
-        className={classNames(classes.flexColumn, classes.gameImage)}
-        style={{ backgroundImage: cssUrl(game.mainImageUrl) }}
+        className={classNames(classes.flexColumn, classes.gameImageContainer)}
       >
-        <h2>{game.name}</h2>
+        <img src={game.mainImageUrl} className={classes.gameImage} />
+        <h2 className={classes.gameName}>{game.name}</h2>
       </div>
       <h2>Welcome!</h2>
       <p>{game.description}</p>
@@ -73,6 +73,7 @@ export const GameLandingPageComponent: FunctionComponent<
 
 const styles: StyleRulesCallback<GameLandingPageClasses> = theme => ({
   container: {
+    fontFamily: "'Roboto', sans-serif",
     margin: "0 auto",
     width: "100%",
     maxWidth: "1024px",
@@ -89,11 +90,35 @@ const styles: StyleRulesCallback<GameLandingPageClasses> = theme => ({
     alignItems: "center",
     position: "relative"
   },
+  topBar: {
+    backgroundColor: "#272932",
+    alignSelf: "stretch"
+  },
   logoImage: {
-    borderRadius: "50%"
+    alignSelf: "flex-start"
   },
   mainHeader: {},
-  gameImage: {}
+  gameImage: {
+    width: "100%"
+  },
+  gameName: {
+    position: "absolute",
+    bottom: "0",
+    padding: "1rem 1rem 1rem",
+    margin: 0,
+    fontSize: "2rem",
+    background: "linear-gradient(rgba(0,0,0,0.1), black)",
+    color: "white",
+    boxShadow:
+      "0 12px 17px 2px rgba(0,0,0,0.14), 0 5px 22px 4px rgba(0,0,0,0.12), 0 7px 8px -4px rgba(0,0,0,0.20)",
+    fontWeight: 500,
+    display: "block",
+    width: "100%"
+  },
+  gameImageContainer: {
+    width: "100%",
+    position: "relative"
+  }
 });
 
 export function cssUrl(url: string) {
