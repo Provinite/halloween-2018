@@ -63,7 +63,7 @@
     "@types/classnames": "^2.2.6",
     "@types/node": "^10.12.9",
     "@types/react-motion": "^0.0.27",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "classnames": "^2.2.6",
     "fast-memoize": "^2.5.1",
     "gulp-replace": "^1.0.0",
